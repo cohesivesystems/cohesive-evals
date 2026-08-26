@@ -1,7 +1,6 @@
 # Cohesive.Relations evaluation protocol v0
 
-Status: protocol draft for the first pilot. This document must be reviewed and
-frozen before implementing or running the pilot. Any rule changed afterward
+Status: frozen for the v0 pilot on 2026-08-26. Any rule changed afterward
 requires a new protocol version and must not be applied retroactively.
 
 ## Research question
