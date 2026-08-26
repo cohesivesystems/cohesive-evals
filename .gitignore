@@ -40,6 +40,8 @@ bld/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+**/.local/share/NuGet/
+**/Library/Application Support/Microsoft/DeveloperTools/
 
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
@@ -48,6 +50,11 @@ ScaffoldingReadMe.txt
 *.nupkg
 # NuGet Symbol Packages
 *.snupkg
+
+# The Cohesive condition is self-contained and intentionally vendors the two
+# immutable packages built from its pinned Cohesive source revision.
+!relations/cases/load-search-mapping/conditions/cohesive/packages/
+!relations/cases/load-search-mapping/conditions/cohesive/packages/*.nupkg
 
 # dotenv environment variables file
 .env

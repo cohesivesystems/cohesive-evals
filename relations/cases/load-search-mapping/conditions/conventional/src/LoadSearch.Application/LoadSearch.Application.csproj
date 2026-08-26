@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>LoadSearch.Application</AssemblyName>
+    <RootNamespace>LoadSearch.Application</RootNamespace>
+  </PropertyGroup>
+</Project>

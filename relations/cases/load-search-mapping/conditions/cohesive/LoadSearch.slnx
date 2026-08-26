@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/LoadSearch.Application/LoadSearch.Application.csproj" />
+  <Project Path="tests/LoadSearch.Application.Tests/LoadSearch.Application.Tests.csproj" />
+  <Project Path="tools/LoadSearch.Probe/LoadSearch.Probe.csproj" />
+</Solution>

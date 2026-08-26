@@ -19,9 +19,10 @@ relations/
 ├── cases/
 │   └── load-search-mapping/
 │       ├── README.md
-│       └── conditions/
-│           ├── conventional/
-│           └── cohesive/
+│       ├── conditions/
+│       │   ├── conventional/
+│       │   └── cohesive/
+│       └── equivalence/
 ├── oracle/
 ├── runner/
 └── results/
@@ -31,16 +32,18 @@ relations/
   pilot before any evaluated run is performed.
 - [`relations/cases/load-search-mapping/README.md`](relations/cases/load-search-mapping/README.md)
   specifies the application case, first task, and observable obligations.
-- `conditions/` will contain the matched conventional and Cohesive starting
-  repositories.
+- `conditions/` contains the independently buildable conventional and Cohesive
+  starting repositories.
+- `equivalence/` contains maintainer checks that enforce matching public
+  surfaces and normalized baseline behavior.
 - `oracle/` is maintainer-only evaluation material. It must never be copied
   into an agent workspace.
 - `runner/` will contain orchestration and scoring code.
 - `results/` will contain immutable evidence from evaluation runs.
 
-Only the protocol and case specification are implemented in this revision.
-The condition applications, tests, oracle, runner, and run results are deferred
-so their implementation cannot silently define experimental policy.
+The v0 protocol is frozen and the two baseline conditions are implemented. The
+private task oracle, runner, and run results remain deferred; they will be added
+without changing the frozen experimental policy.
 
 ## Working principles
 

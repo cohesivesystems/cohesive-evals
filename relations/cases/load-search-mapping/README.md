@@ -10,7 +10,7 @@ design of either condition or reveal future hidden fixtures and checks.
 
 ## Application boundary
 
-Both future condition repositories must expose the same neutral application
+Both condition repositories expose the same neutral application
 boundary and equivalent contracts. The conceptual input is:
 
 ```text
@@ -37,9 +37,9 @@ LoadSearchResult
   EquipmentNumber
 ```
 
-The concrete C# namespace, assembly, and public adapter will be fixed when the
-matched baselines are implemented and must be identical across conditions so a
-shared oracle can exercise both without representation-specific branches.
+The concrete C# namespace, assembly, and public adapter are identical across
+conditions so a shared oracle can exercise both without representation-specific
+branches.
 
 The case includes a customer-only downstream consumer of search results. Its
 output depends on `LoadId` and `CustomerName`, not Equipment. Both implementations
@@ -66,7 +66,7 @@ The exact diagnostic prose may differ between conditions. The success/failure
 classification, relationship named by a failure, result values, identity,
 cardinality, and order may not differ.
 
-Before admission to the pilot, a shared maintainer suite will run identical
+For admission to the pilot, the shared maintainer suite runs identical
 complete, absent-relation, and dangling-relation inputs against both baselines.
 Normalized observable results must match. The baselines must also pass manual
 review for idiomatic implementation and comparable visible guidance.
@@ -126,18 +126,32 @@ Treatment integrity is reported separately from the public obligations:
 These checks provide no additional correctness credit. They establish whether a
 run is evidence about the condition it was assigned.
 
-## Planned condition layout
+## Baseline layout
 
 ```text
 conditions/
-├── conventional/   # idiomatic C# baseline; implemented in a later issue
-└── cohesive/       # matched Cohesive.Relations baseline; implemented later
+├── conventional/   # idiomatic C# baseline
+└── cohesive/       # matched Cohesive.Relations baseline
+
+equivalence/
+└── LoadSearch.BaselineEquivalence.Tests/
 ```
 
-The matched repositories, public adapter, visible tests, dependency versions,
-and baseline-equivalence suite are intentionally not implemented by this issue.
-The private oracle, runner, and results also live outside the condition folders
-and must never be copied into an agent workspace.
+Both condition directories are independently buildable workspaces with the same
+application assembly name, namespace, contracts, visible tests, and deterministic
+probe. The maintainer-only equivalence project verifies byte-identical shared
+surfaces and compares normalized behavior across both processes.
+
+Run the complete baseline verification from this repository with:
+
+```bash
+(cd relations/cases/load-search-mapping/conditions/conventional && dotnet restore LoadSearch.slnx --locked-mode && dotnet build LoadSearch.slnx --no-restore)
+(cd relations/cases/load-search-mapping/conditions/cohesive && dotnet restore LoadSearch.slnx --locked-mode && dotnet build LoadSearch.slnx --no-restore)
+dotnet test relations/cases/load-search-mapping/equivalence/LoadSearch.BaselineEquivalence.Tests/LoadSearch.BaselineEquivalence.Tests.csproj
+```
+
+The private task oracle, runner, and results remain outside the condition
+folders and must never be copied into an agent workspace.
 
 ## Out of scope for this case version
 
