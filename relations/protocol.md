@@ -8,8 +8,9 @@ or evaluated runs have occurred. The frozen v0 text remains preserved at commit
 
 Relative to frozen v0, this candidate:
 
-- freezes the oracle-facing contract and classifies submission-authored adapter
-  compile failures as valid incomplete outcomes;
+- defines the exact public API that hidden checks may use and treats an agent's
+  incompatible API change as a valid but incomplete result, rather than
+  discarding the run as a harness failure;
 - makes visible-test success an explicit completion gate;
 - names model familiarity and task-selection bias, requires baseline provenance
   and independent conventional review, and audits package documentation hints;
@@ -48,6 +49,14 @@ not designed or powered to establish that Cohesive is generally more effective.
   them may be hidden.
 - **Oracle**: maintainer-only executable checks and their mapping to obligations.
   The oracle evaluates the final repository but does not instruct the agent.
+- **Freeze / frozen artifact**: approval of one exact, content-addressed version
+  for a pilot stage. After an artifact is frozen, maintainers cannot change it
+  selectively or retroactively within that version. A change requires a new
+  version and repetition of any affected qualification or runs. Freezing the
+  public contract fixes the names, kinds, and CLR signatures that the oracle may
+  compile against. It does not make an agent's workspace read-only: the agent
+  may edit that API, but an incompatible edit is then scored as an incomplete
+  solution.
 - **Baseline equivalence**: agreement between the two starting repositories on
   public inputs, results, failures, identity, cardinality, ordering, and named
   consumers. Equivalent behavior does not require identical implementation.
@@ -120,12 +129,28 @@ set before execution as five paired blocks. Within each block, condition order
 is randomized using one recorded seed. Runs are not adaptively reordered based
 on interim results.
 
-The ten scheduled runs are launched as one continuous batch with all valid-run
-starts inside a 24-hour window. If the batch cannot meet that window, the pilot
-pauses rather than mixing results across a longer serving interval. An explicit
-fallback to, or turn served by, a different model is an invalid run. When the
-service does not expose served-model identity, that uncertainty is recorded as
-a limitation rather than inferred.
+The ten-run schedule is executed as one time-bounded batch. Here, a batch means
+one predeclared execution campaign, not one shared conversation or one
+long-running agent process: every run still uses a fresh workspace and fresh
+conversation with no cross-run state.
+
+The 24-hour clock begins when the first run attempt in the batch starts. Every
+run counted among the ten valid runs must have its own start timestamp before
+that clock expires; a run may finish after the deadline. Runs may execute
+sequentially or at a concurrency level fixed before launch, but maintainers may
+not deliberately pause the campaign, change configuration, or use interim
+results to decide when or how later runs start. This narrow start window reduces
+(but cannot eliminate) the chance that day-to-day model-serving changes become
+confounded with condition.
+
+If an invalid attempt cannot be replaced inside the original 24-hour window,
+its evidence and the rest of that batch are retained, but that partial batch is
+not combined with later runs as the primary ten-run evidence set. After the
+cause is fixed, maintainers start a new batch ID and rerun the complete
+predeclared schedule under the same frozen configuration. An explicit fallback
+to, or turn served by, a different model is an invalid run. When the service
+does not expose served-model identity, that uncertainty is recorded as a
+limitation rather than inferred.
 
 ## Material visibility
 
@@ -201,12 +226,20 @@ assigned to it pass. If a submission cannot build, the build outcome fails and
 runtime obligations are `not-evaluated`; this is an unsuccessful agent outcome,
 not an invalid experiment.
 
-The hidden oracle binds to the frozen public contract declared by the case. If
-the oracle adapter cannot compile because the submission renamed, removed, or
-changed that surface, the contract/build gate fails and the run is a valid
-incomplete agent outcome. It is not a scoring-infrastructure failure. A harness
-compile failure reproduced against the frozen known-correct submissions is an
-oracle defect handled under the versioning rule below.
+The **oracle adapter** is maintainer-owned code compiled only in the separate
+scoring workspace. It references the application's frozen public types and
+members so hidden checks can exercise the submitted implementation. For
+example, this case fixes the name and CLR type of
+`LoadSearchResult.EquipmentNumber`, while allowing only the nullable-annotation
+change explicitly listed by the case.
+
+If the adapter cannot compile because the agent renamed, removed, or
+incompatibly changed that surface, the submission caused the failure. The
+contract/build gate fails, runtime obligations are `not-evaluated`, and the run
+is retained as a valid incomplete outcome. It is not discarded as an
+infrastructure failure. Conversely, if the same adapter fails against a frozen
+known-correct submission, the oracle or harness is defective; scoring pauses
+and follows the whole-oracle versioning rule below.
 
 The primary task outcome is **complete** only when:
 
@@ -278,11 +311,13 @@ the experimental procedure failed, including:
   fails against the frozen known-correct qualification submissions;
 - evidence required to establish the run's configuration or result is lost.
 
-Invalid runs and their evidence remain recorded with a reason. After the cause
-is fixed, the run is replaced at the end of the predeclared schedule using the
-same frozen configuration and a new run ID. If a discovered defect changes the
-task, obligations, baseline semantics, or scoring policy, the pilot pauses and
-requires a new protocol/case version rather than silently replacing runs.
+Invalid runs and their evidence remain recorded with a reason. If the cause is
+fixed while the original batch window remains open, the run is replaced at the
+end of the predeclared schedule using the same frozen configuration and a new
+run ID. If the replacement cannot start within that window, the complete batch
+is rerun under a new batch ID as specified above. If a discovered defect changes
+the task, obligations, baseline semantics, or scoring policy, the pilot pauses
+and requires a new protocol/case version rather than silently replacing runs.
 
 An oracle defect is never used to discard one unfavorable run. Discovery that a
 hidden check is ambiguous, contradicts the public specification, or fails a
