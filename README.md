@@ -42,8 +42,9 @@ relations/
 - `results/` will contain immutable evidence from evaluation runs.
 
 The v0 protocol is frozen and the two baseline conditions are implemented. The
-private task oracle, runner, and run results remain deferred; they will be added
-without changing the frozen experimental policy.
+private oracle's obligation-to-check mapping is at its maintainer review gate;
+executable oracle checks, the runner, and run results remain deferred and will
+be added without changing the frozen experimental policy.
 
 ## Working principles
 
