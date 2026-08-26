@@ -7,6 +7,19 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/Dotnet.gitignore
 
+# macOS
+.DS_Store
+._*
+
+# Editors and user-specific IDE state
+.idea/
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
@@ -38,11 +51,17 @@ ScaffoldingReadMe.txt
 
 # dotenv environment variables file
 .env
+.env.*
+!.env.example
 
 # Others
 ~$*
 *~
 CodeCoverage/
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
 
 # MSBuild Binary and Structured Log
 *.binlog
