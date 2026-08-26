@@ -28,8 +28,8 @@ relations/
 └── results/
 ```
 
-- [`relations/protocol.md`](relations/protocol.md) fixes the rules for the v0
-  pilot before any evaluated run is performed.
+- [`relations/protocol.md`](relations/protocol.md) contains the proposed v0.1
+  rules for review before any calibration or evaluated run is performed.
 - [`relations/cases/load-search-mapping/README.md`](relations/cases/load-search-mapping/README.md)
   specifies the application case, first task, and observable obligations.
 - `conditions/` contains the independently buildable conventional and Cohesive
@@ -41,10 +41,10 @@ relations/
 - `runner/` will contain orchestration and scoring code.
 - `results/` will contain immutable evidence from evaluation runs.
 
-The v0 protocol is frozen and the two baseline conditions are implemented. The
-private oracle's obligation-to-check mapping is at its maintainer review gate;
-executable oracle checks, the runner, and run results remain deferred and will
-be added without changing the frozen experimental policy.
+Frozen v0 remains preserved in Git history. Protocol v0.1, the sanitized
+baseline candidate, and the private oracle's obligation-to-check mapping are at
+their maintainer review gates; executable oracle checks, the runner,
+calibration, and run results remain deferred.
 
 ## Working principles
 
@@ -58,7 +58,7 @@ be added without changing the frozen experimental policy.
 
 ## Current scope
 
-The v0 pilot has one case, **Load Search Mapping**, and one task,
+The proposed v0.1 pilot has one case, **Load Search Mapping**, and one task,
 **Make Equipment Optional**. It schedules five independent runs per condition.
 The results will be descriptive evidence about this configuration only; they
 will not establish general developer productivity or Cohesive efficacy.

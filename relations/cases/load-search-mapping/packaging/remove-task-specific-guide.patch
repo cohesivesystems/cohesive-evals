@@ -1,0 +1,23 @@
+diff --git a/src/Cohesive.Relations/Cohesive.Relations.csproj b/src/Cohesive.Relations/Cohesive.Relations.csproj
+--- a/src/Cohesive.Relations/Cohesive.Relations.csproj
++++ b/src/Cohesive.Relations/Cohesive.Relations.csproj
+@@ -14,1 +14,5 @@
+-    <None Include="docs\*.md" Pack="true" PackagePath="docs\%(Filename)%(Extension)" />
++    <None
++      Include="docs\*.md"
++      Exclude="docs\GETTING_STARTED.md"
++      Pack="true"
++      PackagePath="docs\%(Filename)%(Extension)" />
+diff --git a/src/Cohesive.Relations/README.md b/src/Cohesive.Relations/README.md
+--- a/src/Cohesive.Relations/README.md
++++ b/src/Cohesive.Relations/README.md
+@@ -55,5 +55,4 @@
+-1. [Map a Load, then enrich it with Customer and Equipment](docs/GETTING_STARTED.md).
+-2. [Invoke and execute the definition in memory or through an adapter](docs/EXECUTION_AND_ADAPTERS.md).
+-3. [Handle missing Customer data and other structured diagnostics](docs/DIAGNOSTICS.md).
+-4. [Inspect the generated adapter capability reference](docs/CAPABILITIES.md).
+-5. [Migrate from the deleted legacy relation-query stack](docs/MIGRATION.md).
++1. [Invoke and execute the definition in memory or through an adapter](docs/EXECUTION_AND_ADAPTERS.md).
++2. [Handle missing Customer data and other structured diagnostics](docs/DIAGNOSTICS.md).
++3. [Inspect the generated adapter capability reference](docs/CAPABILITIES.md).
++4. [Migrate from the deleted legacy relation-query stack](docs/MIGRATION.md).

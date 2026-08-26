@@ -41,6 +41,37 @@ The concrete C# namespace, assembly, and public adapter are identical across
 conditions so a shared oracle can exercise both without representation-specific
 branches.
 
+### Frozen oracle contract
+
+The hidden oracle binds to the following public C# surface in assembly and
+namespace `LoadSearch.Application`. Submissions may change nullable-reference
+annotations on `Load.EquipmentId` and `LoadSearchResult.EquipmentNumber` from
+non-nullable to nullable. They may not rename, remove, replace, or otherwise
+change these types, members, CLR types, constructors, or method signatures:
+
+- records `Load`, `Customer`, `Equipment`, `LoadSearchResult`,
+  `LoadSearchInput`, `LoadSearchFailure`, `LoadSearchOutcome`, and
+  `CustomerLoadSummary`;
+- `Load.Id`, `Load.CustomerId`, and `Load.EquipmentId` as `System.String` init
+  properties;
+- `Customer.Id`, `Customer.Name`, `Equipment.Id`, and `Equipment.Number` as
+  `System.String` init properties;
+- `LoadSearchResult.LoadId`, `CustomerName`, and `EquipmentNumber` as
+  `System.String` init properties;
+- `LoadSearchOutcome.Results`, `Failure`, and `Succeeded`;
+- interfaces `ILoadSearchService` and `ICustomerLoadSummaryService`; and
+- concrete adapters `LoadSearchService` and `CustomerLoadSummaryService` with
+  their existing public constructors and methods.
+
+At the in-process boundary, absence has exactly one encoding: `null`
+`EquipmentId` on input and null `EquipmentNumber` on output. `Option<T>`, wrapper
+objects, replacement fields, empty strings, and sentinels are not alternate
+contract encodings.
+
+If a submission breaks this frozen surface and the hidden adapter consequently
+cannot compile, the submission is a valid **incomplete** run with a failed
+contract/build gate. It is not an invalid run or an oracle-infrastructure error.
+
 The case includes a customer-only downstream consumer of search results. Its
 output depends on `LoadId` and `CustomerName`, not Equipment. Both implementations
 must expose the same consumer and observable output so collateral damage can be
@@ -78,9 +109,10 @@ The agent will receive the following frozen change request in both conditions:
 > Equipment is now optional. Loads without Equipment must remain in Load Search
 > results, with Equipment fields absent. Existing Loads with Equipment, required
 > Customer behavior, result identity and ordering, and unrelated consumers must
-> remain unchanged. Update the authoritative implementation and its public
-> contracts as needed, and keep the repository building and its visible tests
-> passing.
+> remain unchanged. You may update nullable-reference annotations on
+> `Load.EquipmentId` and `LoadSearchResult.EquipmentNumber`; do not rename,
+> remove, replace, or otherwise change the frozen public contract described in
+> this repository. Keep the repository building and its visible tests passing.
 
 For this task, “without Equipment” means `Load.EquipmentId` is absent. After the
 change, `EquipmentNumber` is represented as null/absence, never as an empty or
@@ -153,6 +185,11 @@ dotnet test relations/cases/load-search-mapping/equivalence/LoadSearch.BaselineE
 The private task oracle, runner, and results remain outside the condition
 folders and must never be copied into an agent workspace.
 
+Baseline authorship, independent-review status, task-selection disclosure, and
+the package-documentation hint audit are recorded in
+[`baseline-audit.md`](baseline-audit.md). Every admission item in that record
+must be resolved before calibration.
+
 ## Out of scope for this case version
 
 - Split Customer name or relationship-key changes.
@@ -161,4 +198,5 @@ folders and must never be copied into an agent workspace.
 - Semantic query tools or agent-tooling ablations.
 - Runtime performance comparisons.
 - Subjective architecture scoring.
+- A negative-control task outside relationship optionality.
 - Any claim that Cohesive is more effective.

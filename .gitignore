@@ -51,8 +51,8 @@ ScaffoldingReadMe.txt
 # NuGet Symbol Packages
 *.snupkg
 
-# The Cohesive condition is self-contained and intentionally vendors the two
-# immutable packages built from its pinned Cohesive source revision.
+# The Cohesive condition is self-contained and vendors the two immutable local
+# packages built from its pinned Cohesive source revision.
 !relations/cases/load-search-mapping/conditions/cohesive/packages/
 !relations/cases/load-search-mapping/conditions/cohesive/packages/*.nupkg
 

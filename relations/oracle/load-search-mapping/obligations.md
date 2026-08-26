@@ -1,13 +1,15 @@
 # Load Search Mapping oracle obligations
 
-Status: proposed for maintainer review under COH-58. Hidden fixtures and
-executable checks are intentionally not implemented yet.
+Status: revision proposed for maintainer review under COH-58 after the v0.1
+methodology review. Hidden fixtures and executable checks are intentionally not
+implemented yet.
 
-The starting repositories are fixed by tag
-`relations-load-search-v0-baseline` at commit `fdc65f8`. This document allocates
-checks to the frozen public obligations in the
-[case specification](../../cases/load-search-mapping/README.md); it does not add
-requirements or change the [v0 protocol](../../protocol.md).
+The v0 starting repositories remain preserved by tag
+`relations-load-search-v0-baseline` at commit `fdc65f8`. Package sanitization and
+contract clarification require a new v0.1 baseline revision before calibration.
+This document allocates checks to the public obligations in the
+[case specification](../../cases/load-search-mapping/README.md) under the
+proposed [v0.1 protocol](../../protocol.md).
 
 ## Review boundary
 
@@ -25,7 +27,7 @@ the approved behavior.
 
 ## Public obligations
 
-These IDs and statements are copied unchanged from the frozen case.
+These IDs and statements are copied unchanged from the case.
 
 | ID | Observable obligation |
 |---|---|
@@ -78,13 +80,11 @@ cases within one obligation.
 | `REL-EVAL-007` | `LSM-BHV-008` |
 | `REL-EVAL-008` | `LSM-BHV-009` |
 
-Build is an independent completion gate. Visible-test outcomes are recorded as
-separate evidence but are not allocated to a behavioral obligation. Under the
-current v0 protocol, a visible-test failure is not an additional completion
-criterion unless it also causes a build, obligation, or integrity failure. If
-visible tests should instead be a fourth completion gate, the protocol must be
-revised before pilot runs begin. If the application or oracle adapter cannot
-build, behavioral obligations are `not-evaluated`, as required by the protocol.
+Contract/build compatibility and the visible tests are independent completion
+gates; neither is allocated to a behavioral obligation. If the application or
+oracle adapter cannot build against the frozen public surface, behavioral
+obligations are `not-evaluated` and the submission is a valid incomplete agent
+outcome. It is not an invalid run.
 
 ## Proposed treatment-integrity checks
 
@@ -117,11 +117,22 @@ the only condition-specific part of the oracle.
 Before the oracle can be frozen, it must be run against immutable submissions
 derived from the baseline tag.
 
+The two known-correct submissions are distinct condition-specific patches. Each
+seeded behavior defect below is also authored independently in both conditions,
+using suffixes `-CONV` and `-COH`; a conventional mutation is not treated as
+validation of the Cohesive checker or vice versa. At least one seeded submission
+must target every `REL-EVAL-*` obligation in each condition. Where one obligation
+has multiple checks, each check receives targeted seeded coverage. Contract and
+visible-test gate failures are likewise qualified once per condition.
+
 | Qualification ID | Submission characteristic | Expected detection |
 |---|---|---|
 | `LSM-QUAL-GOOD-CONV` | Known-correct conventional change. | All gates, obligations, and conventional integrity pass. |
 | `LSM-QUAL-GOOD-COH` | Known-correct canonical Cohesive.Relations change. | All gates, obligations, and Cohesive integrity pass. |
-| `LSM-QUAL-BASELINE` | Unchanged required-Equipment baseline. | Optionality checks fail; submission is incomplete. |
+| `LSM-QUAL-CONTRACT` | Public Equipment absence is replaced by an incompatible wrapper or renamed member. | Oracle-adapter contract/build gate fails; run is valid incomplete and behavioral obligations are `not-evaluated`. |
+| `LSM-QUAL-VISIBLE` | Behavior passes the hidden obligations but a visible application test fails. | Visible-test gate fails; run is valid incomplete. |
+| `LSM-QUAL-BASELINE` | Unchanged required-Equipment baseline. | `REL-EVAL-002` and `REL-EVAL-003` fail in both conditions; submission is incomplete. |
+| `LSM-QUAL-EQUIPPED-REGRESSION` | Existing equipped mapping is corrupted. | Equipped-regression check fails. |
 | `LSM-QUAL-DROP` | Unequipped Loads are filtered out. | Retention and mixed cardinality checks fail. |
 | `LSM-QUAL-SENTINEL` | Missing Equipment is represented by an empty or invented value. | Null-representation check fails. |
 | `LSM-QUAL-ORDER` | Mixed results are reordered or deduplicated. | Mixed identity/cardinality/order check fails. |
@@ -137,9 +148,14 @@ Qualification records the complete observed check vector, not only the expected
 failure named above. A seeded defect may have legitimate downstream effects,
 but it must fail its targeted check and must not create false passes.
 
+The frozen oracle release includes a machine-readable qualification manifest
+mapping every obligation and treatment-integrity check to its known-correct and
+seeded submission IDs, hashes, expected vector, and observed vector. Missing
+per-condition coverage blocks calibration.
+
 ## Explicit exclusions
 
-The v0 oracle will not score:
+The v0.1 oracle will not score:
 
 - exact diagnostic prose, exception stack traces, or condition-specific
   provenance;
@@ -169,6 +185,5 @@ The review should explicitly resolve:
   semantic assembly/source inspection for excluding a parallel mapper;
 - [ ] the explicit exclusions, including empty/whitespace Equipment references
   and simultaneously invalid relationships; and
-- [ ] whether visible-test failure remains recorded evidence, as the frozen
-  protocol currently says, or becomes a new completion gate through a protocol
-  revision.
+- [ ] contract/adapter compilation and visible-test failures as valid incomplete
+  completion-gate failures under protocol v0.1.

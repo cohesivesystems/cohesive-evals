@@ -4,6 +4,6 @@
     <RootNamespace>LoadSearch.Application</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Cohesive.Relations" Version="[0.1.0-eval.coh56.8cf0242]" />
+    <PackageReference Include="Cohesive.Relations" Version="[0.1.0-alpha.1.8cf0242]" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,13 @@
+# Build and test output
+[Bb]in/
+[Oo]bj/
+[Tt]est[Rr]esult*/
+
+# Local tool and editor state
+.DS_Store
+.idea/
+.vs/
+.vscode/
+*.user
+**/.local/share/NuGet/
+**/Library/Application Support/Microsoft/DeveloperTools/

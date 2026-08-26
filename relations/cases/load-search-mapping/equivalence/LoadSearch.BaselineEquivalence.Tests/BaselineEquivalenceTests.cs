@@ -23,6 +23,7 @@ public sealed class BaselineEquivalenceTests
         AssertSameFile("tools/LoadSearch.Probe/LoadSearch.Probe.csproj");
         AssertSameFile("tools/LoadSearch.Probe/Program.cs");
         AssertSameFile("Directory.Build.props");
+        AssertSameFile(".gitignore");
         AssertSameFile("global.json");
         AssertSameFile("LoadSearch.slnx");
     }

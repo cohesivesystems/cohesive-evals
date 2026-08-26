@@ -2,7 +2,7 @@ using System.Text.Json;
 using LoadSearch.Application;
 
 var scenario = args.SingleOrDefault()
-    ?? throw new ArgumentException("Provide exactly one baseline scenario name.");
+    ?? throw new ArgumentException("Provide exactly one application scenario name.");
 var input = scenario switch
 {
     "complete" => Input(
@@ -29,7 +29,7 @@ var input = scenario switch
         [Load("load-1", "customer-1", "equipment-missing")],
         [Customer("customer-1", "Acme")],
         [Equipment("equipment-1", "TRUCK-001")]),
-    _ => throw new ArgumentOutOfRangeException(nameof(scenario), scenario, "Unknown baseline scenario.")
+    _ => throw new ArgumentOutOfRangeException(nameof(scenario), scenario, "Unknown application scenario.")
 };
 
 var outcome = new LoadSearchService().Execute(input);
