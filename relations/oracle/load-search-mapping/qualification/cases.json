@@ -1,0 +1,174 @@
+{
+  "schemaVersion": "cohesive.relations.load-search.qualification-cases/v1",
+  "baselineRevision": "170bf2e533f3ce80f8e81ff30ce0ed5242b2b3c2",
+  "cases": [
+    {
+      "id": "LSM-QUAL-BASELINE-CONV",
+      "condition": "conventional",
+      "goodPatch": null,
+      "mutationPatch": null
+    },
+    {
+      "id": "LSM-QUAL-GOOD-CONV",
+      "condition": "conventional",
+      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+      "mutationPatch": null
+    },
+    {
+      "id": "LSM-QUAL-CONTRACT-CONV",
+      "condition": "conventional",
+      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+      "mutationPatch": "patches/conventional/LSM-QUAL-CONTRACT-CONV.patch"
+    },
+    {
+      "id": "LSM-QUAL-VISIBLE-CONV",
+      "condition": "conventional",
+      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+      "mutationPatch": "patches/conventional/LSM-QUAL-VISIBLE-CONV.patch"
+    },
+    {
+      "id": "LSM-QUAL-EQUIPPED-REGRESSION-CONV",
+      "condition": "conventional",
+      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+      "mutationPatch": "patches/conventional/LSM-QUAL-EQUIPPED-REGRESSION-CONV.patch"
+    },
+    {
+      "id": "LSM-QUAL-DROP-CONV",
+      "condition": "conventional",
+      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+      "mutationPatch": "patches/conventional/LSM-QUAL-DROP-CONV.patch"
+    },
+    {
+      "id": "LSM-QUAL-SENTINEL-CONV",
+      "condition": "conventional",
+      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+      "mutationPatch": "patches/conventional/LSM-QUAL-SENTINEL-CONV.patch"
+    },
+    {
+      "id": "LSM-QUAL-ORDER-CONV",
+      "condition": "conventional",
+      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+      "mutationPatch": "patches/conventional/LSM-QUAL-ORDER-CONV.patch"
+    },
+    {
+      "id": "LSM-QUAL-CUSTOMER-ABSENT-CONV",
+      "condition": "conventional",
+      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+      "mutationPatch": "patches/conventional/LSM-QUAL-CUSTOMER-ABSENT-CONV.patch"
+    },
+    {
+      "id": "LSM-QUAL-CUSTOMER-DANGLING-CONV",
+      "condition": "conventional",
+      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+      "mutationPatch": "patches/conventional/LSM-QUAL-CUSTOMER-DANGLING-CONV.patch"
+    },
+    {
+      "id": "LSM-QUAL-EQUIPMENT-DANGLING-CONV",
+      "condition": "conventional",
+      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+      "mutationPatch": "patches/conventional/LSM-QUAL-EQUIPMENT-DANGLING-CONV.patch"
+    },
+    {
+      "id": "LSM-QUAL-CUSTOMER-MAPPING-CONV",
+      "condition": "conventional",
+      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+      "mutationPatch": "patches/conventional/LSM-QUAL-CUSTOMER-MAPPING-CONV.patch"
+    },
+    {
+      "id": "LSM-QUAL-CONSUMER-CONV",
+      "condition": "conventional",
+      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+      "mutationPatch": "patches/conventional/LSM-QUAL-CONSUMER-CONV.patch"
+    },
+    {
+      "id": "LSM-QUAL-CONV-DEPENDENCY",
+      "condition": "conventional",
+      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+      "mutationPatch": "patches/conventional/LSM-QUAL-CONV-DEPENDENCY.patch"
+    },
+    {
+      "id": "LSM-QUAL-BASELINE-COH",
+      "condition": "cohesive",
+      "goodPatch": null,
+      "mutationPatch": null
+    },
+    {
+      "id": "LSM-QUAL-GOOD-COH",
+      "condition": "cohesive",
+      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+      "mutationPatch": null
+    },
+    {
+      "id": "LSM-QUAL-CONTRACT-COH",
+      "condition": "cohesive",
+      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+      "mutationPatch": "patches/cohesive/LSM-QUAL-CONTRACT-COH.patch"
+    },
+    {
+      "id": "LSM-QUAL-VISIBLE-COH",
+      "condition": "cohesive",
+      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+      "mutationPatch": "patches/cohesive/LSM-QUAL-VISIBLE-COH.patch"
+    },
+    {
+      "id": "LSM-QUAL-EQUIPPED-REGRESSION-COH",
+      "condition": "cohesive",
+      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+      "mutationPatch": "patches/cohesive/LSM-QUAL-EQUIPPED-REGRESSION-COH.patch"
+    },
+    {
+      "id": "LSM-QUAL-DROP-COH",
+      "condition": "cohesive",
+      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+      "mutationPatch": "patches/cohesive/LSM-QUAL-DROP-COH.patch"
+    },
+    {
+      "id": "LSM-QUAL-SENTINEL-COH",
+      "condition": "cohesive",
+      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+      "mutationPatch": "patches/cohesive/LSM-QUAL-SENTINEL-COH.patch"
+    },
+    {
+      "id": "LSM-QUAL-ORDER-COH",
+      "condition": "cohesive",
+      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+      "mutationPatch": "patches/cohesive/LSM-QUAL-ORDER-COH.patch"
+    },
+    {
+      "id": "LSM-QUAL-CUSTOMER-ABSENT-COH",
+      "condition": "cohesive",
+      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+      "mutationPatch": "patches/cohesive/LSM-QUAL-CUSTOMER-ABSENT-COH.patch"
+    },
+    {
+      "id": "LSM-QUAL-CUSTOMER-DANGLING-COH",
+      "condition": "cohesive",
+      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+      "mutationPatch": "patches/cohesive/LSM-QUAL-CUSTOMER-DANGLING-COH.patch"
+    },
+    {
+      "id": "LSM-QUAL-EQUIPMENT-DANGLING-COH",
+      "condition": "cohesive",
+      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+      "mutationPatch": "patches/cohesive/LSM-QUAL-EQUIPMENT-DANGLING-COH.patch"
+    },
+    {
+      "id": "LSM-QUAL-CUSTOMER-MAPPING-COH",
+      "condition": "cohesive",
+      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+      "mutationPatch": "patches/cohesive/LSM-QUAL-CUSTOMER-MAPPING-COH.patch"
+    },
+    {
+      "id": "LSM-QUAL-CONSUMER-COH",
+      "condition": "cohesive",
+      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+      "mutationPatch": "patches/cohesive/LSM-QUAL-CONSUMER-COH.patch"
+    },
+    {
+      "id": "LSM-QUAL-COH-BYPASS",
+      "condition": "cohesive",
+      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+      "mutationPatch": "patches/cohesive/LSM-QUAL-COH-BYPASS.patch"
+    }
+  ]
+}

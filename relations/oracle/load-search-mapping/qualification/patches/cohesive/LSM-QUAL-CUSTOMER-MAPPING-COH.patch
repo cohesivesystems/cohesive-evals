@@ -1,0 +1,14 @@
+diff --git a/src/LoadSearch.Application/RelationRuntimeEvidenceFactory.cs b/src/LoadSearch.Application/RelationRuntimeEvidenceFactory.cs
+index fc01756..72b8cd1 100644
+--- a/src/LoadSearch.Application/RelationRuntimeEvidenceFactory.cs
++++ b/src/LoadSearch.Application/RelationRuntimeEvidenceFactory.cs
+@@ -167,7 +167,7 @@ static class RelationRuntimeEvidenceFactory
+ 
+     static string CustomerValue(Customer customer, FieldPath path) => path.ToString() switch
+     {
+-        "name" => customer.Name,
++        "name" => customer.Name == "Northwind" ? customer.Name : "WRONG-CUSTOMER",
+         _ => throw new InvalidOperationException($"Unexpected Customer field '{path}'.")
+     };
+ 
+

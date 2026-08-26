@@ -1,0 +1,2424 @@
+{
+  "schemaVersion": "cohesive.relations.load-search.qualification-expectations/v1",
+  "baselineRevision": "170bf2e533f3ce80f8e81ff30ce0ed5242b2b3c2",
+  "cases": [
+    {
+      "id": "LSM-QUAL-BASELINE-CONV",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "failed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "failed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-CONV-001",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-GOOD-CONV",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "passed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-CONV-001",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "passed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-CONTRACT-CONV",
+      "expected": {
+        "contractBuild": "failed",
+        "visibleTests": "notEvaluated",
+        "oracleExit": "notEvaluated",
+        "behavioralChecks": null,
+        "obligations": null,
+        "treatmentIntegrityChecks": null,
+        "treatmentIntegrity": null,
+        "oracleOutcome": null
+      }
+    },
+    {
+      "id": "LSM-QUAL-VISIBLE-CONV",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "passed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-CONV-001",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "passed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-EQUIPPED-REGRESSION-CONV",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-CONV-001",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-DROP-CONV",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "failed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "failed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-CONV-001",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-SENTINEL-CONV",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-CONV-001",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-ORDER-CONV",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "failed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "failed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-CONV-001",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-CUSTOMER-ABSENT-CONV",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-CONV-001",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-CUSTOMER-DANGLING-CONV",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-CONV-001",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-EQUIPMENT-DANGLING-CONV",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-CONV-001",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-CUSTOMER-MAPPING-CONV",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "failed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "failed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-CONV-001",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-CONSUMER-CONV",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "failed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "failed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-CONV-001",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-CONV-DEPENDENCY",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-CONV-001",
+            "status": "failed"
+          }
+        ],
+        "treatmentIntegrity": "failed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-BASELINE-COH",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "failed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "failed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-COH-001",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-TI-COH-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-003",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "failed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-GOOD-COH",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "passed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-COH-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-003",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "passed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-CONTRACT-COH",
+      "expected": {
+        "contractBuild": "failed",
+        "visibleTests": "notEvaluated",
+        "oracleExit": "notEvaluated",
+        "behavioralChecks": null,
+        "obligations": null,
+        "treatmentIntegrityChecks": null,
+        "treatmentIntegrity": null,
+        "oracleOutcome": null
+      }
+    },
+    {
+      "id": "LSM-QUAL-VISIBLE-COH",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "passed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-COH-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-003",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "passed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-EQUIPPED-REGRESSION-COH",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-COH-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-003",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-DROP-COH",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "failed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "failed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-COH-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-003",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-SENTINEL-COH",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-COH-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-003",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-ORDER-COH",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "failed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "failed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-COH-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-003",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-CUSTOMER-ABSENT-COH",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-COH-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-003",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-CUSTOMER-DANGLING-COH",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-COH-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-003",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-EQUIPMENT-DANGLING-COH",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-COH-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-003",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-CUSTOMER-MAPPING-COH",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "failed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "failed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "failed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "failed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-COH-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-003",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-CONSUMER-COH",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "failed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "failed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-COH-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-003",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-COH-BYPASS",
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "failed",
+        "behavioralChecks": [
+          {
+            "id": "LSM-BHV-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-003",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-004",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-005",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-006",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-007",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-008",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-BHV-009",
+            "status": "passed"
+          }
+        ],
+        "obligations": [
+          {
+            "id": "REL-EVAL-001",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-002",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-003",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-004",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-005",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-006",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-007",
+            "status": "passed"
+          },
+          {
+            "id": "REL-EVAL-008",
+            "status": "passed"
+          }
+        ],
+        "treatmentIntegrityChecks": [
+          {
+            "id": "LSM-TI-COH-001",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-002",
+            "status": "passed"
+          },
+          {
+            "id": "LSM-TI-COH-003",
+            "status": "failed"
+          }
+        ],
+        "treatmentIntegrity": "failed",
+        "oracleOutcome": "failed"
+      }
+    }
+  ]
+}

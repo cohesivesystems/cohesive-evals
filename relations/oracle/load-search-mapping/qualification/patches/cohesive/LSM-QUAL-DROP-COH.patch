@@ -1,0 +1,15 @@
+diff --git a/src/LoadSearch.Application/LoadSearchService.cs b/src/LoadSearch.Application/LoadSearchService.cs
+index 1683aaf..eda896c 100644
+--- a/src/LoadSearch.Application/LoadSearchService.cs
++++ b/src/LoadSearch.Application/LoadSearchService.cs
+@@ -23,6 +23,9 @@ public sealed class LoadSearchService : ILoadSearchService
+     {
+         ArgumentNullException.ThrowIfNull(input);
+ 
++        if (input.Loads.Any(static load => load.EquipmentId is null))
++            return LoadSearchOutcome.Success([]);
++
+         var equipmentIds = input.Equipment
+             .Select(static unit => unit.Id)
+             .ToHashSet(StringComparer.Ordinal);
+

@@ -1,0 +1,14 @@
+diff --git a/tests/LoadSearch.Application.Tests/LoadSearchServiceTests.cs b/tests/LoadSearch.Application.Tests/LoadSearchServiceTests.cs
+index 1d8c0b3..de755f4 100644
+--- a/tests/LoadSearch.Application.Tests/LoadSearchServiceTests.cs
++++ b/tests/LoadSearch.Application.Tests/LoadSearchServiceTests.cs
+@@ -20,7 +20,7 @@ public sealed class LoadSearchServiceTests
+             {
+                 LoadId = "load-1",
+                 CustomerName = "Acme",
+-                EquipmentNumber = "TRUCK-001"
++                EquipmentNumber = "EXPECTED-WRONG"
+             }],
+             outcome.Results);
+     }
+

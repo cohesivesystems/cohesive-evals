@@ -1,0 +1,13 @@
+diff --git a/src/LoadSearch.Application/LoadSearchService.cs b/src/LoadSearch.Application/LoadSearchService.cs
+index 54b192f..3c738ea 100644
+--- a/src/LoadSearch.Application/LoadSearchService.cs
++++ b/src/LoadSearch.Application/LoadSearchService.cs
+@@ -33,6 +33,7 @@ public sealed class LoadSearchService : ILoadSearchService
+             });
+         }
+ 
++        results.Reverse();
+         return LoadSearchOutcome.Success(results);
+     }
+ }
+

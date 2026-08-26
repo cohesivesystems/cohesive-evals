@@ -1,8 +1,9 @@
 # Load Search Mapping oracle obligations
 
-Status: revision proposed for maintainer review under COH-58 after the v0.1
-methodology review. Hidden fixtures and executable checks are intentionally not
-implemented yet.
+Status: design gate approved under COH-58 on 2026-08-26. The executable oracle
+and qualification package implement this allocation and match all expected
+vectors. The oracle remains a candidate—not frozen—until the independent
+baseline review in COH-59 is complete.
 
 The v0 starting repositories remain preserved by tag
 `relations-load-search-v0-baseline` at commit `fdc65f8`. Package sanitization and
@@ -179,11 +180,15 @@ must be resolved here before executable hidden checks are authored.
 
 The review should explicitly resolve:
 
-- [ ] the eight public obligation statements;
-- [ ] the nine behavioral check scopes and their allocation;
-- [ ] the three Cohesive treatment-integrity checks, especially the proposed
+- [x] the eight public obligation statements;
+- [x] the nine behavioral check scopes and their allocation;
+- [x] the three Cohesive treatment-integrity checks, especially the proposed
   semantic assembly/source inspection for excluding a parallel mapper;
-- [ ] the explicit exclusions, including empty/whitespace Equipment references
+- [x] the explicit exclusions, including empty/whitespace Equipment references
   and simultaneously invalid relationships; and
-- [ ] contract/adapter compilation and visible-test failures as valid incomplete
+- [x] contract/adapter compilation and visible-test failures as valid incomplete
   completion-gate failures under protocol v0.1.
+
+The accepted implementation is in [`src/LoadSearch.Oracle`](src/LoadSearch.Oracle).
+Its reproducible qualification inputs, complete expected vectors, and observed
+evidence are in [`qualification`](qualification).

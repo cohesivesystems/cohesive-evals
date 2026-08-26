@@ -1,0 +1,192 @@
+diff --git a/src/LoadSearch.Application/Contracts.cs b/src/LoadSearch.Application/Contracts.cs
+index 257d364..d416d96 100644
+--- a/src/LoadSearch.Application/Contracts.cs
++++ b/src/LoadSearch.Application/Contracts.cs
+@@ -11,7 +11,7 @@ public sealed record Load
+     public required string CustomerId { get; init; }
+ 
+     [JsonPropertyName("equipmentId")]
+-    public required string EquipmentId { get; init; }
++    public string? EquipmentId { get; init; }
+ }
+ 
+ public sealed record Customer
+@@ -41,7 +41,7 @@ public sealed record LoadSearchResult
+     public required string CustomerName { get; init; }
+ 
+     [JsonPropertyName("equipmentNumber")]
+-    public required string EquipmentNumber { get; init; }
++    public string? EquipmentNumber { get; init; }
+ }
+ 
+ public sealed record LoadSearchInput(
+diff --git a/src/LoadSearch.Application/LoadSearchRelation.cs b/src/LoadSearch.Application/LoadSearchRelation.cs
+index 4381e94..c115712 100644
+--- a/src/LoadSearch.Application/LoadSearchRelation.cs
++++ b/src/LoadSearch.Application/LoadSearchRelation.cs
+@@ -27,7 +27,8 @@ static class LoadSearchRelation
+             customers,
+             loads.Binding,
+             loadEquipment,
+-            requirement: QueryInputRequirement.Required);
++            joinKind: JoinKind.Left,
++            requirement: QueryInputRequirement.Optional);
+         var projection = author.Project(
+             equipment,
+             (Load load, Customer customer, Equipment unit) => new LoadSearchResult
+diff --git a/src/LoadSearch.Application/LoadSearchService.cs b/src/LoadSearch.Application/LoadSearchService.cs
+index 9f84be6..1683aaf 100644
+--- a/src/LoadSearch.Application/LoadSearchService.cs
++++ b/src/LoadSearch.Application/LoadSearchService.cs
+@@ -1,26 +1,46 @@
++using Cohesive.Model;
+ using Cohesive.Relations.Compilation;
++using Cohesive.Relations.Diagnostics;
+ using Cohesive.Relations.Execution;
++using Cohesive.Relations.IR;
+ using Cohesive.Relations.Mapping;
+ 
+ namespace LoadSearch.Application;
+ 
+ public sealed class LoadSearchService : ILoadSearchService
+ {
++    static readonly IRelationRequirementGapPolicy GapPolicy = new RelationRequirementGapPolicy(
++        new("load-search/equipment-optional/v1"),
++        RelationRequirementGapPolicySource.Explicit,
++        static (gap, impact) => impact.Requirement == QueryInputRequirement.Optional
++            ? new(
++                RelationRequirementGapDisposition.SubstituteNull,
++                RelationRequirementGapReportingKind.Suppress,
++                DiagnosticSeverity.Info)
++            : RelationRequirementGapPolicy.Conventional.Decide(gap, impact));
++
+     public LoadSearchOutcome Execute(LoadSearchInput input)
+     {
+         ArgumentNullException.ThrowIfNull(input);
+ 
++        var equipmentIds = input.Equipment
++            .Select(static unit => unit.Id)
++            .ToHashSet(StringComparer.Ordinal);
++
+         foreach (var load in input.Loads)
+         {
+             if (string.IsNullOrWhiteSpace(load.CustomerId))
+                 return LoadSearchOutcome.Failed("Customer", load.CustomerId);
+-            if (string.IsNullOrWhiteSpace(load.EquipmentId))
++            if (load.EquipmentId is not null
++                && (string.IsNullOrWhiteSpace(load.EquipmentId)
++                    || !equipmentIds.Contains(load.EquipmentId)))
+                 return LoadSearchOutcome.Failed("Equipment", load.EquipmentId);
+         }
+ 
+         var execution = RelationQueryInMemoryInterpreter.Default.Execute(new(
+             LoadSearchRelation.Plan,
+-            RelationRuntimeEvidenceFactory.Create(input)));
++            RelationRuntimeEvidenceFactory.Create(input),
++            GapPolicy));
+         if (execution.Status != RelationQueryExecutionStatus.Succeeded)
+         {
+             if (MissingRequiredRelation(input, execution) is { } failure)
+diff --git a/src/LoadSearch.Application/RelationRuntimeEvidenceFactory.cs b/src/LoadSearch.Application/RelationRuntimeEvidenceFactory.cs
+index 16b91e3..fc01756 100644
+--- a/src/LoadSearch.Application/RelationRuntimeEvidenceFactory.cs
++++ b/src/LoadSearch.Application/RelationRuntimeEvidenceFactory.cs
+@@ -41,6 +41,7 @@ static class RelationRuntimeEvidenceFactory
+             {
+                 customerOccurrence = GetOrAdd(
+                     customerOccurrences,
++                    $"{index:D8}/{customer.Id}",
+                     customer.Id,
+                     customer,
+                     customerTraversal.Result,
+@@ -57,10 +58,11 @@ static class RelationRuntimeEvidenceFactory
+                 $"load-search/customer/{index:D8}"));
+ 
+             RelationQueryObservationOccurrence? equipmentOccurrence = null;
+-            if (equipment.TryGetValue(load.EquipmentId, out var unit))
++            if (load.EquipmentId is not null && equipment.TryGetValue(load.EquipmentId, out var unit))
+             {
+                 equipmentOccurrence = GetOrAdd(
+                     equipmentOccurrences,
++                    $"{index:D8}/{unit.Id}",
+                     unit.Id,
+                     unit,
+                     equipmentTraversal.Result,
+@@ -126,6 +128,7 @@ static class RelationRuntimeEvidenceFactory
+ 
+     static RelationQueryObservationOccurrence GetOrAdd<T>(
+         Dictionary<string, (T Value, RelationQueryObservationOccurrence Occurrence)> occurrences,
++        string cacheKey,
+         string identity,
+         T value,
+         ValueBindingId binding,
+@@ -133,15 +136,15 @@ static class RelationRuntimeEvidenceFactory
+         string prefix)
+         where T : notnull
+     {
+-        if (occurrences.TryGetValue(identity, out var existing))
++        if (occurrences.TryGetValue(cacheKey, out var existing))
+             return existing.Occurrence;
+ 
+         var occurrence = new RelationQueryObservationOccurrence(
+-            new($"{prefix}/{Uri.EscapeDataString(identity)}"),
++            new($"{prefix}/{Uri.EscapeDataString(cacheKey)}"),
+             binding,
+             shape,
+             identity);
+-        occurrences.Add(identity, (value, occurrence));
++        occurrences.Add(cacheKey, (value, occurrence));
+         return occurrence;
+     }
+ 
+@@ -158,7 +161,7 @@ static class RelationRuntimeEvidenceFactory
+     {
+         "id" => load.Id,
+         "customerId" => load.CustomerId,
+-        "equipmentId" => load.EquipmentId,
++        "equipmentId" => load.EquipmentId ?? $"absent-equipment/{Uri.EscapeDataString(load.Id)}",
+         _ => throw new InvalidOperationException($"Unexpected Load field '{path}'.")
+     };
+ 
+diff --git a/tests/LoadSearch.Application.Tests/LoadSearchServiceTests.cs b/tests/LoadSearch.Application.Tests/LoadSearchServiceTests.cs
+index 191f232..1d8c0b3 100644
+--- a/tests/LoadSearch.Application.Tests/LoadSearchServiceTests.cs
++++ b/tests/LoadSearch.Application.Tests/LoadSearchServiceTests.cs
+@@ -65,18 +65,30 @@ public sealed class LoadSearchServiceTests
+         Assert.Empty(outcome.Results);
+     }
+ 
+-    [Theory]
+-    [InlineData(null)]
+-    [InlineData("equipment-missing")]
+-    public void Equipment_is_required(string? equipmentId)
++    [Fact]
++    public void Equipment_is_optional()
++    {
++        var outcome = subject.Execute(Input(
++            loads: [Load("load-1", "customer-1", null!)],
++            customers: [Customer("customer-1", "Acme")],
++            equipment: [Equipment("equipment-1", "TRUCK-001")]));
++
++        Assert.True(outcome.Succeeded);
++        Assert.Equal(
++            [new LoadSearchResult { LoadId = "load-1", CustomerName = "Acme", EquipmentNumber = null }],
++            outcome.Results);
++    }
++
++    [Fact]
++    public void Dangling_equipment_is_rejected()
+     {
+         var outcome = subject.Execute(Input(
+-            loads: [Load("load-1", "customer-1", equipmentId!)],
++            loads: [Load("load-1", "customer-1", "equipment-missing")],
+             customers: [Customer("customer-1", "Acme")],
+             equipment: [Equipment("equipment-1", "TRUCK-001")]));
+ 
+         Assert.False(outcome.Succeeded);
+-        Assert.Equal(new("missing-required-relation", "Equipment", equipmentId), outcome.Failure);
++        Assert.Equal(new("missing-required-relation", "Equipment", "equipment-missing"), outcome.Failure);
+         Assert.Empty(outcome.Results);
+     }
+ 
+

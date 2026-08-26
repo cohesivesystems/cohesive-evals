@@ -1,0 +1,14 @@
+diff --git a/src/LoadSearch.Application/LoadSearchService.cs b/src/LoadSearch.Application/LoadSearchService.cs
+index 54b192f..ceee0d8 100644
+--- a/src/LoadSearch.Application/LoadSearchService.cs
++++ b/src/LoadSearch.Application/LoadSearchService.cs
+@@ -29,7 +29,7 @@ public sealed class LoadSearchService : ILoadSearchService
+             {
+                 LoadId = load.Id,
+                 CustomerName = customer.Name,
+-                EquipmentNumber = unit?.Number
++                EquipmentNumber = unit?.Number ?? "UNASSIGNED"
+             });
+         }
+ 
+

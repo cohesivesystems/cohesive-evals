@@ -41,10 +41,11 @@ relations/
 - `runner/` will contain orchestration and scoring code.
 - `results/` will contain immutable evidence from evaluation runs.
 
-Frozen v0 remains preserved in Git history. Protocol v0.1, the sanitized
-baseline candidate, and the private oracle's obligation-to-check mapping are at
-their maintainer review gates; executable oracle checks, the runner,
-calibration, and run results remain deferred.
+Frozen v0 remains preserved in Git history. Protocol v0.1 and the oracle design
+gate are approved. The executable private oracle is implemented and qualified;
+its freeze and the sanitized baseline candidate remain blocked on the
+independent conventional review in COH-59. The runner, calibration, and run
+results remain deferred.
 
 ## Working principles
 

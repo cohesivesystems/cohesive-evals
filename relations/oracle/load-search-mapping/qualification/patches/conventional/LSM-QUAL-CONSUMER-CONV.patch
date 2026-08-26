@@ -1,0 +1,13 @@
+diff --git a/src/LoadSearch.Application/LoadSearchService.cs b/src/LoadSearch.Application/LoadSearchService.cs
+index 54b192f..8004a91 100644
+--- a/src/LoadSearch.Application/LoadSearchService.cs
++++ b/src/LoadSearch.Application/LoadSearchService.cs
+@@ -42,6 +42,6 @@ public sealed class CustomerLoadSummaryService : ICustomerLoadSummaryService
+     public IReadOnlyList<CustomerLoadSummary> Summarize(IReadOnlyList<LoadSearchResult> results)
+     {
+         ArgumentNullException.ThrowIfNull(results);
+-        return [.. results.Select(static result => new CustomerLoadSummary(result.LoadId, result.CustomerName))];
++        return [.. results.Reverse().Select(static result => new CustomerLoadSummary(result.LoadId, result.CustomerName))];
+     }
+ }
+
