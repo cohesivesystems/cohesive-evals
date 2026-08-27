@@ -1,3 +1,16 @@
+diff --git a/src/LoadSearch.Application/LoadSearchRelation.cs b/src/LoadSearch.Application/LoadSearchRelation.cs
+index c115712..858d2ec 100644
+--- a/src/LoadSearch.Application/LoadSearchRelation.cs
++++ b/src/LoadSearch.Application/LoadSearchRelation.cs
+@@ -28,7 +28,7 @@ static class LoadSearchRelation
+             loads.Binding,
+             loadEquipment,
+             joinKind: JoinKind.Left,
+-            requirement: QueryInputRequirement.Optional);
++            requirement: QueryInputRequirement.Required);
+         var projection = author.Project(
+             equipment,
+             (Load load, Customer customer, Equipment unit) => new LoadSearchResult
 diff --git a/src/LoadSearch.Application/LoadSearchService.cs b/src/LoadSearch.Application/LoadSearchService.cs
 index 1683aaf..6a1078d 100644
 --- a/src/LoadSearch.Application/LoadSearchService.cs
@@ -51,4 +64,3 @@ index 1683aaf..6a1078d 100644
      static LoadSearchOutcome? MissingRequiredRelation(
          LoadSearchInput input,
          RelationQueryExecutionResult execution)
-

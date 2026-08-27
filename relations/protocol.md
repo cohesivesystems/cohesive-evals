@@ -359,8 +359,8 @@ oracle, and complete evidence—not a favorable comparison.
 
 ## Deferred work
 
-The matched application implementations and baseline-equivalence tests are
-complete. Hidden checks, known-correct and per-condition seeded-bad submissions,
-the evaluation CLI, agent driver, scorer, calibration, and pilot execution remain
-deferred. Their implementation must conform to the approved version of this
-protocol or propose another explicit revision.
+The matched application implementations, baseline-equivalence tests, candidate
+hidden oracle, and proportional qualification submissions are complete. The
+independent baseline review, oracle freeze, evaluation CLI, agent driver,
+calibration, and pilot execution remain deferred. Their implementation must
+conform to this approved protocol or propose another explicit revision.

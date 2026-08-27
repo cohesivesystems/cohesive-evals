@@ -7,7 +7,6 @@ repository_root="$(cd "$oracle_root/../../.." && pwd)"
 case_root="$repository_root/relations/cases/load-search-mapping"
 oracle_project="$oracle_root/src/LoadSearch.Oracle/LoadSearch.Oracle.csproj"
 cases_file="$script_dir/cases.json"
-expectations_file="$script_dir/expectations.json"
 output_file="${1:-$script_dir/observed.json}"
 dotnet_cli="${DOTNET_CLI:-/usr/local/share/dotnet/dotnet}"
 qualification_root="$(mktemp -d /private/tmp/load-search-oracle-qualification.XXXXXX)"
@@ -26,26 +25,17 @@ run_dotnet() {
   "$dotnet_cli" "$@" -m:1 -p:UseSharedCompilation=false -nodeReuse:false
 }
 
-apply_patch_file() {
-  local workspace="$1"
-  local relative_patch="$2"
-  if [[ "$relative_patch" != "null" ]]; then
-    git -C "$workspace" apply "$script_dir/$relative_patch"
-  fi
-}
-
 while IFS= read -r qualification_case; do
   id="$(jq -r '.id' <<<"$qualification_case")"
   condition="$(jq -r '.condition' <<<"$qualification_case")"
-  good_patch="$(jq -r '.goodPatch // "null"' <<<"$qualification_case")"
-  mutation_patch="$(jq -r '.mutationPatch // "null"' <<<"$qualification_case")"
   case_directory="$qualification_root/$id"
   workspace="$case_directory/workspace"
   mkdir -p "$case_directory"
   cp -R "$case_root/conditions/$condition" "$workspace"
   find "$workspace" -type d \( -name bin -o -name obj \) -prune -exec rm -rf {} +
-  apply_patch_file "$workspace" "$good_patch"
-  apply_patch_file "$workspace" "$mutation_patch"
+  while IFS= read -r relative_patch; do
+    git -C "$workspace" apply "$script_dir/$relative_patch"
+  done < <(jq -r '.patches[]' <<<"$qualification_case")
 
   restore_log="$case_directory/restore.log"
   build_log="$case_directory/build.log"
@@ -106,15 +96,13 @@ while IFS= read -r qualification_case; do
   fi
 
   artifacts="[]"
-  for artifact in "$good_patch" "$mutation_patch"; do
-    if [[ "$artifact" != "null" ]]; then
-      artifact_sha="$(shasum -a 256 "$script_dir/$artifact" | awk '{print $1}')"
-      artifacts="$(jq -c \
-        --arg path "$artifact" \
-        --arg sha256 "$artifact_sha" \
-        '. + [{path: $path, sha256: $sha256}]' <<<"$artifacts")"
-    fi
-  done
+  while IFS= read -r artifact; do
+    artifact_sha="$(shasum -a 256 "$script_dir/$artifact" | awk '{print $1}')"
+    artifacts="$(jq -c \
+      --arg path "$artifact" \
+      --arg sha256 "$artifact_sha" \
+      '. + [{path: $path, sha256: $sha256}]' <<<"$artifacts")"
+  done < <(jq -r '.patches[]' <<<"$qualification_case")
 
   jq -cn \
     --arg id "$id" \
@@ -132,7 +120,14 @@ while IFS= read -r qualification_case; do
           contractBuild: $contractBuild,
           visibleTests: $visibleTests,
           oracleExit: $oracleExit,
-          oracle: $oracle
+          failedBehavioralChecks: (if $oracle == null then null else
+            [$oracle.behavioralChecks[] | select(.status == "failed") | .id] end),
+          failedObligations: (if $oracle == null then null else
+            [$oracle.obligations[] | select(.status == "failed") | .id] end),
+          failedTreatmentIntegrityChecks: (if $oracle == null then null else
+            [$oracle.treatmentIntegrityChecks[] | select(.status == "failed") | .id] end),
+          treatmentIntegrity: ($oracle.treatmentIntegrity // null),
+          oracleOutcome: ($oracle.outcome // null)
         }
       }' >>"$results_file"
   printf '%s: build=%s visible=%s oracle=%s\n' "$id" "$contract_build" "$visible_tests" "$oracle_exit"
@@ -147,30 +142,13 @@ jq -s \
       cases: .
     }' "$results_file" >"$output_file"
 
-actual_expectations="$qualification_root/actual-expectations.json"
-jq '{
-  schemaVersion: "cohesive.relations.load-search.qualification-expectations/v1",
-  baselineRevision,
-  cases: [.cases[] | {
-    id,
-    expected: {
-      contractBuild: .observed.contractBuild,
-      visibleTests: .observed.visibleTests,
-      oracleExit: .observed.oracleExit,
-      behavioralChecks: (if .observed.oracle == null then null else
-        [.observed.oracle.behavioralChecks[] | {id, status}] end),
-      obligations: (if .observed.oracle == null then null else
-        [.observed.oracle.obligations[] | {id, status}] end),
-      treatmentIntegrityChecks: (if .observed.oracle == null then null else
-        [.observed.oracle.treatmentIntegrityChecks[] | {id, status}] end),
-      treatmentIntegrity: (.observed.oracle.treatmentIntegrity // null),
-      oracleOutcome: (.observed.oracle.outcome // null)
-    }
-  }]
-}' "$output_file" >"$actual_expectations"
+expected="$qualification_root/expected.json"
+actual="$qualification_root/actual.json"
+jq '{baselineRevision, cases: [.cases[] | {id, expected}]}' "$cases_file" >"$expected"
+jq '{baselineRevision, cases: [.cases[] | {id, expected: .observed}]}' "$output_file" >"$actual"
 
-if ! diff -u "$expectations_file" "$actual_expectations"; then
-  printf 'Qualification results did not match the frozen expected vectors.\n' >&2
+if ! diff -u "$expected" "$actual"; then
+  printf 'Qualification results did not match the declared expectations.\n' >&2
   exit 1
 fi
 

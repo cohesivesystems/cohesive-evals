@@ -45,12 +45,12 @@ static IReadOnlyList<ObligationResult> Aggregate(IReadOnlyList<CheckResult> chec
     {
         ["REL-EVAL-001"] = ["LSM-BHV-001"],
         ["REL-EVAL-002"] = ["LSM-BHV-002"],
-        ["REL-EVAL-003"] = ["LSM-BHV-003"],
-        ["REL-EVAL-004"] = ["LSM-BHV-004"],
-        ["REL-EVAL-005"] = ["LSM-BHV-005", "LSM-BHV-006"],
-        ["REL-EVAL-006"] = ["LSM-BHV-007"],
-        ["REL-EVAL-007"] = ["LSM-BHV-008"],
-        ["REL-EVAL-008"] = ["LSM-BHV-009"]
+        ["REL-EVAL-003"] = ["LSM-BHV-002"],
+        ["REL-EVAL-004"] = ["LSM-BHV-003"],
+        ["REL-EVAL-005"] = ["LSM-BHV-004"],
+        ["REL-EVAL-006"] = ["LSM-BHV-005"],
+        ["REL-EVAL-007"] = ["LSM-BHV-003"],
+        ["REL-EVAL-008"] = ["LSM-BHV-006"]
     };
     var byId = checks.ToDictionary(static result => result.Id, StringComparer.Ordinal);
     return

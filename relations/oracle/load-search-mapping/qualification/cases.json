@@ -5,170 +5,170 @@
     {
       "id": "LSM-QUAL-BASELINE-CONV",
       "condition": "conventional",
-      "goodPatch": null,
-      "mutationPatch": null
+      "patches": [],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "failed",
+        "failedBehavioralChecks": ["LSM-BHV-002", "LSM-BHV-003", "LSM-BHV-006"],
+        "failedObligations": ["REL-EVAL-002", "REL-EVAL-003", "REL-EVAL-004", "REL-EVAL-007", "REL-EVAL-008"],
+        "failedTreatmentIntegrityChecks": [],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
     },
     {
       "id": "LSM-QUAL-GOOD-CONV",
       "condition": "conventional",
-      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
-      "mutationPatch": null
+      "patches": ["patches/conventional/LSM-QUAL-GOOD-CONV.patch"],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "passed",
+        "failedBehavioralChecks": [],
+        "failedObligations": [],
+        "failedTreatmentIntegrityChecks": [],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "passed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-BEHAVIOR-CONV",
+      "condition": "conventional",
+      "patches": [
+        "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+        "patches/conventional/LSM-QUAL-BEHAVIOR-CONV.patch"
+      ],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "failedBehavioralChecks": ["LSM-BHV-001", "LSM-BHV-002", "LSM-BHV-003", "LSM-BHV-004", "LSM-BHV-005", "LSM-BHV-006"],
+        "failedObligations": ["REL-EVAL-001", "REL-EVAL-002", "REL-EVAL-003", "REL-EVAL-004", "REL-EVAL-005", "REL-EVAL-006", "REL-EVAL-007", "REL-EVAL-008"],
+        "failedTreatmentIntegrityChecks": [],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
     },
     {
       "id": "LSM-QUAL-CONTRACT-CONV",
       "condition": "conventional",
-      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
-      "mutationPatch": "patches/conventional/LSM-QUAL-CONTRACT-CONV.patch"
+      "patches": [
+        "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+        "patches/conventional/LSM-QUAL-CONTRACT-CONV.patch"
+      ],
+      "expected": {
+        "contractBuild": "failed",
+        "visibleTests": "notEvaluated",
+        "oracleExit": "notEvaluated",
+        "failedBehavioralChecks": null,
+        "failedObligations": null,
+        "failedTreatmentIntegrityChecks": null,
+        "treatmentIntegrity": null,
+        "oracleOutcome": null
+      }
     },
     {
       "id": "LSM-QUAL-VISIBLE-CONV",
       "condition": "conventional",
-      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
-      "mutationPatch": "patches/conventional/LSM-QUAL-VISIBLE-CONV.patch"
-    },
-    {
-      "id": "LSM-QUAL-EQUIPPED-REGRESSION-CONV",
-      "condition": "conventional",
-      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
-      "mutationPatch": "patches/conventional/LSM-QUAL-EQUIPPED-REGRESSION-CONV.patch"
-    },
-    {
-      "id": "LSM-QUAL-DROP-CONV",
-      "condition": "conventional",
-      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
-      "mutationPatch": "patches/conventional/LSM-QUAL-DROP-CONV.patch"
-    },
-    {
-      "id": "LSM-QUAL-SENTINEL-CONV",
-      "condition": "conventional",
-      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
-      "mutationPatch": "patches/conventional/LSM-QUAL-SENTINEL-CONV.patch"
-    },
-    {
-      "id": "LSM-QUAL-ORDER-CONV",
-      "condition": "conventional",
-      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
-      "mutationPatch": "patches/conventional/LSM-QUAL-ORDER-CONV.patch"
-    },
-    {
-      "id": "LSM-QUAL-CUSTOMER-ABSENT-CONV",
-      "condition": "conventional",
-      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
-      "mutationPatch": "patches/conventional/LSM-QUAL-CUSTOMER-ABSENT-CONV.patch"
-    },
-    {
-      "id": "LSM-QUAL-CUSTOMER-DANGLING-CONV",
-      "condition": "conventional",
-      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
-      "mutationPatch": "patches/conventional/LSM-QUAL-CUSTOMER-DANGLING-CONV.patch"
-    },
-    {
-      "id": "LSM-QUAL-EQUIPMENT-DANGLING-CONV",
-      "condition": "conventional",
-      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
-      "mutationPatch": "patches/conventional/LSM-QUAL-EQUIPMENT-DANGLING-CONV.patch"
-    },
-    {
-      "id": "LSM-QUAL-CUSTOMER-MAPPING-CONV",
-      "condition": "conventional",
-      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
-      "mutationPatch": "patches/conventional/LSM-QUAL-CUSTOMER-MAPPING-CONV.patch"
-    },
-    {
-      "id": "LSM-QUAL-CONSUMER-CONV",
-      "condition": "conventional",
-      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
-      "mutationPatch": "patches/conventional/LSM-QUAL-CONSUMER-CONV.patch"
+      "patches": [
+        "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+        "patches/conventional/LSM-QUAL-VISIBLE-CONV.patch"
+      ],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "passed",
+        "failedBehavioralChecks": [],
+        "failedObligations": [],
+        "failedTreatmentIntegrityChecks": [],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "passed"
+      }
     },
     {
       "id": "LSM-QUAL-CONV-DEPENDENCY",
       "condition": "conventional",
-      "goodPatch": "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
-      "mutationPatch": "patches/conventional/LSM-QUAL-CONV-DEPENDENCY.patch"
+      "patches": [
+        "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+        "patches/conventional/LSM-QUAL-CONV-DEPENDENCY.patch"
+      ],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "failed",
+        "failedBehavioralChecks": [],
+        "failedObligations": [],
+        "failedTreatmentIntegrityChecks": ["LSM-TI-CONV-001"],
+        "treatmentIntegrity": "failed",
+        "oracleOutcome": "failed"
+      }
     },
     {
       "id": "LSM-QUAL-BASELINE-COH",
       "condition": "cohesive",
-      "goodPatch": null,
-      "mutationPatch": null
+      "patches": [],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "failed",
+        "failedBehavioralChecks": ["LSM-BHV-002", "LSM-BHV-003", "LSM-BHV-006"],
+        "failedObligations": ["REL-EVAL-002", "REL-EVAL-003", "REL-EVAL-004", "REL-EVAL-007", "REL-EVAL-008"],
+        "failedTreatmentIntegrityChecks": ["LSM-TI-COH-001"],
+        "treatmentIntegrity": "failed",
+        "oracleOutcome": "failed"
+      }
     },
     {
       "id": "LSM-QUAL-GOOD-COH",
       "condition": "cohesive",
-      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
-      "mutationPatch": null
+      "patches": ["patches/cohesive/LSM-QUAL-GOOD-COH.patch"],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "passed",
+        "failedBehavioralChecks": [],
+        "failedObligations": [],
+        "failedTreatmentIntegrityChecks": [],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "passed"
+      }
     },
     {
-      "id": "LSM-QUAL-CONTRACT-COH",
+      "id": "LSM-QUAL-BEHAVIOR-COH",
       "condition": "cohesive",
-      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
-      "mutationPatch": "patches/cohesive/LSM-QUAL-CONTRACT-COH.patch"
-    },
-    {
-      "id": "LSM-QUAL-VISIBLE-COH",
-      "condition": "cohesive",
-      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
-      "mutationPatch": "patches/cohesive/LSM-QUAL-VISIBLE-COH.patch"
-    },
-    {
-      "id": "LSM-QUAL-EQUIPPED-REGRESSION-COH",
-      "condition": "cohesive",
-      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
-      "mutationPatch": "patches/cohesive/LSM-QUAL-EQUIPPED-REGRESSION-COH.patch"
-    },
-    {
-      "id": "LSM-QUAL-DROP-COH",
-      "condition": "cohesive",
-      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
-      "mutationPatch": "patches/cohesive/LSM-QUAL-DROP-COH.patch"
-    },
-    {
-      "id": "LSM-QUAL-SENTINEL-COH",
-      "condition": "cohesive",
-      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
-      "mutationPatch": "patches/cohesive/LSM-QUAL-SENTINEL-COH.patch"
-    },
-    {
-      "id": "LSM-QUAL-ORDER-COH",
-      "condition": "cohesive",
-      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
-      "mutationPatch": "patches/cohesive/LSM-QUAL-ORDER-COH.patch"
-    },
-    {
-      "id": "LSM-QUAL-CUSTOMER-ABSENT-COH",
-      "condition": "cohesive",
-      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
-      "mutationPatch": "patches/cohesive/LSM-QUAL-CUSTOMER-ABSENT-COH.patch"
-    },
-    {
-      "id": "LSM-QUAL-CUSTOMER-DANGLING-COH",
-      "condition": "cohesive",
-      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
-      "mutationPatch": "patches/cohesive/LSM-QUAL-CUSTOMER-DANGLING-COH.patch"
-    },
-    {
-      "id": "LSM-QUAL-EQUIPMENT-DANGLING-COH",
-      "condition": "cohesive",
-      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
-      "mutationPatch": "patches/cohesive/LSM-QUAL-EQUIPMENT-DANGLING-COH.patch"
-    },
-    {
-      "id": "LSM-QUAL-CUSTOMER-MAPPING-COH",
-      "condition": "cohesive",
-      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
-      "mutationPatch": "patches/cohesive/LSM-QUAL-CUSTOMER-MAPPING-COH.patch"
-    },
-    {
-      "id": "LSM-QUAL-CONSUMER-COH",
-      "condition": "cohesive",
-      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
-      "mutationPatch": "patches/cohesive/LSM-QUAL-CONSUMER-COH.patch"
+      "patches": [
+        "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+        "patches/cohesive/LSM-QUAL-BEHAVIOR-COH.patch"
+      ],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "failedBehavioralChecks": ["LSM-BHV-001", "LSM-BHV-002", "LSM-BHV-003", "LSM-BHV-004", "LSM-BHV-005", "LSM-BHV-006"],
+        "failedObligations": ["REL-EVAL-001", "REL-EVAL-002", "REL-EVAL-003", "REL-EVAL-004", "REL-EVAL-005", "REL-EVAL-006", "REL-EVAL-007", "REL-EVAL-008"],
+        "failedTreatmentIntegrityChecks": [],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
     },
     {
       "id": "LSM-QUAL-COH-BYPASS",
       "condition": "cohesive",
-      "goodPatch": "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
-      "mutationPatch": "patches/cohesive/LSM-QUAL-COH-BYPASS.patch"
+      "patches": [
+        "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+        "patches/cohesive/LSM-QUAL-COH-BYPASS.patch"
+      ],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "failed",
+        "failedBehavioralChecks": [],
+        "failedObligations": [],
+        "failedTreatmentIntegrityChecks": ["LSM-TI-COH-001"],
+        "treatmentIntegrity": "failed",
+        "oracleOutcome": "failed"
+      }
     }
   ]
 }

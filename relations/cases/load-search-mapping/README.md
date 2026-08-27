@@ -158,6 +158,12 @@ Treatment integrity is reported separately from the public obligations:
 These checks provide no additional correctness credit. They establish whether a
 run is evidence about the condition it was assigned.
 
+For this small v0 case, automated enforcement is intentionally proportional: it
+checks the conventional dependency boundary and the compiled Cohesive relation
+requirements, then relies on the shared black-box behavior. It does not attempt
+security-grade proof against deliberately hidden dead code. A bypass found in
+manual evidence review still fails treatment integrity.
+
 ## Baseline layout
 
 ```text

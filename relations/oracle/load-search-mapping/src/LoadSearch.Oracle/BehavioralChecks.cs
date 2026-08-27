@@ -7,14 +7,11 @@ static class BehavioralChecks
     public static IReadOnlyList<CheckResult> Execute() =>
     [
         Run("LSM-BHV-001", EquippedMapping),
-        Run("LSM-BHV-002", UnequippedRetention),
-        Run("LSM-BHV-003", UnequippedNullRepresentation),
-        Run("LSM-BHV-004", MixedCardinalityAndOrder),
-        Run("LSM-BHV-005", AbsentCustomerFailure),
-        Run("LSM-BHV-006", DanglingCustomerFailure),
-        Run("LSM-BHV-007", DanglingEquipmentFailure),
-        Run("LSM-BHV-008", SuccessfulIdentityAndCustomerMapping),
-        Run("LSM-BHV-009", CustomerOnlyConsumer)
+        Run("LSM-BHV-002", UnequippedMapping),
+        Run("LSM-BHV-003", MixedMapping),
+        Run("LSM-BHV-004", CustomerRemainsRequired),
+        Run("LSM-BHV-005", DanglingEquipmentFailure),
+        Run("LSM-BHV-006", CustomerOnlyConsumer)
     ];
 
     static string EquippedMapping()
@@ -32,7 +29,7 @@ static class BehavioralChecks
         return "Equipped Load retained its baseline identity and mapped fields.";
     }
 
-    static string UnequippedRetention()
+    static string UnequippedMapping()
     {
         var outcome = Execute(Input(
             [Load("freight-unassigned", "account-west", null)],
@@ -40,58 +37,45 @@ static class BehavioralChecks
             [Equipment("unused-unit", "UNUSED")]));
 
         Success(outcome, 1);
-        Require.Equal(
-            1,
-            outcome.Results.Count(result => result.LoadId == "freight-unassigned"),
-            "Occurrences of unequipped Load identity");
-        return "Unequipped Load occurred exactly once in a successful result.";
+        var result = outcome.Results.Single();
+        Require.Equal("freight-unassigned", result.LoadId, "Load identity");
+        Require.Equal("Westward", result.CustomerName, "Customer name");
+        Require.Equal<string?>(null, result.EquipmentNumber, "Equipment number absence");
+        return "Unequipped Load remained once with unchanged fields and null Equipment number.";
     }
 
-    static string UnequippedNullRepresentation()
-    {
-        var outcome = Execute(Input(
-            [Load("freight-open", "account-east", null)],
-            [Customer("account-east", "Eastern")],
-            []));
-
-        Success(outcome, 1);
-        Require.Equal<string?>(null, outcome.Results.Single().EquipmentNumber, "Equipment number absence");
-        return "Unequipped result represented Equipment number as null.";
-    }
-
-    static string MixedCardinalityAndOrder()
+    static string MixedMapping()
     {
         var outcome = Execute(MixedInput());
 
         Success(outcome, 4);
         Require.SequenceEqual(
-            ["freight-z", "freight-open", "freight-a", "freight-spare"],
-            outcome.Results.Select(static result => result.LoadId),
-            "Mixed result identities and order");
-        Require.Equal(4, outcome.Results.Select(static result => result.LoadId).Distinct().Count(), "Distinct identities");
-        return "Mixed input retained one result per Load in source order.";
+            [
+                "freight-z:Zulu:TX-999",
+                "freight-open:Alpha:<null>",
+                "freight-a:Alpha:TX-001",
+                "freight-spare:Zulu:<null>"
+            ],
+            outcome.Results.Select(static result =>
+                $"{result.LoadId}:{result.CustomerName}:{result.EquipmentNumber ?? "<null>"}"),
+            "Mixed result fields and order");
+        return "Mixed input retained one correctly mapped result per Load in source order.";
     }
 
-    static string AbsentCustomerFailure()
+    static string CustomerRemainsRequired()
     {
-        var outcome = Execute(Input(
+        var absent = Execute(Input(
             [Load("freight-no-account", null, "tractor-3")],
             [Customer("account-other", "Other")],
             [Equipment("tractor-3", "TX-303")]));
-
-        Failure(outcome, "Customer", null);
-        return "Absent Customer retained the required-relationship failure.";
-    }
-
-    static string DanglingCustomerFailure()
-    {
-        var outcome = Execute(Input(
+        var dangling = Execute(Input(
             [Load("freight-bad-account", "account-missing", "tractor-4")],
             [Customer("account-present", "Present")],
             [Equipment("tractor-4", "TX-404")]));
 
-        Failure(outcome, "Customer", "account-missing");
-        return "Dangling Customer retained its reference identity and required failure.";
+        Failure(absent, "Customer", null);
+        Failure(dangling, "Customer", "account-missing");
+        return "Absent and dangling Customer references retained the required-relationship failure.";
     }
 
     static string DanglingEquipmentFailure()
@@ -103,18 +87,6 @@ static class BehavioralChecks
 
         Failure(outcome, "Equipment", "tractor-missing");
         return "Dangling non-null Equipment retained its reference identity and required failure.";
-    }
-
-    static string SuccessfulIdentityAndCustomerMapping()
-    {
-        var outcome = Execute(MixedInput());
-
-        Success(outcome, 4);
-        Require.SequenceEqual(
-            ["freight-z:Zulu", "freight-open:Alpha", "freight-a:Alpha", "freight-spare:Zulu"],
-            outcome.Results.Select(static result => $"{result.LoadId}:{result.CustomerName}"),
-            "Successful Load and Customer fields");
-        return "Successful results retained every source Load identity and matched Customer name.";
     }
 
     static string CustomerOnlyConsumer()
