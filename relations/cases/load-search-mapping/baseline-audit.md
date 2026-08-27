@@ -28,6 +28,42 @@ who did not author Cohesive.Relations and has no direct stake in the comparison.
 - [ ] Visible guidance and task distance compared across conditions.
 - [ ] Requested changes, disposition, and final sign-off recorded.
 
+### Provisional maintainer self-review
+
+Date: 2026-08-27
+
+Reviewer: Leo Gorodinski
+
+Leo has approximately 20 years of C#/.NET experience and regularly evaluates
+C# code for idiomatic design, API clarity, nullability, collection handling,
+and test quality.
+
+Leo is the creator of Cohesive, including Cohesive.Relations, directed the
+evaluation baseline work, and hopes Cohesive proves useful. He therefore has a
+direct stake in the experiment. He believes that usefulness should be
+established through appropriately designed experimentation and is motivated to
+identify bias or methodological weaknesses rather than optimize for a favorable
+result.
+
+Review findings:
+
+- The conventional implementation is idiomatic C#. A LINQ join would be a
+  reasonable alternative, but the dictionary-based implementation is also
+  appropriate.
+- Nothing in the implementation appears unnecessarily awkward or contrived.
+- The visible README provides sufficient guidance.
+- Making Equipment optional is a natural, simple, and appropriately bounded C#
+  maintenance task. An ordinary production task would often be broader, but
+  this scope is suitable for a controlled experiment. Adding a new optional
+  field and similar relationship-evolution changes would be useful related
+  tasks in a broader suite.
+- No changes are requested at this time.
+- Provisional maintainer sign-off: approved.
+
+This self-review is useful design feedback but does **not** satisfy the
+independent review gate above. Leo authored and has a direct stake in the work,
+so every independent-gate checkbox remains open pending an eligible reviewer.
+
 ## Task-selection disclosure
 
 The task was chosen by Cohesive maintainers from Cohesive.Relations' home domain:
