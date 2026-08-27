@@ -1,8 +1,8 @@
 # Cohesive.Relations evaluation protocol v0.1
 
-Status: proposed revision for maintainer review on 2026-08-26. No calibration
-or evaluated runs have occurred. The frozen v0 text remains preserved at commit
-`8cafef7`; this version may supersede it only after review and a new freeze.
+Status: approved and frozen for protocol v0.1 on 2026-08-26. No calibration or
+evaluated runs have occurred. The frozen v0 text remains preserved at commit
+`8cafef7`. Baseline admission and oracle freeze remain separate gates.
 
 ## v0.1 revision summary
 
@@ -359,8 +359,8 @@ oracle, and complete evidence—not a favorable comparison.
 
 ## Deferred work
 
-The matched application implementations and baseline-equivalence tests are
-complete. Hidden checks, known-correct and per-condition seeded-bad submissions,
-the evaluation CLI, agent driver, scorer, calibration, and pilot execution remain
-deferred. Their implementation must conform to the approved version of this
-protocol or propose another explicit revision.
+The matched application implementations, baseline-equivalence tests, candidate
+hidden oracle, and proportional qualification submissions are complete. The
+independent baseline review, oracle freeze, evaluation CLI, agent driver,
+calibration, and pilot execution remain deferred. Their implementation must
+conform to this approved protocol or propose another explicit revision.

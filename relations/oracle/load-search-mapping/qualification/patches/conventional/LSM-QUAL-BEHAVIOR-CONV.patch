@@ -1,0 +1,40 @@
+diff --git a/src/LoadSearch.Application/LoadSearchService.cs b/src/LoadSearch.Application/LoadSearchService.cs
+index 54b192f..0fbd1fb 100644
+--- a/src/LoadSearch.Application/LoadSearchService.cs
++++ b/src/LoadSearch.Application/LoadSearchService.cs
+@@ -6,6 +6,12 @@ public sealed class LoadSearchService : ILoadSearchService
+     {
+         ArgumentNullException.ThrowIfNull(input);
+ 
++        if (input.Loads.Any(static load => load.CustomerId is null))
++            return LoadSearchOutcome.Success([]);
++
++        if (input.Loads.Any(static load => load.EquipmentId is null))
++            return LoadSearchOutcome.Success([]);
++
+         var customers = input.Customers.ToDictionary(static customer => customer.Id, StringComparer.Ordinal);
+         var equipment = input.Equipment.ToDictionary(static unit => unit.Id, StringComparer.Ordinal);
+         List<LoadSearchResult> results = new(input.Loads.Count);
+@@ -19,17 +25,16 @@ public sealed class LoadSearchService : ILoadSearchService
+             }
+ 
+             Equipment? unit = null;
+-            if (load.EquipmentId is not null
+-                && !equipment.TryGetValue(load.EquipmentId, out unit))
+-            {
+-                return LoadSearchOutcome.Failed("Equipment", load.EquipmentId);
+-            }
++            if (load.EquipmentId is not null)
++                equipment.TryGetValue(load.EquipmentId, out unit);
+ 
+             results.Add(new()
+             {
+                 LoadId = load.Id,
+                 CustomerName = customer.Name,
+-                EquipmentNumber = unit?.Number
++                EquipmentNumber = unit?.Number == "TX-904"
++                    ? "BROKEN-EQUIPMENT"
++                    : unit?.Number
+             });
+         }
+ 

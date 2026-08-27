@@ -1,0 +1,174 @@
+{
+  "schemaVersion": "cohesive.relations.load-search.qualification-cases/v1",
+  "baselineRevision": "170bf2e533f3ce80f8e81ff30ce0ed5242b2b3c2",
+  "cases": [
+    {
+      "id": "LSM-QUAL-BASELINE-CONV",
+      "condition": "conventional",
+      "patches": [],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "failed",
+        "failedBehavioralChecks": ["LSM-BHV-002", "LSM-BHV-003", "LSM-BHV-006"],
+        "failedObligations": ["REL-EVAL-002", "REL-EVAL-003", "REL-EVAL-004", "REL-EVAL-007", "REL-EVAL-008"],
+        "failedTreatmentIntegrityChecks": [],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-GOOD-CONV",
+      "condition": "conventional",
+      "patches": ["patches/conventional/LSM-QUAL-GOOD-CONV.patch"],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "passed",
+        "failedBehavioralChecks": [],
+        "failedObligations": [],
+        "failedTreatmentIntegrityChecks": [],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "passed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-BEHAVIOR-CONV",
+      "condition": "conventional",
+      "patches": [
+        "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+        "patches/conventional/LSM-QUAL-BEHAVIOR-CONV.patch"
+      ],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "failedBehavioralChecks": ["LSM-BHV-001", "LSM-BHV-002", "LSM-BHV-003", "LSM-BHV-004", "LSM-BHV-005", "LSM-BHV-006"],
+        "failedObligations": ["REL-EVAL-001", "REL-EVAL-002", "REL-EVAL-003", "REL-EVAL-004", "REL-EVAL-005", "REL-EVAL-006", "REL-EVAL-007", "REL-EVAL-008"],
+        "failedTreatmentIntegrityChecks": [],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-CONTRACT-CONV",
+      "condition": "conventional",
+      "patches": [
+        "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+        "patches/conventional/LSM-QUAL-CONTRACT-CONV.patch"
+      ],
+      "expected": {
+        "contractBuild": "failed",
+        "visibleTests": "notEvaluated",
+        "oracleExit": "notEvaluated",
+        "failedBehavioralChecks": null,
+        "failedObligations": null,
+        "failedTreatmentIntegrityChecks": null,
+        "treatmentIntegrity": null,
+        "oracleOutcome": null
+      }
+    },
+    {
+      "id": "LSM-QUAL-VISIBLE-CONV",
+      "condition": "conventional",
+      "patches": [
+        "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+        "patches/conventional/LSM-QUAL-VISIBLE-CONV.patch"
+      ],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "passed",
+        "failedBehavioralChecks": [],
+        "failedObligations": [],
+        "failedTreatmentIntegrityChecks": [],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "passed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-CONV-DEPENDENCY",
+      "condition": "conventional",
+      "patches": [
+        "patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+        "patches/conventional/LSM-QUAL-CONV-DEPENDENCY.patch"
+      ],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "failed",
+        "failedBehavioralChecks": [],
+        "failedObligations": [],
+        "failedTreatmentIntegrityChecks": ["LSM-TI-CONV-001"],
+        "treatmentIntegrity": "failed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-BASELINE-COH",
+      "condition": "cohesive",
+      "patches": [],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "failed",
+        "failedBehavioralChecks": ["LSM-BHV-002", "LSM-BHV-003", "LSM-BHV-006"],
+        "failedObligations": ["REL-EVAL-002", "REL-EVAL-003", "REL-EVAL-004", "REL-EVAL-007", "REL-EVAL-008"],
+        "failedTreatmentIntegrityChecks": ["LSM-TI-COH-001"],
+        "treatmentIntegrity": "failed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-GOOD-COH",
+      "condition": "cohesive",
+      "patches": ["patches/cohesive/LSM-QUAL-GOOD-COH.patch"],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "passed",
+        "failedBehavioralChecks": [],
+        "failedObligations": [],
+        "failedTreatmentIntegrityChecks": [],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "passed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-BEHAVIOR-COH",
+      "condition": "cohesive",
+      "patches": [
+        "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+        "patches/cohesive/LSM-QUAL-BEHAVIOR-COH.patch"
+      ],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "failed",
+        "oracleExit": "failed",
+        "failedBehavioralChecks": ["LSM-BHV-001", "LSM-BHV-002", "LSM-BHV-003", "LSM-BHV-004", "LSM-BHV-005", "LSM-BHV-006"],
+        "failedObligations": ["REL-EVAL-001", "REL-EVAL-002", "REL-EVAL-003", "REL-EVAL-004", "REL-EVAL-005", "REL-EVAL-006", "REL-EVAL-007", "REL-EVAL-008"],
+        "failedTreatmentIntegrityChecks": [],
+        "treatmentIntegrity": "passed",
+        "oracleOutcome": "failed"
+      }
+    },
+    {
+      "id": "LSM-QUAL-COH-BYPASS",
+      "condition": "cohesive",
+      "patches": [
+        "patches/cohesive/LSM-QUAL-GOOD-COH.patch",
+        "patches/cohesive/LSM-QUAL-COH-BYPASS.patch"
+      ],
+      "expected": {
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "oracleExit": "failed",
+        "failedBehavioralChecks": [],
+        "failedObligations": [],
+        "failedTreatmentIntegrityChecks": ["LSM-TI-COH-001"],
+        "treatmentIntegrity": "failed",
+        "oracleOutcome": "failed"
+      }
+    }
+  ]
+}

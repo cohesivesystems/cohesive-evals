@@ -1,0 +1,14 @@
+diff --git a/src/LoadSearch.Application/Contracts.cs b/src/LoadSearch.Application/Contracts.cs
+index d416d96..9aad60e 100644
+--- a/src/LoadSearch.Application/Contracts.cs
++++ b/src/LoadSearch.Application/Contracts.cs
+@@ -41,7 +41,7 @@ public sealed record LoadSearchResult
+     public required string CustomerName { get; init; }
+ 
+     [JsonPropertyName("equipmentNumber")]
+-    public string? EquipmentNumber { get; init; }
++    public string? OptionalEquipmentNumber { get; init; }
+ }
+ 
+ public sealed record LoadSearchInput(
+

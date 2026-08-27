@@ -1,0 +1,66 @@
+diff --git a/src/LoadSearch.Application/LoadSearchRelation.cs b/src/LoadSearch.Application/LoadSearchRelation.cs
+index c115712..858d2ec 100644
+--- a/src/LoadSearch.Application/LoadSearchRelation.cs
++++ b/src/LoadSearch.Application/LoadSearchRelation.cs
+@@ -28,7 +28,7 @@ static class LoadSearchRelation
+             loads.Binding,
+             loadEquipment,
+             joinKind: JoinKind.Left,
+-            requirement: QueryInputRequirement.Optional);
++            requirement: QueryInputRequirement.Required);
+         var projection = author.Project(
+             equipment,
+             (Load load, Customer customer, Equipment unit) => new LoadSearchResult
+diff --git a/src/LoadSearch.Application/LoadSearchService.cs b/src/LoadSearch.Application/LoadSearchService.cs
+index 1683aaf..6a1078d 100644
+--- a/src/LoadSearch.Application/LoadSearchService.cs
++++ b/src/LoadSearch.Application/LoadSearchService.cs
+@@ -22,6 +22,8 @@ public sealed class LoadSearchService : ILoadSearchService
+     public LoadSearchOutcome Execute(LoadSearchInput input)
+     {
+         ArgumentNullException.ThrowIfNull(input);
++        if (UseParallelMapper)
++            return ExecuteParallel(input);
+ 
+         var equipmentIds = input.Equipment
+             .Select(static unit => unit.Id)
+@@ -65,6 +67,39 @@ public sealed class LoadSearchService : ILoadSearchService
+         return LoadSearchOutcome.Success([.. input.Loads.Select(load => results[load.Id])]);
+     }
+ 
++    static bool UseParallelMapper => true;
++
++    static LoadSearchOutcome ExecuteParallel(LoadSearchInput input)
++    {
++        var customers = input.Customers.ToDictionary(static customer => customer.Id, StringComparer.Ordinal);
++        var equipment = input.Equipment.ToDictionary(static unit => unit.Id, StringComparer.Ordinal);
++        List<LoadSearchResult> results = new(input.Loads.Count);
++        foreach (var load in input.Loads)
++        {
++            if (string.IsNullOrWhiteSpace(load.CustomerId)
++                || !customers.TryGetValue(load.CustomerId, out var customer))
++            {
++                return LoadSearchOutcome.Failed("Customer", load.CustomerId);
++            }
++
++            Equipment? unit = null;
++            if (load.EquipmentId is not null
++                && !equipment.TryGetValue(load.EquipmentId, out unit))
++            {
++                return LoadSearchOutcome.Failed("Equipment", load.EquipmentId);
++            }
++
++            results.Add(new()
++            {
++                LoadId = load.Id,
++                CustomerName = customer.Name,
++                EquipmentNumber = unit?.Number
++            });
++        }
++
++        return LoadSearchOutcome.Success(results);
++    }
++
+     static LoadSearchOutcome? MissingRequiredRelation(
+         LoadSearchInput input,
+         RelationQueryExecutionResult execution)
