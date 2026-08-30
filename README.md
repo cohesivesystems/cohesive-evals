@@ -38,14 +38,14 @@ relations/
   surfaces and normalized baseline behavior.
 - `oracle/` is maintainer-only evaluation material. It must never be copied
   into an agent workspace.
-- `runner/` will contain orchestration and scoring code.
+- `runner/` contains the candidate dry-run orchestration and scoring foundation.
 - `results/` will contain immutable evidence from evaluation runs.
 
 Frozen v0 remains preserved in Git history. Protocol v0.1 and the oracle design
-gate are approved. The executable private oracle is implemented and qualified;
-its freeze and the sanitized baseline candidate remain blocked on the
-independent conventional review in COH-59. The runner, calibration, and run
-results remain deferred.
+gate are approved. The executable private oracle is implemented and qualified,
+and the runner/scorer foundation is validated without an agent invocation. The
+baseline and oracle freeze, production agent driver, calibration, and pilot
+remain blocked on the independent conventional review in COH-59.
 
 ## Working principles
 

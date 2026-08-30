@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "cohesive.relations.runner-validation/v1",
+  "cases": [
+    {
+      "id": "runner-baseline-conventional",
+      "condition": "conventional",
+      "patches": [],
+      "expected": {
+        "validity": "valid",
+        "outcome": "incomplete",
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "hiddenChecks": "failed",
+        "treatmentIntegrity": "passed",
+        "failedObligations": ["REL-EVAL-002", "REL-EVAL-003", "REL-EVAL-004", "REL-EVAL-007", "REL-EVAL-008"],
+        "notEvaluatedObligations": []
+      }
+    },
+    {
+      "id": "runner-good-conventional",
+      "condition": "conventional",
+      "patches": ["relations/oracle/load-search-mapping/qualification/patches/conventional/LSM-QUAL-GOOD-CONV.patch"],
+      "expected": {
+        "validity": "valid",
+        "outcome": "complete",
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "hiddenChecks": "passed",
+        "treatmentIntegrity": "passed",
+        "failedObligations": [],
+        "notEvaluatedObligations": []
+      }
+    },
+    {
+      "id": "runner-contract-conventional",
+      "condition": "conventional",
+      "patches": [
+        "relations/oracle/load-search-mapping/qualification/patches/conventional/LSM-QUAL-GOOD-CONV.patch",
+        "relations/oracle/load-search-mapping/qualification/patches/conventional/LSM-QUAL-CONTRACT-CONV.patch"
+      ],
+      "expected": {
+        "validity": "valid",
+        "outcome": "incomplete",
+        "contractBuild": "failed",
+        "visibleTests": "notEvaluated",
+        "hiddenChecks": "notEvaluated",
+        "treatmentIntegrity": "notEvaluated",
+        "failedObligations": [],
+        "notEvaluatedObligations": ["REL-EVAL-001", "REL-EVAL-002", "REL-EVAL-003", "REL-EVAL-004", "REL-EVAL-005", "REL-EVAL-006", "REL-EVAL-007", "REL-EVAL-008"]
+      }
+    },
+    {
+      "id": "runner-baseline-cohesive",
+      "condition": "cohesive",
+      "patches": [],
+      "expected": {
+        "validity": "valid",
+        "outcome": "incomplete",
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "hiddenChecks": "failed",
+        "treatmentIntegrity": "failed",
+        "failedObligations": ["REL-EVAL-002", "REL-EVAL-003", "REL-EVAL-004", "REL-EVAL-007", "REL-EVAL-008"],
+        "notEvaluatedObligations": []
+      }
+    },
+    {
+      "id": "runner-good-cohesive",
+      "condition": "cohesive",
+      "patches": ["relations/oracle/load-search-mapping/qualification/patches/cohesive/LSM-QUAL-GOOD-COH.patch"],
+      "expected": {
+        "validity": "valid",
+        "outcome": "complete",
+        "contractBuild": "passed",
+        "visibleTests": "passed",
+        "hiddenChecks": "passed",
+        "treatmentIntegrity": "passed",
+        "failedObligations": [],
+        "notEvaluatedObligations": []
+      }
+    }
+  ]
+}
