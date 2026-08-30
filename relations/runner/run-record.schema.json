@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cohesive.systems/schemas/relations/run-record.v1.json",
+  "title": "Cohesive.Relations evaluation run record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "runId",
+    "phase",
+    "condition",
+    "validity",
+    "invalidReason",
+    "outcome",
+    "configuration",
+    "timing",
+    "workspace",
+    "submission",
+    "agent",
+    "gates",
+    "obligations",
+    "evidence"
+  ],
+  "properties": {
+    "schemaVersion": {"const": "cohesive.relations.run-record/v1"},
+    "runId": {"type": "string", "minLength": 1},
+    "phase": {"enum": ["dryRun", "calibration", "pilot"]},
+    "condition": {"enum": ["conventional", "cohesive"]},
+    "validity": {"enum": ["valid", "invalid"]},
+    "invalidReason": {"type": ["string", "null"]},
+    "outcome": {"enum": ["complete", "incomplete", "notScored"]},
+    "configuration": {
+      "type": "object",
+      "required": [
+        "runnerVersion",
+        "runnerSourceRevision",
+        "runnerSourceDirty",
+        "configSha256",
+        "protocolVersion",
+        "caseId",
+        "taskId",
+        "task",
+        "baselineRevision",
+        "conditionTree",
+        "oracleRevision",
+        "oracleTree",
+        "dotnetSdk",
+        "host"
+      ]
+    },
+    "timing": {
+      "type": "object",
+      "required": ["startedAt", "endedAt", "elapsedSeconds"],
+      "properties": {
+        "startedAt": {"type": "string", "format": "date-time"},
+        "endedAt": {"type": "string", "format": "date-time"},
+        "elapsedSeconds": {"type": "integer", "minimum": 0}
+      }
+    },
+    "workspace": {
+      "type": "object",
+      "required": ["baselineCommit", "changedFileCount", "preManifest", "postManifest"],
+      "properties": {
+        "baselineCommit": {"type": ["string", "null"]},
+        "changedFileCount": {"type": "integer", "minimum": 0},
+        "preManifest": {"type": "string"},
+        "postManifest": {"type": "string"}
+      }
+    },
+    "submission": {
+      "type": "object",
+      "required": ["appliedInputs", "finalPatch", "patchLineCount"],
+      "properties": {
+        "appliedInputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "sha256"],
+            "properties": {
+              "path": {"type": "string"},
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            }
+          }
+        },
+        "finalPatch": {"type": "string"},
+        "patchLineCount": {"type": "integer", "minimum": 0}
+      }
+    },
+    "agent": {
+      "type": "object",
+      "required": ["mode", "invoked", "stdout", "stderr"]
+    },
+    "gates": {
+      "type": "object",
+      "required": [
+        "preWorkspaceAudit",
+        "postWorkspaceAudit",
+        "workspaceAudit",
+        "dependencyRestore",
+        "applicationBuild",
+        "visibleTests",
+        "oracleAdapterBuild",
+        "contractBuild",
+        "oracleExecution",
+        "oracleExitCode",
+        "hiddenChecks",
+        "treatmentIntegrity"
+      ],
+      "properties": {
+        "preWorkspaceAudit": {"$ref": "#/$defs/gateStatus"},
+        "postWorkspaceAudit": {"$ref": "#/$defs/gateStatus"},
+        "workspaceAudit": {"$ref": "#/$defs/gateStatus"},
+        "dependencyRestore": {"$ref": "#/$defs/gateStatus"},
+        "applicationBuild": {"$ref": "#/$defs/gateStatus"},
+        "visibleTests": {"$ref": "#/$defs/gateStatus"},
+        "oracleAdapterBuild": {"$ref": "#/$defs/gateStatus"},
+        "contractBuild": {"$ref": "#/$defs/gateStatus"},
+        "oracleExecution": {"$ref": "#/$defs/gateStatus"},
+        "oracleExitCode": {"type": ["integer", "null"]},
+        "hiddenChecks": {"$ref": "#/$defs/gateStatus"},
+        "treatmentIntegrity": {"$ref": "#/$defs/gateStatus"}
+      }
+    },
+    "obligations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "status", "checks"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^REL-EVAL-[0-9]{3}$"},
+          "status": {"$ref": "#/$defs/gateStatus"},
+          "checks": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "applicationRestoreLog",
+        "applicationBuildLog",
+        "visibleTestsLog",
+        "oracleRestoreLog",
+        "oracleBuildLog",
+        "oracleExecutionLog",
+        "oracleReport",
+        "gitStatus"
+      ]
+    }
+  },
+  "$defs": {
+    "gateStatus": {
+      "enum": ["passed", "failed", "notEvaluated"]
+    }
+  }
+}

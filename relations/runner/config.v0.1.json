@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "cohesive.relations.runner-config/v1",
+  "runnerVersion": "0.1-candidate",
+  "protocolVersion": "0.1",
+  "caseId": "load-search-mapping",
+  "taskId": "make-equipment-optional",
+  "task": "Equipment is now optional. Loads without Equipment must remain in Load Search results, with Equipment fields absent. Existing Loads with Equipment, required Customer behavior, result identity and ordering, and unrelated consumers must remain unchanged. You may update nullable-reference annotations on Load.EquipmentId and LoadSearchResult.EquipmentNumber; do not rename, remove, replace, or otherwise change the frozen public contract described in this repository. Keep the repository building and its visible tests passing.",
+  "baselineRevision": "170bf2e533f3ce80f8e81ff30ce0ed5242b2b3c2",
+  "oracle": {
+    "revision": "4a25c74e77232511104405c81a4cfcb035bd8f2f",
+    "path": "relations/oracle/load-search-mapping/src/LoadSearch.Oracle",
+    "tree": "8e42fb9d1c45dda3b2e55899421f15ce35cb9328"
+  },
+  "conditions": {
+    "conventional": {
+      "path": "relations/cases/load-search-mapping/conditions/conventional",
+      "tree": "3bde1ea0dd3ded09414c7ee26563cccd0bdcfcdf",
+      "allowedTopLevel": [
+        ".gitignore",
+        "Directory.Build.props",
+        "LoadSearch.slnx",
+        "NuGet.config",
+        "README.md",
+        "global.json",
+        "src",
+        "tests",
+        "tools"
+      ]
+    },
+    "cohesive": {
+      "path": "relations/cases/load-search-mapping/conditions/cohesive",
+      "tree": "add51c4914710d071592806bfc450c923f5b8c66",
+      "allowedTopLevel": [
+        ".gitignore",
+        "Directory.Build.props",
+        "LoadSearch.slnx",
+        "NuGet.config",
+        "README.md",
+        "global.json",
+        "packages",
+        "src",
+        "tests",
+        "tools"
+      ]
+    }
+  },
+  "obligationIds": [
+    "REL-EVAL-001",
+    "REL-EVAL-002",
+    "REL-EVAL-003",
+    "REL-EVAL-004",
+    "REL-EVAL-005",
+    "REL-EVAL-006",
+    "REL-EVAL-007",
+    "REL-EVAL-008"
+  ],
+  "forbiddenPathNames": [
+    "protocol.md",
+    "obligations.md",
+    "observed.json",
+    "cases.json",
+    "run-qualification.sh"
+  ],
+  "forbiddenText": [
+    "REL-EVAL-",
+    "LSM-BHV-",
+    "cohesive-evals",
+    "evaluation protocol",
+    "hidden oracle"
+  ]
+}
