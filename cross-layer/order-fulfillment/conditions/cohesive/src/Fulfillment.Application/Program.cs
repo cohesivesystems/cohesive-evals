@@ -42,10 +42,10 @@ app.MapGet("/orders/{id}", async (string id, IFulfillmentBackend backend) =>
 app.MapGet("/inventory/{sku}", async (string sku, IFulfillmentBackend backend) =>
     await backend.GetInventory(sku) is { } item ? Results.Ok(item) : Results.NotFound());
 app.MapGet("/orders/{id}/details", async (string id, IFulfillmentBackend backend) =>
-    await backend.GetDetails(id) is { } details ? Results.Ok(details) : Results.NotFound());
+    await backend.GetDetails(id) is { } details ? ReadResults.Reply(details, details.Reservations.Count) : Results.NotFound());
 app.MapGet("/orders/{id}/availability", async (string id, IFulfillmentBackend backend) =>
     await backend.GetDetails(id) is { } details
-        ? Results.Ok(details.Reservations.Select(r => new AvailabilityView(r.Id, r.Sku, r.Quantity, r.AvailableStock)).ToArray())
+        ? ReadResults.Reply(details.Reservations.Select(r => new AvailabilityView(r.Id, r.Sku, r.Quantity, r.AvailableStock)).ToArray(), details.Reservations.Count)
         : Results.NotFound());
 app.MapPost("/fulfillment", (FulfillmentRequest request, OperationQueue queue) => queue.Admit(request));
 app.MapGet("/fulfillment/results/{operationId}", (string operationId, OperationQueue queue) => queue.Result(operationId));

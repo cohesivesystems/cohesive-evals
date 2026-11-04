@@ -65,7 +65,7 @@ It compares an order-hold change with an informational review-marker control at
 fresh and aged checkpoints, using quantity limits, cancellation, and inventory
 quarantine as the evolution sequence. The protocol is defined but not frozen for
 execution. The [matched G0 fixtures](cross-layer/order-fulfillment/README.md) are
-implemented and pass 42 shared HTTP checks per condition. Independent baseline
+implemented and pass 52 shared HTTP checks per condition. Independent baseline
 review, evolved checkpoints, oracle qualification, and calibration remain pending.
 The original Relations protocol and fixtures remain unchanged.
 

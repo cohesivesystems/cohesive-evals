@@ -31,7 +31,7 @@ def main():
  (args.output/'report.json').unlink(missing_ok=True)
  for relative in ['src/Fulfillment.Application/Contracts.cs','src/Fulfillment.Application/Program.cs',
                   'src/Fulfillment.Application/OperationQueue.cs','tests/contract_tests.py',
-                  'CONTRACT.md','schemas.json','README.md']:
+                  'src/Fulfillment.Application/ReadResults.cs','CONTRACT.md','schemas.json','README.md']:
   assert (ROOT/'conditions/conventional'/relative).read_bytes()==(ROOT/'conditions/cohesive'/relative).read_bytes(),relative
  manifest=json.loads((ROOT/'conditions/cohesive/dependency-manifest.json').read_text())
  for package in manifest['packages']:

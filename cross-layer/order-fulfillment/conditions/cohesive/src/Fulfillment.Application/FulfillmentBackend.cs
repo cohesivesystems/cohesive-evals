@@ -50,7 +50,9 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
         orders = persistence.Repository(domain.Orders, transitionReceipts: receiptStorage);
         inventory = persistence.Repository(domain.Inventory, transitionReceipts: receiptStorage);
         reservations = persistence.Repository(domain.Reservations, transitionReceipts: receiptStorage);
-        details = persistence.Query(new FulfillmentQueries(domain).OrderDetails, maximumRows: 1000, maximumBytes: 1_000_000);
+        // Public row/serialized-byte limits are enforced by shared ReadResults.
+        // Adapter decoded-row limits must not reject an otherwise allowed response.
+        details = persistence.Query(new FulfillmentQueries(domain).OrderDetails, maximumRows: int.MaxValue - 1, maximumBytes: long.MaxValue);
         var process = new FulfillmentProcess(domain);
         hosted = Service.Define(new("fulfillment"), new("1"), process.Provenance)
             .Use(new ServiceDependencies().Process(process))

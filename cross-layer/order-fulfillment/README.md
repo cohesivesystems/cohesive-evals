@@ -45,9 +45,11 @@ terms. These packages are fixture dependencies, not a public package release.
 ## Verification status
 
 On 2026-11-03 both builds completed with zero warnings and errors. Both services
-passed all 42 visible HTTP checks with identical normalized observations against
+passed all 52 visible HTTP checks with identical normalized observations against
 PostgreSQL 17.10. Checks cover domain outcomes, precedence, compensation, reads,
 request replay, identity conflicts, invalid inputs and unrelated-state preservation.
+Regression checks also cover Unicode ordinal sorting and exact row/serialized-byte
+limits on both read endpoints (1,000 rows and 1,000,000 bytes; excess returns 422).
 This establishes tested G0 parity, not independent design review or oracle qualification.
 
 Independent conventional review, the private oracle, evolved checkpoints,

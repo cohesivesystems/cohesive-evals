@@ -238,7 +238,8 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/Reservation"
-          }
+          },
+          "maxItems": 1000
         }
       },
       "required": [
@@ -246,6 +247,26 @@
         "status",
         "reservations"
       ]
+    },
+    "AvailabilityResponse": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Availability"
+      },
+      "maxItems": 1000
+    },
+    "ReadResultTooLarge": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "const": "ReadResultTooLarge"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "additionalProperties": false
     }
-  }
+  },
+  "$comment": "Details and availability responses are limited to 1,000,000 serialized UTF-8 bytes; see CONTRACT.md for escaping and HTTP 422 behavior."
 }

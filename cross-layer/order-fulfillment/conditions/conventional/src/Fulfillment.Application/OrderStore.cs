@@ -46,14 +46,14 @@ public sealed class OrderStore(NpgsqlDataSource database)
         await using var command = database.CreateCommand("""
             SELECT o.id,o.status,r.id,r.sku,r.quantity,i.available FROM orders o
             LEFT JOIN reservations r ON r.order_id=o.id LEFT JOIN inventory i ON i.sku=r.sku
-            WHERE o.id=$1 ORDER BY r.id COLLATE "C"
+            WHERE o.id=$1
             """);
         command.Parameters.AddWithValue(id); await using var reader = await command.ExecuteReaderAsync();
         if (!await reader.ReadAsync()) return null;
         var status = reader.GetString(1); var rows = new List<ReservationView>();
         do { if (!reader.IsDBNull(2)) rows.Add(new(reader.GetString(2), reader.GetString(3), reader.GetInt32(4), reader.GetInt32(5))); }
         while (await reader.ReadAsync());
-        return new(id, status, rows);
+        return new(id, status, rows.OrderBy(row => row.Id, StringComparer.Ordinal).ToArray());
     }
     // Each domain mutation and its optional process-step receipt share one local
     // transaction. The whole fulfillment sequence is deliberately not a transaction.

@@ -21,13 +21,20 @@ example.
 | GET /fulfillment/results/{operationId} | 202 while pending, 200 {status,outcome} after domain completion, 500 {code: "ExecutionFailed"} after execution failure, or 404 for an unknown operation. |
 
 An order with no reservations has empty arrays. Reservation arrays are ordered
-by ordinal reservation ID. Direct submission does not reserve inventory or
+by .NET ordinal (UTF-16 code-unit) reservation ID. Direct submission does not reserve inventory or
 create a reservation. Read views reflect current inventory, not historical stock.
 
 Malformed JSON, absent fields, blank identifiers, and out-of-range integer
 encodings return 400 before admission. A zero or negative quantity is valid JSON
 input but causes a domain rejection. Descriptive error text is not a contract;
 409 domain/identity codes are. JSON schemas are in schemas.json.
+
+Both details and availability reads allow at most 1,000 reservations and
+1,000,000 bytes of their compact UTF-8 JSON response (using the default .NET web
+JSON escaping). Exactly these limits are accepted. Exceeding either returns
+422 {code: "ReadResultTooLarge"}, without a partial result. Limits apply to
+each endpoint’s own response, after materialization; they do not promise a
+database-memory or streaming bound.
 
 ## Fulfillment behavior
 

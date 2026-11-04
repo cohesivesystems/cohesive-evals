@@ -16,6 +16,32 @@ SEED = {
   {'id':'conflict','orderId':'conflict','sku':'conflict-sku','quantity':1}]
 }
 
+# Multi-row reads and exact public response-size boundaries.
+SEED['orders'] += [{'id': key, 'status': 'Submitted'} for key in ['unicode', 'rows-at', 'rows-over']]
+SEED['reservations'] += [{'id': key, 'orderId':'unicode', 'sku':'unrelated-sku', 'quantity':1}
+                         for key in ['\ue000', '\U00010000']]
+for order, count in [('rows-at', 1000), ('rows-over', 1001)]:
+ SEED['reservations'] += [{'id':f'{order}-{i:04}', 'orderId':order, 'sku':'unrelated-sku', 'quantity':1} for i in range(count)]
+
+BYTE_CASES = []
+for endpoint in ['details', 'availability']:
+ for target in [1_000_000, 1_000_001]:
+  order = f'bytes-{endpoint}-{target}'
+  sku = order
+  rows = [{'id':f'{order}-{i:04}', 'sku':sku, 'quantity':1, 'availableStock':5} for i in range(1000)]
+  def payload():
+   if endpoint == 'details': return {'id':order,'status':'Submitted','reservations':rows}
+   return [{'reservationId':r['id'],'sku':r['sku'],'quantity':r['quantity'],'availableStock':r['availableStock']} for r in rows]
+  def size(): return len(json.dumps(payload(), separators=(',',':')).encode())
+  sku += 'x' * ((target-size()) // 1000)
+  for row in rows: row['sku'] = sku
+  rows[-1]['id'] += 'x' * (target-size())
+  assert size() == target
+  SEED['orders'].append({'id':order,'status':'Submitted'})
+  SEED['inventory'].append({'sku':sku,'available':5})
+  SEED['reservations'] += [{'id':r['id'],'orderId':order,'sku':sku,'quantity':1} for r in rows]
+  BYTE_CASES.append((order, endpoint, target))
+
 class Client:
  def __init__(self,url):
   self.url=url;self.observations=[]
@@ -103,6 +129,24 @@ def exercise(url):
  for sku in ['invalid-sku','insufficient-sku','matched-sku','conflict-sku','unrelated-sku']:
   c.expect('preserved '+sku,'GET','/inventory/'+sku,200,expected={'sku':sku,'available':5})
  c.expect('unrelated order','GET','/orders/unrelated',200,expected={'id':'unrelated','status':'Draft'})
+ for endpoint in ['details', 'availability']:
+  status, value = c.request('GET', '/orders/unicode/'+endpoint)
+  rows = value['reservations'] if endpoint == 'details' else value
+  key = 'id' if endpoint == 'details' else 'reservationId'
+  assert status == 200 and [r[key] for r in rows] == ['\U00010000', '\ue000']
+  c.observations.append({'check':'unicode '+endpoint,'status':status,'body':value})
+  status, value = c.request('GET', '/orders/rows-at/'+endpoint)
+  rows = value['reservations'] if endpoint == 'details' else value
+  assert status == 200 and len(rows) == 1000
+  c.observations.append({'check':'row limit accepted '+endpoint,'status':status,'count':len(rows)})
+  c.expect('row limit exceeded '+endpoint,'GET','/orders/rows-over/'+endpoint,422,expected={'code':'ReadResultTooLarge'})
+ for order, endpoint, target in BYTE_CASES:
+  status, value = c.request('GET', '/orders/'+order+'/'+endpoint)
+  if target == 1_000_000:
+   assert status == 200 and len(json.dumps(value,separators=(',',':')).encode()) == target
+  else:
+   assert (status,value) == (422,{'code':'ReadResultTooLarge'})
+  c.observations.append({'check':order,'status':status})
  c.expect('seed not on listener','POST','/seed',404,{})
  return c.observations
 

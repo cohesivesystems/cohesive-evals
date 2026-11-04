@@ -74,7 +74,7 @@ nullability, enum spellings, and header encoding without introducing new behavio
 
 Quantities and inventory counts are signed 32-bit integers. Valid stored inventory
 is nonnegative. Order/reservation IDs and SKU values are case-sensitive opaque
-strings. Read arrays use ascending ordinal reservation ID order. Summary is
+strings. Read arrays use ascending .NET ordinal (UTF-16 code-unit) reservation ID order. Summary is
 `{id, status}`; details is `{id, status, reservations}` with reservation entries
 `{id, sku, quantity, availableStock}`; availability entries are
 `{reservationId, sku, quantity, availableStock}`. The review probe adds only the
@@ -90,6 +90,12 @@ identical canonical input return the original admission/result; a reused ID with
 different input returns 409 and starts no work. Distinct request IDs are distinct
 attempts. The result and admission paths retain equivalent baseline authorization.
 Credentials and trusted scope come from the fixture host, not caller JSON.
+
+Details and availability reads admit at most 1,000 reservations and 1,000,000
+serialized UTF-8 JSON bytes per endpoint response, using default .NET web JSON
+escaping. Exactly these bounds succeed; larger results return HTTP 422 with
+`{code: "ReadResultTooLarge"}` and no partial result. Both conditions enforce
+these public limits after materialization; no streaming-memory guarantee is made.
 
 The public fixture contract also provides read-only inventory inspection for
 scoring and a maintainer-controlled seed/reset facility. Both use the same
