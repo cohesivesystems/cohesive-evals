@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import socket
 import subprocess
-import tempfile
+import invariants
 import time
 import uuid
 import urllib.request
@@ -43,6 +43,8 @@ def main():
  image_id=run('docker','image','inspect',IMAGE,'--format','{{.Id}}')
  started=False
  observations={}
+ invariant_results={}
+ checker_defects=invariants.qualify_checker()
  try:
   run('docker','run','-d','--name',name,'-e','POSTGRES_PASSWORD=fixture-only','-p','127.0.0.1::5432',IMAGE);started=True
   for attempt in range(100):
@@ -57,7 +59,7 @@ def main():
    executable=folder/'src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.dll'
    if not executable.exists():raise RuntimeError(f'Build {condition} before verification')
    env=dict(os.environ,ConnectionStrings__Orders=f'Host=127.0.0.1;Port={db_port};Database={condition};Username=postgres;Password=fixture-only;Timeout=10',ASPNETCORE_ENVIRONMENT='Production')
-   seed_file=args.output/(condition+'-seed.json');seed_file.write_text(json.dumps(suite.SEED))
+   seed_file=args.output/(condition+'-seed.json');seed_file.write_text(json.dumps({key: suite.SEED[key]+invariants.fixture()[key] for key in suite.SEED}))
    log_path=args.output/(condition+'.log')
    with log_path.open('w') as log:
     subprocess.run(['dotnet',str(executable),'--seed',str(seed_file.resolve())],cwd=folder,
@@ -72,16 +74,24 @@ def main():
       except (urllib.error.URLError,TimeoutError):time.sleep(.1)
      else:raise RuntimeError(f'{condition} did not become ready; see {log_path}')
      observations[condition]=suite.exercise(url)
+     invariant_output=args.output/condition
+     invariant_output.mkdir(exist_ok=True)
+     invariant_results[condition]=invariants.exercise(suite.Client, url,
+         lambda seed: invariants.observe(run, name, condition, seed), invariant_output)
      (args.output/(condition+'-observations.json')).write_text(json.dumps(observations[condition],indent=2)+'\n')
     finally:
      process.terminate()
      try:process.wait(timeout=25)
      except subprocess.TimeoutExpired:process.kill();process.wait()
   assert observations['conventional']==observations['cohesive'],'Public observations differ; compare output JSON'
+  assert invariant_results['conventional']==invariant_results['cohesive'], 'Invariant final facts differ'
   report={'passed':True,'checksPerCondition':len(observations['conventional']),
+          'invariantSequences':invariant_results['conventional'],
+          'invariantCommandsPerCondition':sum(r['commands'] for r in invariant_results['conventional']),
+          'checkerSeededDefectsRejected':checker_defects,
           'postgresImage':IMAGE,'postgresImageId':image_id,'sdk':run('dotnet','--version'),
           'cohesiveSourceRevision':manifest['sourceRevision'],
-          'limitations':['G0 only','Visible suite; hidden oracle not implemented','Independent baseline review pending','No agent runs']}
+          'limitations':['G0 only','Visible suite plus maintainer invariant checks; full hidden oracle not qualified', 'Sequential settled-state checks only; no crash or concurrency qualification','Independent baseline review pending','No agent runs']}
   (args.output/'report.json').write_text(json.dumps(report,indent=2)+'\n')
   print(json.dumps(report,indent=2))
  finally:

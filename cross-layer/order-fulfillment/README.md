@@ -50,7 +50,9 @@ PostgreSQL 17.10. Checks cover domain outcomes, precedence, compensation, reads,
 request replay, identity conflicts, invalid inputs and unrelated-state preservation.
 Regression checks also cover Unicode ordinal sorting and exact row/serialized-byte
 limits on both read endpoints (1,000 rows and 1,000,000 bytes; excess returns 422).
-This establishes tested G0 parity, not independent design review or oracle qualification.
+The verifier also runs [maintainer invariant sequences](verification/README.md)
+against an independent settled-state model and read-only persistence observer.
+This establishes tested G0 parity, not independent design review or full oracle qualification.
 
 Independent conventional review, the private oracle, evolved checkpoints,
 calibration and scored agent runs remain pending. Hold and review-marker target
