@@ -59,7 +59,17 @@ results remain deferred.
 
 ## Current scope
 
-The proposed v0.1 pilot has one case, **Load Search Mapping**, and one task,
+The broader pilot is defined in
+[`cross-layer/order-fulfillment/protocol.md`](cross-layer/order-fulfillment/protocol.md).
+It compares an order-hold change with an informational review-marker control at
+fresh and aged checkpoints, using quantity limits, cancellation, and inventory
+quarantine as the evolution sequence. The protocol is defined but not frozen for
+execution. The [matched G0 fixtures](cross-layer/order-fulfillment/README.md) are
+implemented and pass 52 shared HTTP checks per condition. Independent baseline
+review, evolved checkpoints, oracle qualification, and calibration remain pending.
+The original Relations protocol and fixtures remain unchanged.
+
+The original Relations v0.1 pilot has one case, **Load Search Mapping**, and one task,
 **Make Equipment Optional**. It schedules five independent runs per condition.
 The results will be descriptive evidence about this configuration only; they
 will not establish general developer productivity or Cohesive efficacy.

@@ -81,3 +81,6 @@ coverage.*
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Pinned cross-layer fixture dependency closure.
+!cross-layer/order-fulfillment/conditions/cohesive/packages/*.nupkg
