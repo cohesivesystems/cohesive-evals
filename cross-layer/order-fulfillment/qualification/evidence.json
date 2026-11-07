@@ -1,0 +1,141 @@
+{
+  "verifiedOn": "2026-11-07",
+  "baselineRevision": "cb1b2a27c3d32cedd122ae16b8e5be581c7421f9",
+  "reportSha256": "f6a57e6ee45e1dc6b101abce2497cf4827323e56ba19b26dc412e24848ddba37",
+  "knownGoodApplications": 2,
+  "detectedApplicationMutants": 12,
+  "cases": [
+    {
+      "condition": "conventional",
+      "case": "known-good",
+      "passed": true,
+      "assertion": null
+    },
+    {
+      "condition": "conventional",
+      "case": "lost-replay",
+      "passed": true,
+      "assertion": {
+        "condition": "conventional",
+        "error": "('admission replay', 'inv-17-request-0', 409, {'code': 'LostReplay'})",
+        "phase": "running-application-checks"
+      }
+    },
+    {
+      "condition": "conventional",
+      "case": "identity-conflict-accepted",
+      "passed": true,
+      "assertion": {
+        "condition": "conventional",
+        "error": "identity conflict",
+        "phase": "running-application-checks"
+      }
+    },
+    {
+      "condition": "conventional",
+      "case": "extra-stock-decrement",
+      "passed": true,
+      "assertion": {
+        "condition": "conventional",
+        "error": "('stock conservation', 'inv-17-stock')",
+        "phase": "running-application-checks"
+      }
+    },
+    {
+      "condition": "conventional",
+      "case": "skipped-compensation",
+      "passed": true,
+      "assertion": {
+        "condition": "conventional",
+        "error": "('stock conservation', 'inv-17-other')",
+        "phase": "running-application-checks"
+      }
+    },
+    {
+      "condition": "conventional",
+      "case": "missing-reservation",
+      "passed": true,
+      "assertion": {
+        "condition": "conventional",
+        "error": "('stock conservation', 'inv-17-stock')",
+        "phase": "running-application-checks"
+      }
+    },
+    {
+      "condition": "conventional",
+      "case": "duplicate-reservation",
+      "passed": true,
+      "assertion": {
+        "condition": "conventional",
+        "error": "duplicate reservation per order",
+        "phase": "running-application-checks"
+      }
+    },
+    {
+      "condition": "cohesive",
+      "case": "known-good",
+      "passed": true,
+      "assertion": null
+    },
+    {
+      "condition": "cohesive",
+      "case": "lost-replay",
+      "passed": true,
+      "assertion": {
+        "condition": "cohesive",
+        "error": "('admission replay', 'inv-17-request-0', 409, {'code': 'LostReplay'})",
+        "phase": "running-application-checks"
+      }
+    },
+    {
+      "condition": "cohesive",
+      "case": "identity-conflict-accepted",
+      "passed": true,
+      "assertion": {
+        "condition": "cohesive",
+        "error": "identity conflict",
+        "phase": "running-application-checks"
+      }
+    },
+    {
+      "condition": "cohesive",
+      "case": "extra-stock-decrement",
+      "passed": true,
+      "assertion": {
+        "condition": "cohesive",
+        "error": "('stock conservation', 'inv-17-stock')",
+        "phase": "running-application-checks"
+      }
+    },
+    {
+      "condition": "cohesive",
+      "case": "skipped-compensation",
+      "passed": true,
+      "assertion": {
+        "condition": "cohesive",
+        "error": "('stock conservation', 'inv-17-other')",
+        "phase": "running-application-checks"
+      }
+    },
+    {
+      "condition": "cohesive",
+      "case": "missing-reservation",
+      "passed": true,
+      "assertion": {
+        "condition": "cohesive",
+        "error": "('stock conservation', 'inv-17-stock')",
+        "phase": "running-application-checks"
+      }
+    },
+    {
+      "condition": "cohesive",
+      "case": "duplicate-reservation",
+      "passed": true,
+      "assertion": {
+        "condition": "cohesive",
+        "error": "duplicate reservation per order",
+        "phase": "running-application-checks"
+      }
+    }
+  ]
+}

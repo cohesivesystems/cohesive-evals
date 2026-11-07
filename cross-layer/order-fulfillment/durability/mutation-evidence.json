@@ -1,0 +1,56 @@
+{
+  "verifiedOn": "2026-11-07",
+  "baselineRevision": "cb1b2a27c3d32cedd122ae16b8e5be581c7421f9",
+  "reportSha256": "dc89a198feba66d590ad3a44665fea7e5fb024b2e80090d40598f4a4fd0878d7",
+  "detectedApplicationMutants": 8,
+  "cases": [
+    {
+      "condition": "conventional",
+      "mutation": "lost-admission-on-restart",
+      "assertion": "identity changed across restart",
+      "passed": true
+    },
+    {
+      "condition": "conventional",
+      "mutation": "missing-reservation",
+      "assertion": "reservation cardinality",
+      "passed": true
+    },
+    {
+      "condition": "conventional",
+      "mutation": "skipped-compensation",
+      "assertion": "stock after recovery",
+      "passed": true
+    },
+    {
+      "condition": "conventional",
+      "mutation": "duplicate-reservation",
+      "assertion": "reservation cardinality",
+      "passed": true
+    },
+    {
+      "condition": "cohesive",
+      "mutation": "lost-admission-on-restart",
+      "assertion": "identity changed across restart",
+      "passed": true
+    },
+    {
+      "condition": "cohesive",
+      "mutation": "missing-reservation",
+      "assertion": "reservation cardinality",
+      "passed": true
+    },
+    {
+      "condition": "cohesive",
+      "mutation": "skipped-compensation",
+      "assertion": "stock after recovery",
+      "passed": true
+    },
+    {
+      "condition": "cohesive",
+      "mutation": "duplicate-reservation",
+      "assertion": "reservation cardinality",
+      "passed": true
+    }
+  ]
+}

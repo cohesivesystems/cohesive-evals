@@ -57,3 +57,11 @@ This establishes tested G0 parity, not independent design review or full oracle 
 Independent conventional review, the private oracle, evolved checkpoints,
 calibration and scored agent runs remain pending. Hold and review-marker target
 implementations are deliberately absent from participant starting applications.
+
+## Qualification and durability follow-through
+
+[Application-defect qualification](qualification/README.md) builds isolated broken
+applications and requires obligation-specific verifier failures. The separate
+[durability supplement and reference solutions](durability/README.md) add Durable
+Task execution, controlled worker crashes, recovery qualification and baseline
+regression checks. All of this material remains outside participant G0 fixtures.

@@ -1,0 +1,247 @@
+{
+  "verifiedOn": "2026-11-07",
+  "baselineRevision": "cb1b2a27c3d32cedd122ae16b8e5be581c7421f9",
+  "reportSha256": "2897d73658f3cdb84c1c098739a80793ab016363d09da9f433a3d68dda856317",
+  "scope": "Abrupt worker/API death; scheduler and PostgreSQL remain available",
+  "passedRecoveryScenarios": 18,
+  "cases": [
+    {
+      "condition": "conventional",
+      "point": "none",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "before-admission-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-admission-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "before-dispatch",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-reserve",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-submit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-reservation",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-release",
+      "passed": true,
+      "completion": {
+        "status": "Rejected",
+        "outcome": "OrderRejected"
+      },
+      "physical": {
+        "count": 0,
+        "quantity": 0
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "before-result-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "none",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "before-admission-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-admission-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "before-dispatch",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-reserve",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-submit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-reservation",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-release",
+      "passed": true,
+      "completion": {
+        "status": "Rejected",
+        "outcome": "OrderRejected"
+      },
+      "physical": {
+        "count": 0,
+        "quantity": 0
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "before-result-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    }
+  ],
+  "referenceFingerprints": {
+    "conventional": "970ea1cbf526f5549b8d188bc6250b48c69210ec50e2fd1cbb6757f789b35725",
+    "cohesive": "39c279378a3bfb0bccf812124ec77c2432bccb918c5fd0c13270997e92ae5491"
+  }
+}

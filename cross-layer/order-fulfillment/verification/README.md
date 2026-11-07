@@ -44,7 +44,7 @@ independent-intent safety or crash recovery. Direct submission legitimately
 produces a Submitted order without a reservation; stock may legitimately be
 reserved before a reservation row exists during fulfillment.
 
-COH-131's separate durability supplement must add deterministic external crash
+COH-131's separate [durability supplement](../durability/README.md) adds deterministic external crash
 barriers around admission acknowledgement and persisted stock/submission/
 reservation/compensation effects. Restart the worker without resetting storage,
 replay requests, and check settled invariants within a frozen recovery deadline.

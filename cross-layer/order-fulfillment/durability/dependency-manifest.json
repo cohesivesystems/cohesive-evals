@@ -1,0 +1,20 @@
+{
+  "sourceRevision": "b0af008d85871ad8866d7d4311707ecd926529de",
+  "sdkVersion": "1.25.0",
+  "schedulerImage": "mcr.microsoft.com/dts/dts-emulator@sha256:1b49dcf1581168f5c620a4f32083e1291a7dddfa60434acb3eacd8b23355936a",
+  "packages": [
+    {
+      "file": "Cohesive.AI.0.1.0-eval.b0af008.nupkg",
+      "sha256": "d7f4386dcd7a14bbe0326c2795c98157064fd02a451c28e0d1bccd42105b7353"
+    },
+    {
+      "file": "Cohesive.Adapters.AzureStorage.0.1.0-eval.b0af008.nupkg",
+      "sha256": "86d7c3eeeeb5523a82a6155cac0494e187ca8bb0362bc042f073896f340c2242"
+    },
+    {
+      "file": "Cohesive.Adapters.DurableTask.0.1.0-eval.b0af008.nupkg",
+      "sha256": "b898f710a02ee66010acb1d731439e3c04d315ce1d3eebcd5577859755dbc57b"
+    }
+  ],
+  "baselineRevision": "cb1b2a27c3d32cedd122ae16b8e5be581c7421f9"
+}

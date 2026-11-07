@@ -168,7 +168,7 @@ def exercise(client_type, url, observer, output):
                         assert client.request('POST', '/fulfillment', request) == (202, receipt), 'replay identity'
                         assert client.request('GET', receipt['resultUrl']) == (200, result), 'replay result'
                     else:
-                        assert client.request('POST', '/fulfillment', {**request, 'quantity':request['quantity']+1}) == (409, {'code':'RequestIdentityConflict'})
+                        assert client.request('POST', '/fulfillment', {**request, 'quantity':request['quantity']+1}) == (409, {'code':'RequestIdentityConflict'}), 'identity conflict'
                 snapshot(entry)
                 entry['status'] = 'passed'
             except Exception as error:

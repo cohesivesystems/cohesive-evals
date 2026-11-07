@@ -19,8 +19,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('repository', type=Path)
     parser.add_argument('--package-source', help='Optional offline NuGet source')
+    parser.add_argument('--extra-root', action='append', default=[])
+    parser.add_argument('--output', type=Path)
     args = parser.parse_args()
-    output = Path(__file__).resolve().parents[1] / 'conditions/cohesive/packages'
+    roots = ROOTS + args.extra_root
+    output = (args.output or Path(__file__).resolve().parents[1] / 'conditions/cohesive/packages').resolve()
     output.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='fulfillment-packages-') as temporary:
         source = Path(temporary)
@@ -38,8 +41,8 @@ def main():
             for ref in ET.parse(project).findall('.//ProjectReference'):
                 visit(project.parent / ref.attrib['Include'].replace('\\','/'))
             closure.append(project)
-        for root in ROOTS: visit(source/root)
-        for root in ROOTS:
+        for root in roots: visit(source/root)
+        for root in roots:
             restore = ['dotnet','restore',root,'-p:NuGetAudit=false','-m:1','-nr:false','-v:q']
             if args.package_source: restore += ['--source',args.package_source]
             subprocess.run(restore,cwd=source,check=True)
