@@ -60,7 +60,7 @@ def main():
         for overlay in ['common',condition]:
             for p in (ROOT/'reference'/overlay).glob('*'): shutil.copy2(p,app/p.name)
         p=app/'Program.cs';s=p.read_text()
-        s=s.replace('builder.Services.AddSingleton<IFulfillmentBackend, FulfillmentBackend>();','builder.Services.AddSingleton<FulfillmentBackend>();\nbuilder.Services.AddSingleton<IFulfillmentBackend>(p => p.GetRequiredService<FulfillmentBackend>());\nbuilder.Services.AddSingleton<IDurableExecution, DurableExecution>();')
+        s=s.replace('builder.Services.AddSingleton<IFulfillmentBackend, FulfillmentBackend>();','builder.Services.AddSingleton<FulfillmentBackend>();\nbuilder.Services.AddSingleton<IFulfillmentBackend>(p => p.GetRequiredService<FulfillmentBackend>());')
         s=s.replace('var app = builder.Build();', 'DurableSetup.Configure(builder.Services);\nvar app = builder.Build();')
         s=s.replace('HostSetup.Configure(app);', 'await app.Services.GetRequiredService<OperationQueue>().Initialize();\nHostSetup.Configure(app);')
         p.write_text(s)

@@ -27,6 +27,7 @@ def free_port():
 def main():
  parser=argparse.ArgumentParser(description=__doc__)
  parser.add_argument('--condition', choices=['conventional','cohesive'], help='Verify one isolated candidate; does not assert pair equivalence')
+ parser.add_argument('--condition-specific-execution', action='store_true', help='Allow different OperationQueue implementations; still compare all public behavior')
  parser.add_argument('--suite', choices=['all','invariants'], default='all')
  parser.add_argument('--fixtures', type=Path, default=ROOT/'conditions')
  parser.add_argument('--output',type=Path,default=ROOT/'artifacts/verification')
@@ -37,6 +38,7 @@ def main():
  for relative in ['src/Fulfillment.Application/Contracts.cs','src/Fulfillment.Application/Program.cs',
                   'src/Fulfillment.Application/OperationQueue.cs','tests/contract_tests.py',
                   'src/Fulfillment.Application/ReadResults.cs','CONTRACT.md','schemas.json','README.md']:
+  if args.condition_specific_execution and relative=='src/Fulfillment.Application/OperationQueue.cs':continue
   if not args.condition:
    assert (args.fixtures/'conventional'/relative).read_bytes()==(args.fixtures/'cohesive'/relative).read_bytes(),relative
  manifest=json.loads((args.fixtures/'cohesive/dependency-manifest.json').read_text())
@@ -96,7 +98,7 @@ def main():
   if not args.condition:
    assert observations[conditions[0]]==observations['cohesive'],'Public observations differ; compare output JSON'
    assert invariant_results[conditions[0]]==invariant_results['cohesive'], 'Invariant final facts differ'
-  report={'passed':True,'conditions':conditions,'suite':args.suite,'pairEquivalenceChecked':not bool(args.condition),'checksPerCondition':len(observations[conditions[0]]),
+  report={'passed':True,'conditions':conditions,'suite':args.suite,'pairEquivalenceChecked':not bool(args.condition),'conditionSpecificExecution':args.condition_specific_execution,'checksPerCondition':len(observations[conditions[0]]),
           'invariantSequences':invariant_results[conditions[0]],
           'invariantCommandsPerCondition':sum(r['commands'] for r in invariant_results[conditions[0]]),
           'checkerSeededDefectsRejected':checker_defects,

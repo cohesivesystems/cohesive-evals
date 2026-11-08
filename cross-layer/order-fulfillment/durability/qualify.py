@@ -33,13 +33,13 @@ def main():
                     'await command.ExecuteNonQueryAsync();\n        await using var lose = database.CreateCommand("TRUNCATE durable_admissions");\n        await lose.ExecuteNonQueryAsync();','before-dispatch',False,'original result lookup'),
                 'resume-only-on-post': ('OperationQueue.cs','static readonly JsonSerializerOptions Json',
                     'bool postSeen;\n    static readonly JsonSerializerOptions Json','before-dispatch',False,'Deadline exceeded: recovery completion'),
-                'terminal-failure-pending': ('OperationQueue.cs','if (state is ExecutionState.Completed or ExecutionState.Failed)',
-                    'if (state is ExecutionState.Completed)','terminal-failure',False,'Deadline exceeded: recovery completion'),
+                'terminal-failure-pending': ('OperationQueue.cs','if (state?.RuntimeStatus is OrchestrationRuntimeStatus.Completed or OrchestrationRuntimeStatus.Failed or OrchestrationRuntimeStatus.Terminated)',
+                    'if (state?.RuntimeStatus is OrchestrationRuntimeStatus.Completed)','terminal-failure',False,'Deadline exceeded: recovery completion'),
             }
             for name,expected in [('missing-reservation','reservation cardinality'),('skipped-compensation','stock after recovery'),('duplicate-reservation','reservation cardinality')]:
                 file,before,after,_=mutations(condition)[name]
                 if condition=='conventional':
-                    file='DurableExecution.cs'
+                    file='FulfillmentWorkflow.cs'
                     if name=='missing-reservation': before='await Activities.CreateReservation(context, work);';after=''
                     elif name=='skipped-compensation':before='await Activities.Release(context, work);';after=''
                     else:
@@ -59,7 +59,7 @@ def main():
 ''')
                 if name=='resume-only-on-post':
                     mutated=mutated.replace('public async Task<IResult> Admit(FulfillmentRequest request)\n    {', 'public async Task<IResult> Admit(FulfillmentRequest request)\n    {\n        postSeen = true;')
-                    mutated=mutated.replace('var state = await execution.EnsureStartedAndInspect', 'if (!postSeen) { await Task.Delay(100, stoppingToken); continue; }\n                    var state = await execution.EnsureStartedAndInspect')
+                    mutated=mutated.replace('var state = await client.GetInstanceAsync', 'if (!postSeen) { await Task.Delay(100, stoppingToken); continue; }\n                    var state = await client.GetInstanceAsync')
                 path.write_text(mutated)
                 evidence=output/condition/name;evidence.mkdir(parents=True,exist_ok=True)
                 (evidence/'mutation.json').write_text(json.dumps({'file':file,'before':before,'after':after},indent=2)+'\n')

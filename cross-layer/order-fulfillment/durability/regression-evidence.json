@@ -3,9 +3,11 @@
   "checksPerCondition": 52,
   "invariantCommandsPerCondition": 180,
   "passed": true,
-  "reportSha256": "06a2317586904ff9ceb2fb3bbd953e31181f58f21944b18a813718c8c57ef372",
+  "reportSha256": "4838e01285f05a59a70ace4fbcc5dc0eaaaba3bfb12e17461473ef1ce0a94320",
   "buildManifests": {
-    "conventional": "e04e94445a40ded8aed58882ad4f667c562127823d932a6d51dc127fb260e948",
-    "cohesive": "3f5ef61be01aba53aa77d8cb1f6f37fcf77187e566323df945c85bcd451156f7"
-  }
+    "conventional": "23f7b733ec7aa7222f03a2ab75180dd543326e1ddb1cd2e24ce85f0080765c70",
+    "cohesive": "265e3d10ccd73bd55a39103e6ba687477c52a807b2af91768540ce9c4cb1cf76"
+  },
+  "conditionSpecificExecution": true,
+  "pairEquivalenceChecked": true
 }

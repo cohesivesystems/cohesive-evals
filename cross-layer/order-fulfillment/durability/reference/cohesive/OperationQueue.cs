@@ -1,28 +1,22 @@
 using System.Text.Json;
+using Cohesive.Adapters.DurableTask;
+using Cohesive.Api.Execution;
+using Cohesive.Execution;
+using Cohesive.Model;
+using Cohesive.Prelude;
+using Cohesive.Processes.Execution;
 using Npgsql;
+using Microsoft.DurableTask;
+using Microsoft.DurableTask.Client;
 
 namespace Fulfillment.Application;
 
-public abstract record ExecutionState
-{
-    private ExecutionState() { }
-    public sealed record Pending : ExecutionState;
-    public sealed record Completed(Completion Result) : ExecutionState;
-    public sealed record Failed(string Diagnostic) : ExecutionState;
-}
-
-public interface IDurableExecution
-{
-    // Engine-terminal failure is a value. Transport/provider exceptions remain
-    // retryable dispatch failures and never masquerade as business completion.
-    Task<ExecutionState> EnsureStartedAndInspect(string id, FulfillmentRequest request, DateTimeOffset admittedAt);
-}
-
 // One host, serial dispatch. Admission is a persistent outbox; the durable engine
 // owns step scheduling/recovery. An acknowledged row is never dependent on RAM.
-public sealed class OperationQueue(NpgsqlDataSource database, IDurableExecution execution,
+public sealed class OperationQueue(NpgsqlDataSource database, DurableTaskClient client, FulfillmentBackend backend,
     ILogger<OperationQueue> logger) : BackgroundService
 {
+    InteractionAuthorityScope Scope => new("fulfillment", new NpgsqlConnectionStringBuilder(database.ConnectionString).Database!);
     static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     public async Task Initialize()
     {
@@ -80,6 +74,11 @@ public sealed class OperationQueue(NpgsqlDataSource database, IDurableExecution 
         return reader.IsDBNull(0) ? Results.StatusCode(202)
             : Results.Ok(JsonSerializer.Deserialize<Completion>(reader.GetString(0), Json));
     }
+    static Completion ReadCompletion(OrchestrationMetadata state)
+    {
+        var output = state.ReadOutputAs<DurableTaskSequentialProcessResult>()!.State.Terminal.Detail!.Value!.Value!.Value;
+        return new(output.GetProperty("Status").GetRequiredString(), output.GetProperty("Outcome").GetRequiredString());
+    }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -94,16 +93,41 @@ public sealed class OperationQueue(NpgsqlDataSource database, IDurableExecution 
                 if (id is not null)
                 {
                     await CrashBarrier.Reach("before-dispatch");
-                    var state = await execution.EnsureStartedAndInspect(id, request!, admitted);
-                    if (state is ExecutionState.Completed or ExecutionState.Failed)
+                    var physicalId = DurableTaskProcessExecutionIdentity.GetPhysicalInstanceId(Scope, new(id));
+                    var state = await client.GetInstanceAsync(physicalId, getInputsAndOutputs:true, stoppingToken);
+                    if (state is null)
                     {
+                        var plan = backend.Prepared.Plan;
+                        var continuation = new ProcessContinuationIdentity(new(id), new("attempt/1"));
+                        var input = PortableValue.Concrete(plan.Definition.Input,
+                            ObservationValue.FromObject(new FulfillOrder(request!.OrderId, request.Sku, request.Quantity)));
+                        var authorization = new ProcessControlAuthorizationContext("local-demo", Scope, "local-example");
+                        var context = new ProcessControlCommandContext(new(id), new(request.RequestId), new(id),
+                            authorization, admitted, plan.Document.Metadata.Provenance);
+                        var start = new ProcessStartRequest(ProcessStartRequest.CurrentSchemaVersion,
+                            plan.DefinitionReference, context, continuation, input);
+                        // Native admission owns canonical identity claims and durable process scheduling.
+                        var acceptance = await client.AdmitCohesiveProcessAsync(new(start,
+                            new ProcessActivationContext(Scope, new(id),
+                                new(InteractionDurabilityDemand.Durable, InteractionVisibilityDemand.AfterOriginCommit),
+                                plan.Document.Metadata.Provenance),
+                            new ExecutionApiInvocationContext(authorization, plan.Document.Metadata.Provenance,
+                                admitted, DateTimeOffset.UtcNow,
+                                [ExecutionControlApiWireNames.AuthorizationRequirement(ProcessStartWireNames.Start)])), stoppingToken);
+                        if (acceptance.IsConflict)
+                            throw new InvalidOperationException($"Unexpected process admission conflict: {acceptance.DiagnosticCode}");
+                    }
+                    if (state?.RuntimeStatus is OrchestrationRuntimeStatus.Completed or OrchestrationRuntimeStatus.Failed or OrchestrationRuntimeStatus.Terminated)
+                    {
+                        var failed = state.RuntimeStatus != OrchestrationRuntimeStatus.Completed;
+                        var completion = failed ? null : ReadCompletion(state);
                         await CrashBarrier.Reach("before-result-commit");
                         await using var save = database.CreateCommand("UPDATE durable_admissions SET result=$2::jsonb,execution_state=$3 WHERE operation_id=$1");
                         save.Parameters.AddWithValue(id);
-                        save.Parameters.AddWithValue(state is ExecutionState.Completed done ? JsonSerializer.Serialize(done.Result, Json) : "null");
-                        save.Parameters.AddWithValue(state is ExecutionState.Completed ? "Completed" : "Failed");
-                        if (state is ExecutionState.Failed failed)
-                            logger.LogError("Workflow {OperationId} failed: {Diagnostic}", id, failed.Diagnostic);
+                        save.Parameters.AddWithValue(JsonSerializer.Serialize(completion, Json));
+                        save.Parameters.AddWithValue(failed ? "Failed" : "Completed");
+                        if (failed)
+                            logger.LogError("Workflow {OperationId} failed: {Diagnostic}", id, state.FailureDetails?.ErrorMessage ?? state.RuntimeStatus.ToString());
                         await save.ExecuteNonQueryAsync(stoppingToken);
                     }
                 }

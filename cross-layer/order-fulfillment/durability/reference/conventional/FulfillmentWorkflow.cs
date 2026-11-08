@@ -6,24 +6,6 @@ namespace Fulfillment.Application;
 
 public sealed record Work(string OperationId, FulfillmentRequest Request);
 
-public sealed class DurableExecution(DurableTaskClient client) : IDurableExecution
-{
-    public async Task<ExecutionState> EnsureStartedAndInspect(string id, FulfillmentRequest request, DateTimeOffset admittedAt)
-    {
-        var state = await client.GetInstanceAsync(id, getInputsAndOutputs:true);
-        if (state is null)
-        {
-            await client.ScheduleNewOrchestrationInstanceAsync(nameof(FulfillmentWorkflow), new Work(id, request), new StartOrchestrationOptions(id));
-            return new ExecutionState.Pending();
-        }
-        if (state.RuntimeStatus is OrchestrationRuntimeStatus.Failed or OrchestrationRuntimeStatus.Terminated)
-            return new ExecutionState.Failed(state.FailureDetails?.ErrorMessage ?? state.RuntimeStatus.ToString());
-        if (state.RuntimeStatus != OrchestrationRuntimeStatus.Completed) return new ExecutionState.Pending();
-        return state.ReadOutputAs<Completion>() is { } result
-            ? new ExecutionState.Completed(result) : new ExecutionState.Failed("Completed workflow has no result.");
-    }
-}
-
 // Typed call sites bind each activity name to its input and result types once.
 public static class Activities
 {

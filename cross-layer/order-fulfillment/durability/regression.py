@@ -22,7 +22,7 @@ def main():
         port=subprocess.check_output(['docker','port',name,'8080/tcp'],text=True).strip().rsplit(':',1)[1]
         env=dict(os.environ,DURABLE_TASK_CONNECTION=f'Endpoint=http://127.0.0.1:{port};TaskHub=default;Authentication=None')
         subprocess.run([sys.executable,'-B',str(ROOT.parent/'verification/verify.py'),
-            '--fixtures',str(ROOT.parent/'artifacts/durable-reference'),
+            '--fixtures',str(ROOT.parent/'artifacts/durable-reference'),'--condition-specific-execution',
             '--output',str(ROOT.parent/'artifacts/durable-regression')],env=env,check=True)
         assert manifests=={c:verify_build(references/c) for c in manifests}, 'Build changed during regression'
     finally:

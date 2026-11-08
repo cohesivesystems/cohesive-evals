@@ -23,12 +23,21 @@ and typed call wrappers bind each operation to its input and result types. Tempo
 library remains a possible separately versioned comparison, not a post-outcome
 substitution. Library selection precedes scored runs.
 
-Both reference solutions share a PostgreSQL admission outbox, public identity and
-result retention, and a serial dispatcher. Durable Task owns step history and
-recovery. This intentionally measures workflow integration on a common execution
-backend, not the relative strengths of different scheduling services. The shared
-outbox is reference code; participants must implement durable admission from the
-original G0 unless a later version explicitly changes the starting treatment.
+Each reference owns its application dispatch implementation. Conventional calls
+Durable Task directly; Cohesive binds its unchanged process to the native
+interpreter and uses `AdmitCohesiveProcessAsync` for canonical admission and
+scheduling. No common execution interface or application state wrapper is
+required. The external verifier checks the full process through public behavior
+and equivalent failure barriers, independently of those implementation choices.
+
+Both currently retain PostgreSQL HTTP admission/results for the public capacity
+limit, replay contract, and recovery before scheduler handoff. This is product
+integration code, counted in each condition; it is not prescribed participant
+architecture. Cohesive's native admission owns canonical process identity claims
+and scheduling, rather than trusting an application-constructed accepted receipt.
+Its authority scope includes the application database name so separate fixture
+worlds sharing a scheduler do not share request identities. Durable Task owns
+step history and recovery. Participants still start from original G0.
 
 Pin and pre-provision packages, emulator image, service endpoints and ordinary
 SDK documentation. Maintainer setup is reported separately; agent integration and
@@ -55,8 +64,9 @@ application configuration count in the task budget. Dependencies are pinned in
    including completed-result replay after a second restart. The 1,000-identity
    capacity limit becomes persistent; existing identities replay at capacity.
 
-Execution states are explicit: Pending, Completed (with a business result), and
-Failed (engine-terminal failure). Failed or terminated workflows produce a
+Public and retained execution states are explicit: Pending, Completed (with a
+business result), and Failed (engine-terminal failure). Each implementation maps
+native scheduler status directly; these states do not require a shared interface. Failed or terminated workflows produce a
 retained HTTP 500 `ExecutionFailed`, with diagnostics only in server logs, and
 release the serial dispatcher to process subsequent orders. Provider/transport
 exceptions remain retryable inspection failures, distinct from terminal engine

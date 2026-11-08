@@ -15,8 +15,13 @@ The builder materializes separate reference applications under ignored
 Durable Task package references, and builds both with committed NuGet lockfiles. It never changes G0 fixtures.
 The conventional overlay supplies an orchestrator with activities over the
 existing store, with seven typed activities and typed call wrappers; the Cohesive overlay prepares the unchanged authored process
-for its native Durable Task interpreter. Both use identical persisted admission
-and result retention.
+for its native Durable Task interpreter and calls `AdmitCohesiveProcessAsync`
+for canonical start admission. Conventional schedules its typed orchestrator
+directly with the SDK. Each condition owns its HTTP admission/dispatch code;
+there is no shared execution interface or application execution-state wrapper.
+Both retain a PostgreSQL HTTP admission record for the 1,000-identity capacity
+limit, replay, and recovery before scheduler handoff. This product-level
+plumbing counts as application integration in each condition.
 
 Verification starts disposable PostgreSQL and pinned Durable Task emulator
 containers, uses fresh databases for scenarios, kills/restarts API/worker
@@ -51,7 +56,8 @@ resume only after POST, terminal failure left pending, missing reservation,
 abandoned compensation and duplicate reservation. Only the named
 behavioral assertion counts; failed builds or barrier/startup failures do not.
 The regression command runs all 52 baseline checks and 180 invariant commands
-per condition against the durable references.
+per condition against the durable references. Public observations are still
+compared across conditions; execution implementation bytes may differ.
 
 Verified 2026-11-07: 20 known-good recovery scenarios, twelve detected durable
 application mutants, and 52 contract checks plus 180 invariant commands per
