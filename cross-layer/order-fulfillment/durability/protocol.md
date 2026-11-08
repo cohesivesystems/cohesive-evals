@@ -18,7 +18,8 @@ The selected reference comparator is Microsoft Durable Task, standalone .NET SDK
 1.25.0, using the same scheduler backend in both conditions. The pinned Cohesive
 revision already supplies a Durable Task Process interpreter and native host
 binding. Conventional uses an ordinary TaskOrchestrator and TaskActivity with
-its existing domain rules and transactional step receipts. Temporal or another
+its existing domain rules and transactional step receipts. Seven typed activities
+and typed call wrappers bind each operation to its input and result types. Temporal or another
 library remains a possible separately versioned comparison, not a post-outcome
 substitution. Library selection precedes scored runs.
 
@@ -43,7 +44,8 @@ application configuration count in the task budget. Dependencies are pinned in
 2. The same request ID and payload retain one operation ID and eventual result
    across restart. Different input under that ID returns 409 without new work.
 3. After restart with the databases and scheduler available, admitted work reaches
-   its correct business completion within 120 seconds of the host becoming ready.
+   its correct business completion within 120 seconds of the host becoming ready,
+   without another POST for an acknowledged admission.
 4. A crash after stock reservation cannot reserve twice; after order submission,
    recovery creates the missing reservation; interrupted compensation restores the
    original stock exactly once as an observable net effect.
@@ -52,6 +54,14 @@ application configuration count in the task budget. Dependencies are pinned in
 6. Admission/results are retained for the qualification campaign without purge,
    including completed-result replay after a second restart. The 1,000-identity
    capacity limit becomes persistent; existing identities replay at capacity.
+
+Execution states are explicit: Pending, Completed (with a business result), and
+Failed (engine-terminal failure). Failed or terminated workflows produce a
+retained HTTP 500 `ExecutionFailed`, with diagnostics only in server logs, and
+release the serial dispatcher to process subsequent orders. Provider/transport
+exceptions remain retryable inspection failures, distinct from terminal engine
+status. Business rejection remains a completed HTTP 200 result. This failure
+contract does not promise rollback of effects preceding an arbitrary failure.
 
 Scope is one active host, sequential independent intents, concurrent duplicates,
 and abrupt host/worker termination. Scheduler and PostgreSQL remain available
@@ -71,7 +81,9 @@ intermediate state can have decremented stock without a reservation row.
 
 Reference-only barriers notify the parent and block before the worker can report
 activity success. The parent sends an abrupt kill, restarts the host without
-resetting stores, then retries/inspects the original request. Both conditions
+resetting stores, then polls the original result URL to completion before any
+duplicate POST when admission was acknowledged. Only requests interrupted before
+acknowledgment are resubmitted to resolve ambiguous admission. Both conditions
 place barriers at the same business-effect boundaries:
 
 - No crash, as a positive control.
@@ -80,6 +92,9 @@ place barriers at the same business-effect boundaries:
 - After committed reserve, submit, reservation creation, or release, but before
   activity completion is reported to the scheduler.
 - After workflow completion and before publishing the retained public result.
+- A one-time activity exception before reserve, producing a terminal failure.
+  Verify HTTP 500, unchanged business state, another order completing on the same
+  host, and retained failure after another restart.
 
 Each scenario starts from a fresh application database. For success scenarios,
 reserve three of five units, recover, reserve the remaining two for another
@@ -92,7 +107,10 @@ A test barrier is instrumentation, not a required production architecture. Any
 participant adapter must identify equivalent boundaries without altering domain
 behavior. Before admission to scored runs, qualify the oracle using broken
 admission, lost identity, duplicate effects, missing reservation and abandoned
-compensation implementations. Preserve exact source/artifact hashes, build and
+compensation implementations, plus implementations that resume only on another
+POST or leave terminal failures pending. Bind source/configuration/package hashes
+to output-file hashes in a manifest produced by a successful build; verify it
+before and after each run. Preserve exact source/artifact hashes, build and
 scheduler logs, crash markers, receipts and assertion evidence.
 
 ## Admission still required

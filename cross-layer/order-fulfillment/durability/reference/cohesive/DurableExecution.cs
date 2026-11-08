@@ -12,7 +12,7 @@ namespace Fulfillment.Application;
 public sealed class DurableExecution(DurableTaskClient client, FulfillmentBackend backend) : IDurableExecution
 {
     static readonly InteractionAuthorityScope Scope = new("fulfillment", "local");
-    public async Task<Completion?> Advance(string id, FulfillmentRequest request, DateTimeOffset admittedAt)
+    public async Task<ExecutionState> EnsureStartedAndInspect(string id, FulfillmentRequest request, DateTimeOffset admittedAt)
     {
         var plan = backend.Prepared.Plan;
         var physicalId = DurableTaskProcessExecutionIdentity.GetPhysicalInstanceId(Scope, new(id));
@@ -27,12 +27,13 @@ public sealed class DurableExecution(DurableTaskClient client, FulfillmentBacken
             // The shared PostgreSQL admission row is the durable acceptance authority.
             await client.ScheduleCohesiveProcessAsync(new(new ProcessStartReceipt(start,admittedAt),
                 new ProcessActivationContext(Scope,new(id),new(InteractionDurabilityDemand.Durable,InteractionVisibilityDemand.AfterOriginCommit),plan.Document.Metadata.Provenance)));
-            return null;
+            return new ExecutionState.Pending();
         }
-        if (state.RuntimeStatus == OrchestrationRuntimeStatus.Failed) throw new InvalidOperationException(state.FailureDetails?.ErrorMessage);
-        if (state.RuntimeStatus != OrchestrationRuntimeStatus.Completed) return null;
+        if (state.RuntimeStatus is OrchestrationRuntimeStatus.Failed or OrchestrationRuntimeStatus.Terminated)
+            return new ExecutionState.Failed(state.FailureDetails?.ErrorMessage ?? state.RuntimeStatus.ToString());
+        if (state.RuntimeStatus != OrchestrationRuntimeStatus.Completed) return new ExecutionState.Pending();
         var output = state.ReadOutputAs<DurableTaskSequentialProcessResult>()!.State.Terminal.Detail!.Value!.Value!.Value;
-        return new(output.GetProperty("Status").GetRequiredString(),output.GetProperty("Outcome").GetRequiredString());
+        return new ExecutionState.Completed(new(output.GetProperty("Status").GetRequiredString(),output.GetProperty("Outcome").GetRequiredString()));
     }
 }
 
@@ -42,8 +43,9 @@ public sealed class RecoveryHost(FulfillmentBackend backend) : IAsyncProcessRefe
     static OperationContext Identity(OperationContext context) => context.WithIdentityContext(FulfillmentDemoIdentity.Context);
     public async ValueTask<ProcessOperationResult> InvokeTransitionAsync(OperationContext context, ProcessTransitionInvocation invocation)
     {
-        var result = await backend.Prepared.Host.InvokeTransitionAsync(Identity(context), invocation);
         var id = invocation.Definition.DefinitionId.Value;
+        if (id == "fulfillment/reserve") await CrashBarrier.Reach("before-reserve");
+        var result = await backend.Prepared.Host.InvokeTransitionAsync(Identity(context), invocation);
         var point = id switch
         {
             "fulfillment/reserve" => "reserve", "example/order/submit" => "submit",

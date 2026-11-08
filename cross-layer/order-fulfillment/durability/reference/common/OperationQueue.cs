@@ -3,9 +3,19 @@ using Npgsql;
 
 namespace Fulfillment.Application;
 
+public abstract record ExecutionState
+{
+    private ExecutionState() { }
+    public sealed record Pending : ExecutionState;
+    public sealed record Completed(Completion Result) : ExecutionState;
+    public sealed record Failed(string Diagnostic) : ExecutionState;
+}
+
 public interface IDurableExecution
 {
-    Task<Completion?> Advance(string id, FulfillmentRequest request, DateTimeOffset admittedAt);
+    // Engine-terminal failure is a value. Transport/provider exceptions remain
+    // retryable dispatch failures and never masquerade as business completion.
+    Task<ExecutionState> EnsureStartedAndInspect(string id, FulfillmentRequest request, DateTimeOffset admittedAt);
 }
 
 // One host, serial dispatch. Admission is a persistent outbox; the durable engine
@@ -20,6 +30,7 @@ public sealed class OperationQueue(NpgsqlDataSource database, IDurableExecution 
             CREATE TABLE IF NOT EXISTS durable_admissions(
               request_id text COLLATE "C" PRIMARY KEY, operation_id text UNIQUE NOT NULL,
               request jsonb NOT NULL, admitted_at timestamptz NOT NULL, result jsonb);
+            ALTER TABLE durable_admissions ADD COLUMN IF NOT EXISTS execution_state text NOT NULL DEFAULT 'Pending';
             """);
         await command.ExecuteNonQueryAsync();
     }
@@ -47,7 +58,7 @@ public sealed class OperationQueue(NpgsqlDataSource database, IDurableExecution 
         await using (var count = new NpgsqlCommand("SELECT count(*) FROM durable_admissions", connection, transaction))
             if ((long)(await count.ExecuteScalarAsync())! >= 1000) return Results.StatusCode(503);
         var operation = Guid.NewGuid().ToString("N");
-        await using (var insert = new NpgsqlCommand("INSERT INTO durable_admissions VALUES($1,$2,$3::jsonb,$4,NULL)", connection, transaction))
+        await using (var insert = new NpgsqlCommand("INSERT INTO durable_admissions(request_id,operation_id,request,admitted_at,result) VALUES($1,$2,$3::jsonb,$4,NULL)", connection, transaction))
         {
             insert.Parameters.AddWithValue(request.RequestId); insert.Parameters.AddWithValue(operation);
             insert.Parameters.AddWithValue(JsonSerializer.Serialize(request, Json)); insert.Parameters.AddWithValue(DateTimeOffset.UtcNow);
@@ -60,10 +71,12 @@ public sealed class OperationQueue(NpgsqlDataSource database, IDurableExecution 
     }
     public async Task<IResult> Result(string id)
     {
-        await using var command = database.CreateCommand("SELECT result::text FROM durable_admissions WHERE operation_id=$1");
+        await using var command = database.CreateCommand("SELECT result::text,execution_state FROM durable_admissions WHERE operation_id=$1");
         command.Parameters.AddWithValue(id);
         await using var reader = await command.ExecuteReaderAsync();
         if (!await reader.ReadAsync()) return Results.NotFound();
+        if (reader.GetString(1) == "Failed")
+            return Results.Json(new ErrorResponse("ExecutionFailed"), statusCode:500);
         return reader.IsDBNull(0) ? Results.StatusCode(202)
             : Results.Ok(JsonSerializer.Deserialize<Completion>(reader.GetString(0), Json));
     }
@@ -74,19 +87,23 @@ public sealed class OperationQueue(NpgsqlDataSource database, IDurableExecution 
             try
             {
                 string? id = null; FulfillmentRequest? request = null; DateTimeOffset admitted = default;
-                await using (var command = database.CreateCommand("SELECT operation_id,request::text,admitted_at FROM durable_admissions WHERE result IS NULL ORDER BY admitted_at,operation_id LIMIT 1"))
+                await using (var command = database.CreateCommand("SELECT operation_id,request::text,admitted_at FROM durable_admissions WHERE execution_state='Pending' ORDER BY admitted_at,operation_id LIMIT 1"))
                 await using (var reader = await command.ExecuteReaderAsync(stoppingToken))
                     if (await reader.ReadAsync(stoppingToken))
                     { id=reader.GetString(0); request=JsonSerializer.Deserialize<FulfillmentRequest>(reader.GetString(1), Json); admitted=reader.GetFieldValue<DateTimeOffset>(2); }
                 if (id is not null)
                 {
                     await CrashBarrier.Reach("before-dispatch");
-                    var result = await execution.Advance(id, request!, admitted);
-                    if (result is not null)
+                    var state = await execution.EnsureStartedAndInspect(id, request!, admitted);
+                    if (state is ExecutionState.Completed or ExecutionState.Failed)
                     {
                         await CrashBarrier.Reach("before-result-commit");
-                        await using var save = database.CreateCommand("UPDATE durable_admissions SET result=$2::jsonb WHERE operation_id=$1");
-                        save.Parameters.AddWithValue(id); save.Parameters.AddWithValue(JsonSerializer.Serialize(result, Json));
+                        await using var save = database.CreateCommand("UPDATE durable_admissions SET result=$2::jsonb,execution_state=$3 WHERE operation_id=$1");
+                        save.Parameters.AddWithValue(id);
+                        save.Parameters.AddWithValue(state is ExecutionState.Completed done ? JsonSerializer.Serialize(done.Result, Json) : "null");
+                        save.Parameters.AddWithValue(state is ExecutionState.Completed ? "Completed" : "Failed");
+                        if (state is ExecutionState.Failed failed)
+                            logger.LogError("Workflow {OperationId} failed: {Diagnostic}", id, failed.Diagnostic);
                         await save.ExecuteNonQueryAsync(stoppingToken);
                     }
                 }

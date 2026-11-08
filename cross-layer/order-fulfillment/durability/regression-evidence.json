@@ -3,5 +3,9 @@
   "checksPerCondition": 52,
   "invariantCommandsPerCondition": 180,
   "passed": true,
-  "reportSha256": "06a2317586904ff9ceb2fb3bbd953e31181f58f21944b18a813718c8c57ef372"
+  "reportSha256": "06a2317586904ff9ceb2fb3bbd953e31181f58f21944b18a813718c8c57ef372",
+  "buildManifests": {
+    "conventional": "e04e94445a40ded8aed58882ad4f667c562127823d932a6d51dc127fb260e948",
+    "cohesive": "3f5ef61be01aba53aa77d8cb1f6f37fcf77187e566323df945c85bcd451156f7"
+  }
 }

@@ -9,12 +9,40 @@ import subprocess
 
 ROOT=Path(__file__).resolve().parent
 
+def input_hashes(folder):
+    paths=[p for p in folder.rglob('*') if p.is_file() and not {'bin','obj','__pycache__'}.intersection(p.relative_to(folder).parts)
+           and (p.suffix in ['.cs','.csproj','.props','.targets','.nupkg'] or p.name in ['global.json','NuGet.config','packages.lock.json'])]
+    return {str(p.relative_to(folder)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}
+
+
+def artifact_hashes(folder):
+    output=folder/'src/Fulfillment.Application/bin/Debug/net10.0'
+    return {str(p.relative_to(folder)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(output.rglob('*')) if p.is_file()}
+
+
 def reference_fingerprint(folder):
-    digest=hashlib.sha256()
-    for path in sorted((folder/'src/Fulfillment.Application').iterdir()):
-        if path.is_file() and (path.suffix in ['.cs','.csproj'] or path.name=='packages.lock.json'):
-            digest.update(path.name.encode()+b'\0'+path.read_bytes())
-    return digest.hexdigest()
+    return hashlib.sha256(json.dumps(input_hashes(folder),sort_keys=True).encode()).hexdigest()
+
+
+def build_candidate(folder, log=None):
+    manifest=folder/'build-manifest.json'
+    manifest.unlink(missing_ok=True)
+    before=input_hashes(folder)
+    subprocess.run(['dotnet','restore','--locked-mode'],cwd=folder,stdout=log,stderr=log,check=True,timeout=120)
+    subprocess.run(['dotnet','build','--no-restore','--no-incremental','-m:1','-nr:false'],cwd=folder,stdout=log,stderr=log,check=True,timeout=120)
+    assert before==input_hashes(folder), 'Inputs changed during build'
+    artifacts=artifact_hashes(folder)
+    assert any(p.endswith('/Fulfillment.Application.dll') for p in artifacts), 'Application binary missing'
+    manifest.write_text(json.dumps({'inputs':before,'artifacts':artifacts,
+        'sdk':subprocess.check_output(['dotnet','--version'],cwd=folder,text=True).strip()},indent=2)+'\n')
+
+
+def verify_build(folder):
+    manifest=json.loads((folder/'build-manifest.json').read_text())
+    assert manifest['inputs']==input_hashes(folder), 'Source/configuration changed since build'
+    assert manifest['artifacts']==artifact_hashes(folder), 'Executable artifacts changed since build'
+    assert any(p.endswith('/Fulfillment.Application.dll') for p in manifest['artifacts']), 'Application binary missing'
+    return hashlib.sha256((folder/'build-manifest.json').read_bytes()).hexdigest()
 
 
 def main():
@@ -69,7 +97,11 @@ public static class DurableSetup
         });
 '''
         else: setup+='''        services.AddDurableTaskWorker(worker => {
-            worker.AddTasks(tasks => { tasks.AddOrchestrator<FulfillmentWorkflow>("Fulfillment"); tasks.AddActivity<FulfillmentStep>("FulfillmentStep"); });
+            worker.AddTasks(tasks => { tasks.AddOrchestrator<FulfillmentWorkflow>(nameof(FulfillmentWorkflow));
+                tasks.AddActivity<ReadOrder>(nameof(ReadOrder)); tasks.AddActivity<ReadReservation>(nameof(ReadReservation));
+                tasks.AddActivity<ReadInventory>(nameof(ReadInventory)); tasks.AddActivity<ReserveStock>(nameof(ReserveStock));
+                tasks.AddActivity<SubmitOrder>(nameof(SubmitOrder)); tasks.AddActivity<CreateReservation>(nameof(CreateReservation));
+                tasks.AddActivity<ReleaseStock>(nameof(ReleaseStock)); });
             worker.UseDurableTaskScheduler(connection);
         });
 '''
@@ -78,7 +110,6 @@ public static class DurableSetup
 }
 '''
         (app/'DurableSetup.cs').write_text(setup)
-        subprocess.run(['dotnet','restore','--locked-mode'],cwd=folder,check=True)
-        subprocess.run(['dotnet','build','--no-restore','-m:1','-nr:false'],cwd=folder,check=True)
+        build_candidate(folder)
 
 if __name__=='__main__':main()

@@ -1,9 +1,9 @@
 {
   "verifiedOn": "2026-11-07",
   "baselineRevision": "cb1b2a27c3d32cedd122ae16b8e5be581c7421f9",
-  "reportSha256": "2897d73658f3cdb84c1c098739a80793ab016363d09da9f433a3d68dda856317",
+  "reportSha256": "8110e68c871e26f5631ae512d450fded119d263013706ee05aef6f0afdd8e604",
   "scope": "Abrupt worker/API death; scheduler and PostgreSQL remain available",
-  "passedRecoveryScenarios": 18,
+  "passedRecoveryScenarios": 20,
   "cases": [
     {
       "condition": "conventional",
@@ -123,6 +123,18 @@
       }
     },
     {
+      "condition": "conventional",
+      "point": "terminal-failure",
+      "passed": true,
+      "completion": {
+        "code": "ExecutionFailed"
+      },
+      "physical": {
+        "count": 1,
+        "quantity": 5
+      }
+    },
+    {
       "condition": "cohesive",
       "point": "none",
       "passed": true,
@@ -238,10 +250,26 @@
         "count": 2,
         "quantity": 5
       }
+    },
+    {
+      "condition": "cohesive",
+      "point": "terminal-failure",
+      "passed": true,
+      "completion": {
+        "code": "ExecutionFailed"
+      },
+      "physical": {
+        "count": 1,
+        "quantity": 5
+      }
     }
   ],
   "referenceFingerprints": {
-    "conventional": "970ea1cbf526f5549b8d188bc6250b48c69210ec50e2fd1cbb6757f789b35725",
-    "cohesive": "39c279378a3bfb0bccf812124ec77c2432bccb918c5fd0c13270997e92ae5491"
+    "conventional": "e4ded9eb1a7b3dfa0c904c22af24fd6641d2b9b3e7da1e0235f8ec8ccfdf6147",
+    "cohesive": "18e1c5b5887a1e808ff5594823178738480cb3f7ece6b671244bae0f5fda5d9b"
+  },
+  "buildManifests": {
+    "conventional": "e04e94445a40ded8aed58882ad4f667c562127823d932a6d51dc127fb260e948",
+    "cohesive": "3f5ef61be01aba53aa77d8cb1f6f37fcf77187e566323df945c85bcd451156f7"
   }
 }
