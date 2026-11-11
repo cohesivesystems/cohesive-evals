@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup><AssemblyName>Fulfillment.Application</AssemblyName><RootNamespace>Fulfillment.Application</RootNamespace></PropertyGroup><ItemGroup><PackageReference Include="Npgsql" Version="[10.0.3]" /></ItemGroup><ItemGroup>
+<PackageReference Include="Cohesive.Adapters.Postgres.Services" Version="[0.1.0-eval.b0af008]" />
+<PackageReference Include="Cohesive.Adapters.AspNet" Version="[0.1.0-eval.b0af008]" />
+<PackageReference Include="Cohesive.Analyzers" Version="[0.1.0-eval.b0af008]" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+</ItemGroup><ItemGroup><PackageReference Include="Microsoft.DurableTask.Client.AzureManaged" Version="1.25.0" /><PackageReference Include="Microsoft.DurableTask.Worker.AzureManaged" Version="1.25.0" /></ItemGroup><ItemGroup><PackageReference Include="Cohesive.Adapters.DurableTask" Version="0.1.0-eval.b0af008" /></ItemGroup></Project>

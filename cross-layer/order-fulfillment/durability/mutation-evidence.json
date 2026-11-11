@@ -1,0 +1,80 @@
+{
+  "verifiedOn": "2026-11-11",
+  "baselineRevision": "cb1b2a27c3d32cedd122ae16b8e5be581c7421f9",
+  "reportSha256": "e59dea502e998c49c74eb322502e7e0264b07f5420cff3abb022f22d6e6d405d",
+  "detectedApplicationMutants": 12,
+  "cases": [
+    {
+      "condition": "conventional",
+      "mutation": "lost-admission-on-restart",
+      "assertion": "('original result lookup', (404, None))",
+      "passed": true
+    },
+    {
+      "condition": "conventional",
+      "mutation": "resume-only-on-post",
+      "assertion": "Deadline exceeded: recovery completion",
+      "passed": true
+    },
+    {
+      "condition": "conventional",
+      "mutation": "terminal-failure-pending",
+      "assertion": "Deadline exceeded: recovery completion",
+      "passed": true
+    },
+    {
+      "condition": "conventional",
+      "mutation": "missing-reservation",
+      "assertion": "reservation cardinality",
+      "passed": true
+    },
+    {
+      "condition": "conventional",
+      "mutation": "skipped-compensation",
+      "assertion": "stock after recovery",
+      "passed": true
+    },
+    {
+      "condition": "conventional",
+      "mutation": "duplicate-reservation",
+      "assertion": "reservation cardinality",
+      "passed": true
+    },
+    {
+      "condition": "cohesive",
+      "mutation": "lost-admission-on-restart",
+      "assertion": "('original result lookup', (404, None))",
+      "passed": true
+    },
+    {
+      "condition": "cohesive",
+      "mutation": "resume-only-on-post",
+      "assertion": "Deadline exceeded: recovery completion",
+      "passed": true
+    },
+    {
+      "condition": "cohesive",
+      "mutation": "terminal-failure-pending",
+      "assertion": "Deadline exceeded: recovery completion",
+      "passed": true
+    },
+    {
+      "condition": "cohesive",
+      "mutation": "missing-reservation",
+      "assertion": "reservation cardinality",
+      "passed": true
+    },
+    {
+      "condition": "cohesive",
+      "mutation": "skipped-compensation",
+      "assertion": "stock after recovery",
+      "passed": true
+    },
+    {
+      "condition": "cohesive",
+      "mutation": "duplicate-reservation",
+      "assertion": "reservation cardinality",
+      "passed": true
+    }
+  ]
+}

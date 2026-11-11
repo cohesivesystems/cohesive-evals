@@ -1,0 +1,275 @@
+{
+  "verifiedOn": "2026-11-11",
+  "baselineRevision": "cb1b2a27c3d32cedd122ae16b8e5be581c7421f9",
+  "reportSha256": "182b8ec17d14904653668421a2b8ceb16c807bc1684675d433e887cdfadd10b2",
+  "scope": "Abrupt worker/API death; scheduler and PostgreSQL remain available",
+  "passedRecoveryScenarios": 20,
+  "cases": [
+    {
+      "condition": "conventional",
+      "point": "none",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "before-admission-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-admission-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "before-dispatch",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-reserve",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-submit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-reservation",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-release",
+      "passed": true,
+      "completion": {
+        "status": "Rejected",
+        "outcome": "OrderRejected"
+      },
+      "physical": {
+        "count": 0,
+        "quantity": 0
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "before-result-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "terminal-failure",
+      "passed": true,
+      "completion": {
+        "code": "ExecutionFailed"
+      },
+      "physical": {
+        "count": 1,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "none",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "before-admission-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-admission-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "before-dispatch",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-reserve",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-submit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-reservation",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-release",
+      "passed": true,
+      "completion": {
+        "status": "Rejected",
+        "outcome": "OrderRejected"
+      },
+      "physical": {
+        "count": 0,
+        "quantity": 0
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "before-result-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "terminal-failure",
+      "passed": true,
+      "completion": {
+        "code": "ExecutionFailed"
+      },
+      "physical": {
+        "count": 1,
+        "quantity": 5
+      }
+    }
+  ],
+  "referenceFingerprints": {
+    "conventional": "52c9f372ff9cca464656641b7f022b6d33add2a3f295269666488fefb2520345",
+    "cohesive": "ea0410734b54f511b68d75e7116723cf3d543fa7497c0f45c5fef00d655a05a3"
+  },
+  "buildManifests": {
+    "conventional": "167ec60e3043b65b51973f7247a17622f0146ddfa3e337222853921faf22f0b7",
+    "cohesive": "6040f46a5038e1a97c12c4b26a6e9722c7255c89749816fb33d00d29bd74ed48"
+  }
+}

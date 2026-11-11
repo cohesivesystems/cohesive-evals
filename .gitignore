@@ -84,3 +84,5 @@ nunit-*.xml
 
 # Pinned cross-layer fixture dependency closure.
 !cross-layer/order-fulfillment/conditions/cohesive/packages/*.nupkg
+
+!cross-layer/order-fulfillment/durability/packages/*.nupkg
