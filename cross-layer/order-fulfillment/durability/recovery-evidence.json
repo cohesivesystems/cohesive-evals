@@ -1,7 +1,7 @@
 {
-  "verifiedOn": "2026-11-07",
+  "verifiedOn": "2026-11-11",
   "baselineRevision": "cb1b2a27c3d32cedd122ae16b8e5be581c7421f9",
-  "reportSha256": "4c0f27d9875cd47c463d4e4054abc00ea521ef5bcc1e0d9a30d571e737545769",
+  "reportSha256": "182b8ec17d14904653668421a2b8ceb16c807bc1684675d433e887cdfadd10b2",
   "scope": "Abrupt worker/API death; scheduler and PostgreSQL remain available",
   "passedRecoveryScenarios": 20,
   "cases": [
@@ -265,11 +265,11 @@
     }
   ],
   "referenceFingerprints": {
-    "conventional": "4676d48a510d2bd8895ec3468a470f05b8bbe6534d389721e5bb2f7b2b27219e",
-    "cohesive": "e54097ae398daeb2f7b27bdb8076a35a4ef5b96fc2c6d89735593945372881b6"
+    "conventional": "52c9f372ff9cca464656641b7f022b6d33add2a3f295269666488fefb2520345",
+    "cohesive": "ea0410734b54f511b68d75e7116723cf3d543fa7497c0f45c5fef00d655a05a3"
   },
   "buildManifests": {
-    "conventional": "23f7b733ec7aa7222f03a2ab75180dd543326e1ddb1cd2e24ce85f0080765c70",
-    "cohesive": "265e3d10ccd73bd55a39103e6ba687477c52a807b2af91768540ce9c4cb1cf76"
+    "conventional": "167ec60e3043b65b51973f7247a17622f0146ddfa3e337222853921faf22f0b7",
+    "cohesive": "6040f46a5038e1a97c12c4b26a6e9722c7255c89749816fb33d00d29bd74ed48"
   }
 }

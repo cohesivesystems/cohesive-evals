@@ -73,11 +73,11 @@ public sealed class OperationQueue(NpgsqlDataSource database, DurableTaskClient 
         {
             try
             {
-                string? id = null; FulfillmentRequest? request = null; DateTimeOffset admitted = default;
-                await using (var command = database.CreateCommand("SELECT operation_id,request::text,admitted_at FROM durable_admissions WHERE execution_state='Pending' ORDER BY admitted_at,operation_id LIMIT 1"))
+                string? id = null; FulfillmentRequest? request = null;
+                await using (var command = database.CreateCommand("SELECT operation_id,request::text FROM durable_admissions WHERE execution_state='Pending' ORDER BY admitted_at,operation_id LIMIT 1"))
                 await using (var reader = await command.ExecuteReaderAsync(stoppingToken))
                     if (await reader.ReadAsync(stoppingToken))
-                    { id=reader.GetString(0); request=JsonSerializer.Deserialize<FulfillmentRequest>(reader.GetString(1), Json); admitted=reader.GetFieldValue<DateTimeOffset>(2); }
+                    { id=reader.GetString(0); request=JsonSerializer.Deserialize<FulfillmentRequest>(reader.GetString(1), Json); }
                 if (id is not null)
                 {
                     await CrashBarrier.Reach("before-dispatch");
@@ -87,7 +87,9 @@ public sealed class OperationQueue(NpgsqlDataSource database, DurableTaskClient 
                         await client.ScheduleNewOrchestrationInstanceAsync(nameof(FulfillmentWorkflow),
                             new Work(id, request!), new StartOrchestrationOptions(id), stoppingToken);
                     }
-                    if (state?.RuntimeStatus is OrchestrationRuntimeStatus.Completed or OrchestrationRuntimeStatus.Failed or OrchestrationRuntimeStatus.Terminated)
+#pragma warning disable CS0618 // Canceled is compatibility-only in SDK 1.25; handle retained legacy status defensively.
+                    if (state?.RuntimeStatus is OrchestrationRuntimeStatus.Completed or OrchestrationRuntimeStatus.Failed or OrchestrationRuntimeStatus.Terminated or OrchestrationRuntimeStatus.Canceled)
+#pragma warning restore CS0618
                     {
                         var failed = state.RuntimeStatus != OrchestrationRuntimeStatus.Completed;
                         var completion = failed ? null : state.ReadOutputAs<Completion>() ?? throw new InvalidOperationException("Completed workflow has no result.");

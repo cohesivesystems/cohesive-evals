@@ -33,7 +33,7 @@ def main():
                     'await command.ExecuteNonQueryAsync();\n        await using var lose = database.CreateCommand("TRUNCATE durable_admissions");\n        await lose.ExecuteNonQueryAsync();','before-dispatch',False,'original result lookup'),
                 'resume-only-on-post': ('OperationQueue.cs','static readonly JsonSerializerOptions Json',
                     'bool postSeen;\n    static readonly JsonSerializerOptions Json','before-dispatch',False,'Deadline exceeded: recovery completion'),
-                'terminal-failure-pending': ('OperationQueue.cs','if (state?.RuntimeStatus is OrchestrationRuntimeStatus.Completed or OrchestrationRuntimeStatus.Failed or OrchestrationRuntimeStatus.Terminated)',
+                'terminal-failure-pending': ('OperationQueue.cs','if (state?.RuntimeStatus is OrchestrationRuntimeStatus.Completed or OrchestrationRuntimeStatus.Failed or OrchestrationRuntimeStatus.Terminated or OrchestrationRuntimeStatus.Canceled)',
                     'if (state?.RuntimeStatus is OrchestrationRuntimeStatus.Completed)','terminal-failure',False,'Deadline exceeded: recovery completion'),
             }
             for name,expected in [('missing-reservation','reservation cardinality'),('skipped-compensation','stock after recovery'),('duplicate-reservation','reservation cardinality')]:
@@ -45,6 +45,10 @@ def main():
                     else:
                         before='await new OrderStore(database).CreateReservation(new(r.OrderId,r.OrderId,r.Sku,r.Quantity),work.OperationId+"/reservation")'
                         after='await Duplicate(new OrderStore(database),r,work.OperationId+"/reservation")'
+                elif name in ['missing-reservation','skipped-compensation']:
+                    # Keep declared transitions/barrier registration valid while suppressing
+                    # the business effect for the positive-quantity qualification request.
+                    after='if (input.Quantity < 0) { '+before+' }'
                 cases[name]=(file,before,after,'after-reserve',name=='skipped-compensation',expected)
             for name,(file,before,after,point,reject,expected) in cases.items():
                 path=app/file;original=path.read_text();assert original.count(before)==1,(name,'anchor')

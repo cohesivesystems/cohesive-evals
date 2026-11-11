@@ -57,7 +57,7 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
         hosted = Service.Define(new("fulfillment"), new("1"), process.Provenance)
             .Use(new ServiceDependencies().Process(process))
             .Operation("fulfill").Require(new("fulfillment.write")).Run(process.Definition).ExecuteEphemerally(TimeSpan.FromSeconds(15))
-            .Bind(process.Definition, orders, inventory, reservations)
+            .Bind(process.Definition, RepositoryBindings.Resolve(orders, inventory, reservations))
             .Build("fulfillment", new IdentityServiceInvocationAuthorization("demo", new(FulfillmentDomain.PartitionField)));
     }
     public async Task Seed(SeedData data)
@@ -105,9 +105,7 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
         var result = await hosted.Runtime.ExecuteProcessAsync(Context(), "fulfill", new(new(operationId), new("attempt/1")),
             ObservationValue.FromObject(new FulfillOrder(request.OrderId, request.Sku, request.Quantity)));
         if (result.Kind != ApiResultKind.Success) throw new InvalidOperationException("Process execution did not succeed.");
-        var output = result.Outcome!.Decision.State.Terminal.Detail!.Value!.Value
-            ?? throw new InvalidOperationException("Process returned no public result.");
-        return new(output.GetProperty("Status").GetRequiredString(), output.GetProperty("Outcome").GetRequiredString());
+        return ProcessCompletion.Read(result.Outcome?.Decision.State.Terminal);
     }
 }
 

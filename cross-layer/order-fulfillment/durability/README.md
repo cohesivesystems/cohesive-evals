@@ -8,11 +8,17 @@ python3 durability/build.py
 python3 durability/verify.py
 python3 durability/qualify.py
 python3 durability/regression.py
+python3 durability/check_diagnostics.py
+python3 durability/test_verifier_errors.py
+python3 durability/test_build_evidence.py
 ```
 
 The builder materializes separate reference applications under ignored
 `artifacts/durable-reference/`. It copies G0, adds the reviewed overlays and
-Durable Task package references, and builds both with committed NuGet lockfiles. It never changes G0 fixtures.
+Durable Task package references, and builds both with committed NuGet lockfiles.
+Program, backend, registration and project overlays are committed source; the
+builder copies them without source rewriting. Project files use `.csproj.overlay`
+until materialization to prevent editor restores outside their fixture context. It never changes G0 fixtures.
 The conventional overlay supplies an orchestrator with activities over the
 existing store, with seven typed activities and typed call wrappers; the Cohesive overlay prepares the unchanged authored process
 for its native Durable Task interpreter and calls `AdmitCohesiveProcessAsync`
@@ -59,9 +65,16 @@ The regression command runs all 52 baseline checks and 180 invariant commands
 per condition against the durable references. Public observations are still
 compared across conditions; execution implementation bytes may differ.
 
-Verified 2026-11-07: 20 known-good recovery scenarios, twelve detected durable
+Verified 2026-11-11: 20 known-good recovery scenarios, twelve detected durable
 application mutants, and 52 contract checks plus 180 invariant commands per
 condition. Compact evidence summaries are committed alongside this document;
 full local logs and traces remain under ignored artifacts. Both reference builds
 restore with locked dependencies and compile with zero warnings/errors.
 Independent review and calibration/execution-manifest admission remain pending.
+
+Focused diagnostic checks cover missing public results, exact repository lookup,
+missing/ambiguous binding codes, unsupported realization, renamed barrier targets,
+and early infrastructure assertions. Both execution paths reuse the Cohesive
+completion mapper and repository resolver. `Canceled` is compatibility-only and
+not emitted by SDK 1.25.0; it is defensively mapped to terminal failure alongside
+Failed/Terminated, not claimed as an exercised cancellation workflow.

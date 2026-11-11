@@ -76,8 +76,7 @@ public sealed class OperationQueue(NpgsqlDataSource database, DurableTaskClient 
     }
     static Completion ReadCompletion(OrchestrationMetadata state)
     {
-        var output = state.ReadOutputAs<DurableTaskSequentialProcessResult>()!.State.Terminal.Detail!.Value!.Value!.Value;
-        return new(output.GetProperty("Status").GetRequiredString(), output.GetProperty("Outcome").GetRequiredString());
+        return ProcessCompletion.Read(state.ReadOutputAs<DurableTaskSequentialProcessResult>()?.State.Terminal);
     }
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -117,7 +116,9 @@ public sealed class OperationQueue(NpgsqlDataSource database, DurableTaskClient 
                         if (acceptance.IsConflict)
                             throw new InvalidOperationException($"Unexpected process admission conflict: {acceptance.DiagnosticCode}");
                     }
-                    if (state?.RuntimeStatus is OrchestrationRuntimeStatus.Completed or OrchestrationRuntimeStatus.Failed or OrchestrationRuntimeStatus.Terminated)
+#pragma warning disable CS0618 // Canceled is compatibility-only in SDK 1.25; handle retained legacy status defensively.
+                    if (state?.RuntimeStatus is OrchestrationRuntimeStatus.Completed or OrchestrationRuntimeStatus.Failed or OrchestrationRuntimeStatus.Terminated or OrchestrationRuntimeStatus.Canceled)
+#pragma warning restore CS0618
                     {
                         var failed = state.RuntimeStatus != OrchestrationRuntimeStatus.Completed;
                         var completion = failed ? null : ReadCompletion(state);

@@ -46,6 +46,7 @@ def main():
     manifest=json.loads((ROOT/'dependency-manifest.json').read_text())
     suffix=uuid.uuid4().hex[:10];pg='order-recovery-pg-'+suffix;dts='order-recovery-dts-'+suffix
     owned=[];process=None;records=[]
+    condition=None;point=None
     build_manifests={c:verify_build(args.references.resolve()/c) for c in ([args.condition] if args.condition else ['conventional','cohesive'])}
     try:
         run('docker','run','-d','--name',pg,'-e','POSTGRES_PASSWORD=fixture-only','-p','127.0.0.1::5432',IMAGE);owned.append(pg)
