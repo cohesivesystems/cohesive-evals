@@ -65,3 +65,11 @@ applications and requires obligation-specific verifier failures. The separate
 [durability supplement and reference solutions](durability/README.md) add Durable
 Task execution, controlled worker crashes, recovery qualification and baseline
 regression checks. All of this material remains outside participant G0 fixtures.
+
+## Hold/control and evolution preparation
+
+The maintainer-only [milestone-to-test matrix](evolution/test-matrix.md) maps
+G0–G3 and the independent fresh/aged H/L probes to visible examples, hidden
+checks, reference behavior and deliberate defects. It also records contract
+freeze gaps and the implementation/qualification sequence. It is a preparation
+plan; evolved references and cumulative oracle qualification remain outstanding.
