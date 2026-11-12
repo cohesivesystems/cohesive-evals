@@ -1,6 +1,6 @@
 {
   "schemaVersion": "cohesive.relations.runner-config/v1",
-  "runnerVersion": "0.1-candidate",
+  "runnerVersion": "0.2-python-candidate",
   "protocolVersion": "0.1",
   "caseId": "load-search-mapping",
   "taskId": "make-equipment-optional",
@@ -9,7 +9,34 @@
   "oracle": {
     "revision": "4a25c74e77232511104405c81a4cfcb035bd8f2f",
     "path": "relations/oracle/load-search-mapping/src/LoadSearch.Oracle",
-    "tree": "8e42fb9d1c45dda3b2e55899421f15ce35cb9328"
+    "tree": "8e42fb9d1c45dda3b2e55899421f15ce35cb9328",
+    "reportSchemaVersion": "cohesive.relations.load-search.oracle/v1",
+    "checksByObligation": {
+      "REL-EVAL-001": [
+        "LSM-BHV-001"
+      ],
+      "REL-EVAL-002": [
+        "LSM-BHV-002"
+      ],
+      "REL-EVAL-003": [
+        "LSM-BHV-002"
+      ],
+      "REL-EVAL-004": [
+        "LSM-BHV-003"
+      ],
+      "REL-EVAL-005": [
+        "LSM-BHV-004"
+      ],
+      "REL-EVAL-006": [
+        "LSM-BHV-005"
+      ],
+      "REL-EVAL-007": [
+        "LSM-BHV-003"
+      ],
+      "REL-EVAL-008": [
+        "LSM-BHV-006"
+      ]
+    }
   },
   "conditions": {
     "conventional": {
@@ -25,6 +52,9 @@
         "src",
         "tests",
         "tools"
+      ],
+      "treatmentCheckIds": [
+        "LSM-TI-CONV-001"
       ]
     },
     "cohesive": {
@@ -41,6 +71,9 @@
         "src",
         "tests",
         "tools"
+      ],
+      "treatmentCheckIds": [
+        "LSM-TI-COH-001"
       ]
     }
   },
@@ -67,5 +100,6 @@
     "cohesive-evals",
     "evaluation protocol",
     "hidden oracle"
-  ]
+  ],
+  "commandTimeoutSeconds": 120
 }

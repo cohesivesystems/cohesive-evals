@@ -44,8 +44,10 @@ relations/
 Frozen v0 remains preserved in Git history. Protocol v0.1 and the oracle design
 gate are approved. The executable private oracle is implemented and qualified,
 and the runner/scorer foundation is validated without an agent invocation. The
-baseline and oracle freeze, production agent driver, calibration, and pilot
-remain blocked on the independent conventional review in COH-59.
+independent conventional review in COH-59 is complete. Baseline/oracle freeze,
+production agent driving, calibration and pilot execution remain separate
+admission work. The Python runner foundation keeps Relations as its regression
+fixture; cross-layer runner integration follows separately.
 
 ## Working principles
 
