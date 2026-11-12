@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "mapperAndBindingChecks": 5,
+  "startupDiagnostics": [
+    "missing-repository",
+    "ambiguous-repository",
+    "unsupported-realization",
+    "renamed-barrier"
+  ],
+  "buildManifest": "6040f46a5038e1a97c12c4b26a6e9722c7255c89749816fb33d00d29bd74ed48",
+  "verifiedOn": "2026-11-11",
+  "reportSha256": "b38ca2a4683cb33d9ee31184947049c9abe73118be6f3fac96f7247bef4d056a",
+  "earlyInfrastructureErrorPreserved": true,
+  "buildEvidenceGuardsPassed": true
+}

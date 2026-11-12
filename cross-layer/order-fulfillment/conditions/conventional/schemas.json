@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fulfillment wire contracts",
+  "$defs": {
+    "OrderCreated": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "OrderSummary": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "status": {
+          "enum": [
+            "Draft",
+            "Submitted"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "status"
+      ]
+    },
+    "Inventory": {
+      "type": "object",
+      "properties": {
+        "sku": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "available": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "sku",
+        "available"
+      ]
+    },
+    "Reservation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "sku": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "availableStock": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "id",
+        "sku",
+        "quantity",
+        "availableStock"
+      ]
+    },
+    "Availability": {
+      "type": "object",
+      "properties": {
+        "reservationId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "sku": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "availableStock": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "reservationId",
+        "sku",
+        "quantity",
+        "availableStock"
+      ]
+    },
+    "FulfillmentRequest": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "orderId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "sku": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        }
+      },
+      "required": [
+        "requestId",
+        "orderId",
+        "sku",
+        "quantity"
+      ]
+    },
+    "Admission": {
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "resultUrl": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      },
+      "required": [
+        "operationId",
+        "resultUrl"
+      ]
+    },
+    "Completion": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "const": "Submitted"
+            },
+            "outcome": {
+              "const": "ReservedAndSubmitted"
+            }
+          },
+          "required": [
+            "status",
+            "outcome"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "status": {
+              "const": "Rejected"
+            },
+            "outcome": {
+              "enum": [
+                "OrderMissing",
+                "ReservationConflict",
+                "InventoryMissing",
+                "InvalidQuantity",
+                "InsufficientStock",
+                "OrderRejected"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "outcome"
+          ]
+        }
+      ]
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      },
+      "required": [
+        "code"
+      ]
+    },
+    "OrderDetails": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "status": {
+          "enum": [
+            "Draft",
+            "Submitted"
+          ]
+        },
+        "reservations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Reservation"
+          },
+          "maxItems": 1000
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "reservations"
+      ]
+    },
+    "AvailabilityResponse": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Availability"
+      },
+      "maxItems": 1000
+    },
+    "ReadResultTooLarge": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "const": "ReadResultTooLarge"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Details and availability responses are limited to 1,000,000 serialized UTF-8 bytes; see CONTRACT.md for escaping and HTTP 422 behavior."
+}
