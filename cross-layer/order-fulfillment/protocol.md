@@ -103,6 +103,11 @@ condition-neutral schema. Participants see the application contract, not hidden
 seed data or oracle code. Setup facilities are disabled on the evaluated public
 listener and cannot be used by a submission to manufacture a score.
 
+The shared [contract supplements](evolution/contracts/README.md) specify the
+remaining command parsing, conflict codes and setup defaults. Their generated
+bundles include only active requirements and are identical across conditions.
+Reference implementation and runtime qualification remain separate gates.
+
 ### Baseline outcomes and precedence
 
 After admission, an exact completed request replay returns its retained result

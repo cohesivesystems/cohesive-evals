@@ -1,0 +1,118 @@
+[
+  {
+    "document": "schemas.json",
+    "schema": "FulfillmentRequest",
+    "valid": [
+      {
+        "requestId": "r",
+        "orderId": "o",
+        "sku": "s",
+        "quantity": 0
+      },
+      {
+        "requestId": "r",
+        "orderId": "o",
+        "sku": "s",
+        "quantity": -2147483648
+      }
+    ],
+    "invalid": [
+      {
+        "requestId": "r",
+        "orderId": "o",
+        "sku": "s"
+      },
+      {
+        "requestId": "r",
+        "orderId": "o",
+        "sku": "s",
+        "quantity": 2147483648
+      },
+      {
+        "requestId": " ",
+        "orderId": "o",
+        "sku": "s",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "document": "schemas.json",
+    "schema": "Completion",
+    "valid": [
+      {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      {
+        "status": "Rejected",
+        "outcome": "InvalidQuantity"
+      }
+    ],
+    "invalid": [
+      {
+        "status": "Submitted",
+        "outcome": "InvalidQuantity"
+      },
+      {
+        "status": "Rejected",
+        "outcome": "ReservedAndSubmitted"
+      }
+    ]
+  },
+  {
+    "document": "seed.schema.json",
+    "schema": "",
+    "valid": [
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Draft"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10
+          }
+        ],
+        "reservations": []
+      }
+    ],
+    "invalid": [
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Draft"
+          }
+        ],
+        "inventory": null,
+        "reservations": []
+      },
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Draft"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10
+          }
+        ],
+        "reservations": [
+          {
+            "id": "r",
+            "orderId": "o",
+            "sku": "s",
+            "quantity": 0
+          }
+        ]
+      }
+    ]
+  }
+]
