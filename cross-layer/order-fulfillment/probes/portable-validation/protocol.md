@@ -26,6 +26,9 @@ admission registry, capacity and worker for both entry points. The batch path
 calls application services directly; it must not loop back through HTTP.
 The host stays available for HTTP reads and replay after batch completion.
 Readiness means HTTP is listening; the completed output file signals batch completion.
+Both flags must be supplied together. Input and output must be distinct files,
+and output must not already exist. Invalid configuration fails before admission;
+write output through a temporary sibling and rename it only when complete.
 
 Parse and validate the entire envelope before any item is admitted. Invalid JSON,
 a non-array or more than 100 elements yields `{ "error": "InvalidBatch" }` and
@@ -59,7 +62,7 @@ facts, not timing or generated identifiers across hosts.
 
 | Layer | Required behavior |
 |---|---|
-| Transport | Decode JSON and required fields/types. Wrong root/item shape, missing/null fields, blank identifiers, fractional/overflow quantities and wrong JSON types fail before admission. Use the existing G3 wire rules for property casing, extra properties and integral number encodings. |
+| Transport | Decode JSON and required fields/types. Wrong root/item shape, missing/null fields, blank identifiers, fractional/overflow quantities and wrong JSON types fail before admission. Required names are exactly `requestId`, `orderId`, `sku`, `quantity`; extra properties are ignored. Identifiers are JSON strings. Quantity is a JSON number with an exact signed 32-bit integer value: `1`, `1.0` and `1e0` are equivalent; numeric strings and booleans are rejected. Duplicate property names are invalid. Apply these rules to HTTP and batch alike, aligning both with the published G3 schemas. |
 | Input-only | PV1 retains G3 rules. PV2 adds `requestId.Length <= 64` in UTF-16 code units. Case and exact text remain significant; do not trim, normalize or truncate. HTTP returns 400 and batch item admission returns 400/null. Validate before identity lookup or capacity checks. Invalid input consumes no identity and has no business effects. |
 | State-dependent | Both paths execute the same G3 domain contract: order/reservation lookup, missing inventory, nonpositive quantity, quarantine, quantity limit, stock and lifecycle precedence. Nonpositive quantity remains admissible input with domain outcome `InvalidQuantity`. |
 
@@ -69,6 +72,10 @@ A supplementary Unicode character counts as two UTF-16 code units. Test valid
 Unicode strings; unpaired-surrogate decoding is outside this rule's witness set.
 At capacity, a valid retained identity replays, a valid new identity returns 503,
 and a new overlength identity returns 400. Identity conflicts retain 409.
+The startup batch admits at most 100 items. Capacity witnesses fill the remaining
+registry through HTTP after batch completion, then replay batch identities through
+HTTP. Batch-at-capacity and HTTP-to-batch replay are not independently reachable
+in this single-startup-file interface and are not claimed as tested.
 
 Rejected input must not invoke domain work. A well-formed domain rejection is
 admitted and retained, so replay after inventory/lifecycle changes remains stable.
