@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import socket
+import select
 import subprocess
 import sys
 import time
@@ -37,10 +38,13 @@ class World:
             sock.bind(('127.0.0.1',0)); http_port=sock.getsockname()[1]
         self.url=f'http://127.0.0.1:{http_port}'
         command=['dotnet',str(self.executable),'--urls',self.url]
-        if batch is not None:
-            path=output/'input.json';path.write_text(batch if raw else json.dumps(batch))
-            command += ['--batch-input',str(path),'--batch-output',str(output/'output.json')]
-        self.process=subprocess.Popen(command,cwd=folder,env=self.env,stdout=self.log,stderr=self.log)
+        self.cli=batch is not None
+        self.initial_batch=batch if raw else json.dumps(batch)
+        self.buffer=b''
+        if self.cli: command += ['--batch-cli','true']
+        self.process=subprocess.Popen(command,cwd=folder,env=self.env,
+            stdin=subprocess.PIPE if self.cli else subprocess.DEVNULL,
+            stdout=subprocess.PIPE if self.cli else self.log,stderr=self.log)
         try:
             self.wait(lambda: self.ready(), 'host readiness')
         except BaseException:
@@ -57,10 +61,26 @@ class World:
             if value: return value
             time.sleep(.02)
         raise RuntimeError(label+' deadline')
+    def send_batch(self, raw):
+        self.process.stdin.write((raw+'\n').encode());self.process.stdin.flush()
+        def response():
+            if b'\n' not in self.buffer:
+                if not select.select([self.process.stdout],[],[],0)[0]: return None
+                data=os.read(self.process.stdout.fileno(),65536)
+                if not data: raise RuntimeError('CLI closed stdout before a response')
+                self.buffer+=data
+            if b'\n' not in self.buffer:return None
+            line,self.buffer=self.buffer.split(b'\n',1)
+            return [json.loads(line)]
+        return self.wait(response,'CLI response')[0]
     def batch(self):
-        path=self.output/'output.json'
-        self.wait(path.exists,'batch completion')
-        return json.loads(path.read_text())
+        (self.output/'input.json').write_text(self.initial_batch)
+        result=self.send_batch(self.initial_batch)
+        (self.output/'output.json').write_text(json.dumps(result))
+        return result
+    def finish(self):
+        self.process.stdin.close()
+        return self.process.wait(timeout=10)
     def http(self, raw, index):
         status,body=self.client.request('POST','/fulfillment',raw=raw.encode('utf-8'))
         item={'index':index,'admission':{'status':status,'body':None if status in (400,503) else body}}
@@ -82,7 +102,10 @@ class World:
         'reservations',(SELECT coalesce(json_agg(x),'[]') FROM (SELECT {rid} AS id,order_id AS "orderId",sku,quantity FROM {reservation}) x));'''
         return json.loads(harness.run('docker','exec',self.container,'psql','-U','postgres','-d',self.database,'-At','-c',sql))
     def close(self):
-        harness.stop(self.process);self.log.close()
+        if self.cli and not self.process.stdin.closed:self.process.stdin.close()
+        if self.process.poll() is None:harness.stop(self.process)
+        if self.cli:self.process.stdout.close()
+        self.log.close()
 
 def verify(args):
     args.output.mkdir(parents=True,exist_ok=False)
@@ -126,7 +149,12 @@ def verify(args):
                             checks.require(entry['admission']['status']==202,'PV1-03','capacity',entry)
                         checks.require(w.http(json.dumps(checks.request('full')),0)['admission']['status']==503,'PV1-03','capacity','new request at capacity')
                         checks.require(w.http(json.dumps(items[1]),1)==result[1],'PV1-03','cross-entry replay','replay at capacity')
+                        cli_result=w.send_batch(json.dumps([checks.request('full'),items[1],checks.request('capacity-'+str(999-admitted))]))['items']
+                        checks.require(cli_result[0]=={'index':0,'admission':{'status':503,'body':None}},'PV1-03','batch capacity',cli_result)
+                        checks.require(cli_result[1]==result[1],'PV1-03','cross-entry replay',cli_result)
+                        checks.require(cli_result[2]=={**entry,'index':2},'PV1-03','HTTP-to-CLI replay',cli_result)
                         checks.require(checks.canonical(w.facts())==checks.canonical(before),'PV1-04','settled facts','capacity writes')
+                        checks.require(w.finish()==0,'PV1-02','CLI EOF','nonzero exit after EOF')
                 finally:w.close()
             checks.require(record['batch']==record['http'],'PV1-01','transport parity',record)
             rows=checks.decoding();bindings=checks.binding_examples();binding_start=len(rows)
@@ -156,6 +184,8 @@ def verify(args):
                         checks.check_items(result['items'],[{'status':400}]*100)
                     else:checks.require(result==wanted,'PV1-02','envelope',result)
                     checks.require(checks.canonical(w.facts())==checks.canonical(checks.fixture()),'PV1-04','envelope preservation',w.facts())
+                    checks.require(w.send_batch('[]')=={'items':[]},'PV1-02','line recovery','next line failed')
+                    checks.require(w.finish()==0,'PV1-02','CLI EOF','nonzero exit after EOF')
                     trace.append({'envelope':name,'result':result})
                 finally:w.close()
             visible_seed=json.loads((build.ROOT/'batch-seed.json').read_text())
@@ -165,30 +195,9 @@ def verify(args):
                 w.batch()
                 visible_count=visible_checks.exercise(w.url,w.output/'output.json')
             finally:w.close()
-            w=world('files')
-            try:
-                source=w.output/'input.json';source.write_text(json.dumps(items))
-                existing=w.output/'existing.json';existing.write_text('sentinel')
-                paths=[['--batch-input',str(source)],
-                    ['--batch-output',str(w.output/'unused.json')],
-                    ['--batch-input',str(source),'--batch-output',str(source)],
-                    ['--batch-input',str(source),'--batch-output',str(existing)],
-                    ['--batch-input',str(w.output/'missing.json'),'--batch-output',str(w.output/'unreadable-result.json')],
-                    ['--batch-input',str(source),'--batch-output',str(w.output/'missing-directory/result.json')]]
-                for index,options in enumerate(paths):
-                    with (w.output/f'failure-{index}.log').open('w') as log:
-                        result=subprocess.run(['dotnet',str(w.executable),'--urls','http://127.0.0.1:0',*options],
-                            cwd=w.folder,env=w.env,stdout=log,stderr=log,timeout=30)
-                    checks.require(result.returncode!=0,'PV1-02','operational failure classification',options)
-                checks.require(existing.read_text()=='sentinel' and source.read_text()==json.dumps(items),
-                    'PV1-04','file preservation','overwritten input/output')
-                checks.require(not (w.output/'unreadable-result.json').exists(),'PV1-02','operational failure classification','published failed input')
-                checks.require(checks.canonical(w.facts())==checks.canonical(checks.fixture()),'PV1-04','input preservation',w.facts())
-                trace.append({'operationalFailures':len(paths)})
-            finally:w.close()
             (out/'trace.json').write_text(json.dumps(trace,indent=2)+'\n')
             assert build.build_tools.verify_build(folder)==fingerprint
-            records[condition]={'passed':True,'businessItems':len(items),'decodingItemsPerTransport':len(rows),'envelopes':len(envelopes),'operationalFailures':len(paths),'visibleChecks':visible_count,'buildManifestSha256':fingerprint}
+            records[condition]={'passed':True,'businessItems':len(items),'decodingItemsPerTransport':len(rows),'envelopes':len(envelopes),'cliLineRecoveryCases':len(envelopes),'visibleChecks':visible_count,'buildManifestSha256':fingerprint}
         (args.output/'report.json').write_text(json.dumps({'passed':True,'postgresImage':harness.IMAGE,'postgresImageId':image,'conditions':records},indent=2)+'\n')
         print('PV1 passed:',', '.join(records),flush=True)
     except checks.BehavioralFailure as error:

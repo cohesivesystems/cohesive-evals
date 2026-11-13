@@ -1,15 +1,15 @@
 """Buildable defects and their exact independent behavioral witnesses."""
 def mutations(condition):
     cases={
-        'batch-options-drift':('BatchInput.cs','item.Deserialize<FulfillmentRequest>(jsonOptions.Value.SerializerOptions)',
-            'item.Deserialize<FulfillmentRequest>(new JsonSerializerOptions(jsonOptions.Value.SerializerOptions) { NumberHandling = JsonNumberHandling.Strict })','PV1-01','input decoding'),
+        'batch-options-drift':('BatchCli.cs','item.Deserialize<FulfillmentRequest>(jsonOptions.Value.SerializerOptions)',
+            'item.Deserialize<FulfillmentRequest>(new JsonSerializerOptions(jsonOptions.Value.SerializerOptions) { NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict })','PV1-01','input decoding'),
         'missing-required-input':('Program.cs','RespectRequiredConstructorParameters = true','RespectRequiredConstructorParameters = false','PV1-01','input decoding'),
-        'stop-after-invalid':('BatchInput.cs','items.Add(new(items.Count, admission, completion));',
+        'stop-after-invalid':('BatchService.cs','items.Add(new(items.Count, admission, completion));',
             'items.Add(new(items.Count, admission, completion));\n                        if (request is null) break;', 'PV1-02','ordered results'),
-        'oversized-executes':('BatchInput.cs','GetArrayLength() > 100','GetArrayLength() > 101','PV1-02','envelope'),
+        'oversized-executes':('BatchService.cs','requests.Count > 100','requests.Count > 101','PV1-02','envelope'),
         'cross-entry-replay-lost':('OperationQueue.cs','public IResult Admit(FulfillmentRequest request) => Submit(request).ToHttp();',
             'public IResult Admit(FulfillmentRequest request) => Results.Conflict(new ErrorResponse("LostReplay"));','PV1-03','cross-entry replay'),
-        'batch-changes-quantity':('BatchInput.cs','queue.Submit(request);','queue.Submit(request with { Quantity = request.Quantity + 1 });','PV1-01','outcomes'),
+        'batch-changes-quantity':('BatchService.cs','queue.Submit(request);','queue.Submit(request with { Quantity = request.Quantity + 1 });','PV1-01','outcomes'),
         'reject-domain-input':('FulfillmentInput.cs','!string.IsNullOrWhiteSpace(request.RequestId)',
             'request.Quantity > 0 && !string.IsNullOrWhiteSpace(request.RequestId)','PV1-01','outcomes'),
     }

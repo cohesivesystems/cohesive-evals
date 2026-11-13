@@ -4,7 +4,7 @@ Implementation of [#37](https://github.com/cohesivesystems/cohesive-evals/issues
 under the [portable-validation protocol](../protocol.md). Maintainer-only;
 do not include this directory, its history or successors in participant workspaces.
 
-Both references compose G3 with standard DTO deserialization, a file adapter and queue
+Both references compose G3 with standard DTO deserialization, a thin CLI adapter, typed batch service and queue
 refactor. HTTP and batch share admission identities, capacity, results and a
 single worker. Conventional still calls its domain services; Cohesive still calls
 its compiled process. No domain implementation is copied into the adapter.
@@ -12,7 +12,8 @@ its compiled process. No domain implementation is copied into the adapter.
 The queue returns a transport-neutral admission and signals completion through
 a task. HTTP maps responses to its existing routes; batch waits directly without
 HTTP loopback or a second polling implementation. A batch is sequential and
-partially successful, with one atomic output file. A read-only observer checks
+partially successful. The CLI reads/writes JSON lines; the typed service owns
+execution without JSON, console or file handling. A read-only observer checks
 all physical business rows, including unrelated sentinels.
 
 See [BATCH.md](BATCH.md) for public behavior and [sdk-audit.md](sdk-audit.md) for
@@ -45,8 +46,10 @@ build/setup failures, timeouts, 5xx and unrelated failures earn no credit.
 [evidence.json](evidence.json) retains source/report hashes and compact results;
 the adjacent build manifests bind application inputs to outputs. Each condition
 runs 17 business items through each transport, 32 decoding items per transport,
-five envelope cases, six operational-failure cases and five public smoke checks.
-The capacity check fills all 1,000 host-local identities and retains batch replay.
+five envelope cases with next-line recovery and clean EOF, and five public smoke
+checks.
+The capacity check fills all 1,000 host-local identities, checks CLI admission
+at capacity and retains replay in both directions.
 The separate cumulative run retains 52 G0 HTTP checks, 180 invariant commands,
 118 E1, 92 E2 and 95 E3 commands, plus visible examples and clean restart.
 These counts describe checks, not independent experimental samples.
@@ -55,12 +58,12 @@ These counts describe checks, not independent experimental samples.
 
 Conventional idiomaticity review: standard DTO deserialization handles transport decoding;
 input-only predicates are shared; domain services remain authoritative; DI owns
-one queue; `BackgroundService` owns work; task completion replaces adapter polling.
+one queue; its existing worker owns fulfillment; task completion replaces polling.
+The CLI is called directly from the entry point, not a second background service.
 No library ban or forced duplication is imposed. Independent PR review is still
 required before admitting this parent to an experiment.
 
-Capacity is filled through HTTP after the startup batch, then batch identities
-are replayed at capacity. The file interface cannot independently exercise a
-batch arriving at capacity or replay HTTP-originated requests back into batch.
-There is no live migration, durable recovery, concurrent-intent claim or scored
-campaign. Full participant packaging/history-isolation admission remains separate.
+Capacity is filled through HTTP and tested through CLI and HTTP. Replays cover
+both directions in the same host. File publication, live migration, durable
+recovery, concurrent intents and scored campaigns are outside this probe.
+Full participant packaging/history-isolation admission remains separate.
