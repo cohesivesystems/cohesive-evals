@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "cohesive.mcp-integration-pilot/v1",
+  "fixtureRevision": "b334d3dcc71926d14e21eb46eeace73857d0ca8d",
+  "fixturePath": "cross-layer/order-fulfillment/conditions/cohesive",
+  "frameworkRevision": "8be91cec2f13b9ac3700eecfc41e85d3b2c26e40",
+  "packageVersion": "0.1.0-eval.mcp.8be91cec",
+  "conditions": [
+    "cohesive-mcp-off",
+    "cohesive-mcp"
+  ],
+  "scored": false,
+  "agentInvoked": false,
+  "commandTimeoutSeconds": 600
+}

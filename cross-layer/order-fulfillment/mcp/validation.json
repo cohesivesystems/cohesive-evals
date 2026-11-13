@@ -1,0 +1,211 @@
+{
+  "schemaVersion": "cohesive.mcp-integration-validation/v1",
+  "validatedOn": "2026-11-12",
+  "frameworkRevision": "8be91cec2f13b9ac3700eecfc41e85d3b2c26e40",
+  "fixtureRevision": "b334d3dcc71926d14e21eb46eeace73857d0ca8d",
+  "scored": false,
+  "agentInvoked": false,
+  "preparation": {
+    "status": "prepared",
+    "participantFilesIdentical": true,
+    "packageCount": 22
+  },
+  "smoke": {
+    "status": "passed",
+    "toolNames": [
+      "check",
+      "compare",
+      "compatibility",
+      "impact",
+      "inspect",
+      "learn",
+      "references",
+      "resolve",
+      "workspace"
+    ],
+    "subjectCount": 83,
+    "documentChecks": 83,
+    "domainValidationUnavailable": [],
+    "shutdownExitCode": 0
+  },
+  "parity": {
+    "passed": true,
+    "conditions": [
+      "conventional",
+      "cohesive"
+    ],
+    "suite": "all",
+    "pairEquivalenceChecked": true,
+    "conditionSpecificExecution": false,
+    "checksPerCondition": 52,
+    "invariantSequences": [
+      {
+        "seed": 17,
+        "commands": 60,
+        "facts": {
+          "inventory": [
+            {
+              "sku": "inv-17-other",
+              "available": 1
+            },
+            {
+              "sku": "inv-17-stock",
+              "available": 0
+            },
+            {
+              "sku": "inv-17-untouched",
+              "available": 11
+            }
+          ],
+          "reservations": [
+            {
+              "id": "inv-17-0",
+              "orderId": "inv-17-0",
+              "sku": "inv-17-stock",
+              "quantity": 3
+            },
+            {
+              "id": "inv-17-1",
+              "orderId": "inv-17-1",
+              "sku": "inv-17-stock",
+              "quantity": 2
+            },
+            {
+              "id": "inv-17-5",
+              "orderId": "inv-17-5",
+              "sku": "inv-17-other",
+              "quantity": 1
+            },
+            {
+              "id": "inv-17-6",
+              "orderId": "inv-17-6",
+              "sku": "inv-17-other",
+              "quantity": 5
+            }
+          ]
+        }
+      },
+      {
+        "seed": 83,
+        "commands": 60,
+        "facts": {
+          "inventory": [
+            {
+              "sku": "inv-83-other",
+              "available": 7
+            },
+            {
+              "sku": "inv-83-stock",
+              "available": 0
+            },
+            {
+              "sku": "inv-83-untouched",
+              "available": 11
+            }
+          ],
+          "reservations": [
+            {
+              "id": "inv-83-0",
+              "orderId": "inv-83-0",
+              "sku": "inv-83-stock",
+              "quantity": 3
+            },
+            {
+              "id": "inv-83-1",
+              "orderId": "inv-83-1",
+              "sku": "inv-83-stock",
+              "quantity": 2
+            }
+          ]
+        }
+      },
+      {
+        "seed": 251,
+        "commands": 60,
+        "facts": {
+          "inventory": [
+            {
+              "sku": "inv-251-other",
+              "available": 5
+            },
+            {
+              "sku": "inv-251-stock",
+              "available": 0
+            },
+            {
+              "sku": "inv-251-untouched",
+              "available": 11
+            }
+          ],
+          "reservations": [
+            {
+              "id": "inv-251-0",
+              "orderId": "inv-251-0",
+              "sku": "inv-251-stock",
+              "quantity": 3
+            },
+            {
+              "id": "inv-251-1",
+              "orderId": "inv-251-1",
+              "sku": "inv-251-stock",
+              "quantity": 2
+            },
+            {
+              "id": "inv-251-4",
+              "orderId": "inv-251-4",
+              "sku": "inv-251-other",
+              "quantity": 2
+            }
+          ]
+        }
+      }
+    ],
+    "invariantCommandsPerCondition": 180,
+    "checkerSeededDefectsRejected": [
+      "negative stock",
+      "double decrement",
+      "duplicate order reservation",
+      "dangling reference",
+      "missing reservation",
+      "unrelated stock mutation"
+    ],
+    "postgresImage": "postgres:17.10-alpine3.24",
+    "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+    "sdk": "10.0.402",
+    "cohesiveSourceRevision": "8be91cec2f13b9ac3700eecfc41e85d3b2c26e40",
+    "limitations": [
+      "G0 only",
+      "Visible suite plus maintainer invariant checks; full hidden oracle not qualified",
+      "Sequential settled-state checks only; no crash or concurrency qualification",
+      "Independent baseline review pending",
+      "No agent runs"
+    ]
+  },
+  "tests": {
+    "pilotBoundaryTests": 4,
+    "relationsRunnerRegressionTests": 4,
+    "failures": 0
+  },
+  "evidence": [
+    {
+      "name": "preparation",
+      "sha256": "a061f3eb20a6393b4f7836ecac8225e47f73741e9a690ff1f87896ae7a6db765",
+      "localArtifact": "/tmp/cohesive-evals-mcp-pilot-4/preparation.json"
+    },
+    {
+      "name": "smoke",
+      "sha256": "c0e86badaa4a9f81b9eee646b6c70514a7e67f02374e981d4981689c859b957e",
+      "localArtifact": "/tmp/cohesive-evals-mcp-smoke-2/report.json"
+    },
+    {
+      "name": "parity",
+      "sha256": "83e1feedc0b9e6f2aa953c76f23ef0345de7ff7edefa0478e52184bba8bf2887",
+      "localArtifact": "/tmp/cohesive-evals-mcp-parity-2/report.json"
+    }
+  ],
+  "limitations": [
+    "Scripted integration only; no coding agent or benchmark score",
+    "No portable API contract for this fixture HTTP surface",
+    "Agent isolation, tool-treatment enforcement and held-out scorer integration remain pending"
+  ]
+}

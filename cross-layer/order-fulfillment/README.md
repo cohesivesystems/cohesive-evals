@@ -75,3 +75,9 @@ decisions and the implementation/qualification sequence. The shared
 [contract bundle generator](evolution/contracts/README.md) provides active-only
 public supplements, wire/seed schemas and examples for both conditions. It is a preparation
 plan; evolved references and cumulative oracle qualification remain outstanding.
+
+## MCP integration candidate
+
+The separate [MCP integration pilot](mcp/README.md) prepares matching tool-on/off
+fixtures, checks semantic tool behavior over stdio, and reuses the public baseline
+verifier. It is unscored and does not change the original protocol or fixtures.

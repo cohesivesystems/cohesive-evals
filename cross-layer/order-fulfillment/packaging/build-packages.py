@@ -21,15 +21,24 @@ def main():
     parser.add_argument('--package-source', help='Optional offline NuGet source')
     parser.add_argument('--extra-root', action='append', default=[])
     parser.add_argument('--output', type=Path)
+    parser.add_argument('--revision', help='Explicit source commit for a separate integration candidate')
+    parser.add_argument('--version', help='Matching candidate package version')
     args = parser.parse_args()
+    if bool(args.revision) != bool(args.version) or (args.revision and not args.output):
+        parser.error('--revision and --version must be supplied together with --output')
+    revision = args.revision or REVISION
+    version = args.version or VERSION
+    revision = subprocess.check_output(['git', '-C', str(args.repository), 'rev-parse', '--verify', '--end-of-options', revision + '^{commit}'], text=True).strip()
     roots = ROOTS + args.extra_root
     output = (args.output or Path(__file__).resolve().parents[1] / 'conditions/cohesive/packages').resolve()
+    if args.revision and output.exists() and any(output.iterdir()):
+        parser.error('A custom revision requires an empty package output directory')
     output.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='fulfillment-packages-') as temporary:
         source = Path(temporary)
         archive = source / 'source.tar'
         with archive.open('wb') as stream:
-            subprocess.run(['git','-C',str(args.repository),'archive',REVISION], stdout=stream, check=True)
+            subprocess.run(['git','-C',str(args.repository),'archive',revision], stdout=stream, check=True)
         with tarfile.open(archive) as tar:
             tar.extractall(source, filter='data')
         closure = []
@@ -46,14 +55,14 @@ def main():
             restore = ['dotnet','restore',root,'-p:NuGetAudit=false','-m:1','-nr:false','-v:q']
             if args.package_source: restore += ['--source',args.package_source]
             subprocess.run(restore,cwd=source,check=True)
-            subprocess.run(['dotnet','build',root,'--no-restore',f'-p:Version={VERSION}','-m:1','-nr:false','-v:q'],cwd=source,check=True)
+            subprocess.run(['dotnet','build',root,'--no-restore',f'-p:Version={version}','-m:1','-nr:false','-v:q'],cwd=source,check=True)
         for project in closure:
-            subprocess.run(['dotnet','pack',str(project),'--no-build','--no-restore','-c','Debug',f'-p:Version={VERSION}',
-                f'-p:RepositoryCommit={REVISION}','-p:IncludeSymbols=false','-o',str(output),'-v:q'],cwd=source,check=True)
+            subprocess.run(['dotnet','pack',str(project),'--no-build','--no-restore','-c','Debug',f'-p:Version={version}',
+                f'-p:RepositoryCommit={revision}','-p:IncludeSymbols=false','-o',str(output),'-v:q'],cwd=source,check=True)
     files = sorted(output.glob('*.nupkg'))
-    manifest = {'sourceRevision':REVISION,'packageVersion':VERSION,'packages':[
+    manifest = {'sourceRevision':revision,'packageVersion':version,'packages':[
         {'file':p.name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in files]}
     (output.parent/'dependency-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
-    print(f'Packaged {len(files)} dependencies from {REVISION}.')
+    print(f'Packaged {len(files)} dependencies from {revision}.')
 
 if __name__ == '__main__': main()
