@@ -1,0 +1,103 @@
+--- a/src/Fulfillment.Application/Program.cs
++++ b/src/Fulfillment.Application/Program.cs
+@@ -14,6 +14,7 @@
+ builder.Services.AddSingleton<IFulfillmentBackend, FulfillmentBackend>();
+ builder.Services.AddSingleton<OperationQueue>();
+ builder.Services.AddHostedService(provider => provider.GetRequiredService<OperationQueue>());
++builder.Services.AddSingleton<BatchService>();
+ HostSetup.Configure(builder.Services);
+ var app = builder.Build();
+ await app.Services.GetRequiredService<IFulfillmentBackend>().Initialize();
+@@ -48,6 +49,7 @@
+         ? ReadResults.Reply(details.Reservations.Select(r => new AvailabilityView(r.Id, r.Sku, r.Quantity, r.AvailableStock)).ToArray(), details.Reservations.Count)
+         : Results.NotFound());
+ app.MapPost("/fulfillment", (FulfillmentRequest request, OperationQueue queue) => queue.Admit(request));
++app.MapPost("/fulfillment/batch", BatchEndpoint.Execute);
+ app.MapGet("/fulfillment/results/{operationId}", (string operationId, OperationQueue queue) => queue.Result(operationId));
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapSubmit(app);
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapInventoryLimits(app);
+--- a/src/Fulfillment.Application/OperationQueue.cs
++++ b/src/Fulfillment.Application/OperationQueue.cs
+@@ -4,6 +4,11 @@
+ 
+ // Admission and completed results live only for this host lifetime. Execution is
+ // bounded and owned by the host; a client disconnect does not cancel admitted work.
++public sealed record OperationReply(int Status, object? Body = null)
++{
++    public IResult ToHttp() => Body is null ? Results.StatusCode(Status) : Results.Json(Body, statusCode: Status);
++}
++
+ public sealed class OperationQueue(IFulfillmentBackend backend, ILogger<OperationQueue> logger) : BackgroundService
+ {
+     sealed class Entry(FulfillmentRequest request, Admission admission)
+@@ -12,6 +17,7 @@
+         public Admission Admission { get; } = admission;
+         public Completion? Result { get; set; }
+         public bool Failed { get; set; }
++        public TaskCompletionSource<OperationReply> Finished { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+     }
+     readonly object gate = new();
+     readonly Dictionary<string, Entry> requests = new(StringComparer.Ordinal);
+@@ -19,17 +25,18 @@
+     readonly Channel<Entry> work = Channel.CreateBounded<Entry>(new BoundedChannelOptions(1000)
+         { SingleReader = true, FullMode = BoundedChannelFullMode.Wait });
+ 
+-    public IResult Admit(FulfillmentRequest request)
++    public IResult Admit(FulfillmentRequest request) => Submit(request).ToHttp();
++
++    public OperationReply Submit(FulfillmentRequest request)
+     {
+-        if (string.IsNullOrWhiteSpace(request.RequestId) || string.IsNullOrWhiteSpace(request.OrderId)
+-            || string.IsNullOrWhiteSpace(request.Sku)) return Results.BadRequest(new ErrorResponse("InvalidRequest"));
++        if (!FulfillmentInput.IsValid(request)) return new(400);
+         lock (gate)
+         {
+             if (requests.TryGetValue(request.RequestId, out var previous))
+-                return previous.Request == request ? Results.Json(previous.Admission, statusCode: 202)
+-                    : Results.Conflict(new ErrorResponse("RequestIdentityConflict"));
++                return previous.Request == request ? new(202, previous.Admission)
++                    : new(409, new ErrorResponse("RequestIdentityConflict"));
+             // Retain every admitted identity until shutdown; do not evict replay evidence.
+-            if (requests.Count >= 1000) return Results.StatusCode(503);
++            if (requests.Count >= 1000) return new(503);
+             var id = Guid.NewGuid().ToString("N");
+             var entry = new Entry(request, new Admission(id, $"/fulfillment/results/{id}"));
+             requests.Add(request.RequestId, entry);
+@@ -37,9 +44,9 @@
+             if (!work.Writer.TryWrite(entry))
+             {
+                 requests.Remove(request.RequestId); operations.Remove(id);
+-                return Results.StatusCode(503);
++                return new(503);
+             }
+-            return Results.Json(entry.Admission, statusCode: 202);
++            return new(202, entry.Admission);
+         }
+     }
+     public IResult Result(string id)
+@@ -51,6 +58,11 @@
+             return entry.Result is { } result ? Results.Ok(result) : Results.StatusCode(202);
+         }
+     }
++    public Task<OperationReply> WaitForCompletion(string operationId, CancellationToken cancellationToken)
++    {
++        lock (gate) return operations[operationId].Finished.Task.WaitAsync(cancellationToken);
++    }
++
+     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+     {
+         try
+@@ -61,11 +73,13 @@
+                 {
+                     var result = await backend.Fulfill(entry.Admission.OperationId, entry.Request);
+                     lock (gate) entry.Result = result;
++                    entry.Finished.TrySetResult(new(200, result));
+                 }
+                 catch (Exception ex)
+                 {
+                     logger.LogError(ex, "Fulfillment execution failed: {OperationId}", entry.Admission.OperationId);
+                     lock (gate) entry.Failed = true;
++                    entry.Finished.TrySetResult(new(500, new ErrorResponse("ExecutionFailed")));
+                 }
+             }
+         }

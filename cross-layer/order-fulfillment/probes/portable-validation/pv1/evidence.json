@@ -1,0 +1,270 @@
+{
+  "date": "2026-11-13",
+  "parentCommit": "9b7791fbd1025a640d8945b5999f502a52a7c407",
+  "g3Commit": "43a0edd773709304dd8aae7591491bb6785da948",
+  "reviewBaseCommit": "d3e0198106d8896b45b25035467806f9b77eb223",
+  "scope": "Validation reuse across single-item and batch HTTP APIs on G3; includes per-item outcomes, bidirectional replay and capacity; no cross-transport claim, PV2, scored campaign or durable recovery",
+  "protocolSha256": "61d86ceba8752fd2eec210bdb38e6b0ff37761386b2c746b52afd976f5e4b9e1",
+  "postgresImage": "postgres:17.10-alpine3.24",
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "qualificationReportSha256": "904b1e8bf9ff9b7bd5be090a4765af562fa48fe902a05f8df8708a9ec96be248",
+  "cumulativeReportSha256": "9286731a180011416668998d1de669d0e36fe43a0258d6b149ff62d545e823c5",
+  "harnessTests": {
+    "pv1": 3,
+    "evolution": 6
+  },
+  "conditions": {
+    "conventional": {
+      "passed": true,
+      "businessItems": 17,
+      "decodingItemsPerOperation": 32,
+      "envelopes": 5,
+      "requestRecoveryCases": 5,
+      "visibleChecks": 5,
+      "buildManifestSha256": "d062c4e9eebdeec13d0ad3592fa225241f00bb3a6ce796902f4bfe2a2f817e6b",
+      "verifierReportSha256": "f8dfef20f4fa8c968962f0cbae68f24e9ce83ec79e3cbf4d4551abdfe8f5edf8",
+      "cumulative": {
+        "buildManifestSha256": "d062c4e9eebdeec13d0ad3592fa225241f00bb3a6ce796902f4bfe2a2f817e6b",
+        "baselineHttpChecks": 52,
+        "baselineInvariantCommands": 180,
+        "modelCommands": {
+          "e1": 118,
+          "e2": 92,
+          "e3": 95
+        },
+        "visibleExamples": {
+          "e1": 5,
+          "e2": 5,
+          "e3": 5
+        },
+        "cleanRestartVerified": true
+      }
+    },
+    "cohesive": {
+      "passed": true,
+      "businessItems": 17,
+      "decodingItemsPerOperation": 32,
+      "envelopes": 5,
+      "requestRecoveryCases": 5,
+      "visibleChecks": 5,
+      "buildManifestSha256": "d54631fbd2fa63bb579aa235a2e04862d4a2c15531a476362b6eee1a842ce1a6",
+      "verifierReportSha256": "f8dfef20f4fa8c968962f0cbae68f24e9ce83ec79e3cbf4d4551abdfe8f5edf8",
+      "cumulative": {
+        "buildManifestSha256": "d54631fbd2fa63bb579aa235a2e04862d4a2c15531a476362b6eee1a842ce1a6",
+        "baselineHttpChecks": 52,
+        "baselineInvariantCommands": 180,
+        "modelCommands": {
+          "e1": 118,
+          "e2": 92,
+          "e3": 95
+        },
+        "visibleExamples": {
+          "e1": 5,
+          "e2": 5,
+          "e3": 5
+        },
+        "cleanRestartVerified": true
+      }
+    }
+  },
+  "qualification": {
+    "passed": true,
+    "correctReferences": 2,
+    "namedDefectsDetected": 18,
+    "cases": [
+      {
+        "condition": "conventional",
+        "case": "known-good",
+        "passed": true,
+        "buildManifestSha256": "2b01845e00df11da0b7f70370bf231adb22a7cbe36e84d1fb22dd34f20c12b7e",
+        "obligation": null,
+        "assertion": null
+      },
+      {
+        "condition": "conventional",
+        "case": "serializer-options-drift",
+        "passed": true,
+        "buildManifestSha256": "cdb61de5accb6369735c525ea50516c33a36e44da394998a97c1b82080f8037a",
+        "obligation": "PV1-01",
+        "assertion": "input decoding"
+      },
+      {
+        "condition": "conventional",
+        "case": "missing-required-input",
+        "passed": true,
+        "buildManifestSha256": "8f4961e2b556c8070cd30a8fa2c40ab89832601c245b3756022dec327601ca1c",
+        "obligation": "PV1-01",
+        "assertion": "input decoding"
+      },
+      {
+        "condition": "conventional",
+        "case": "stop-after-invalid",
+        "passed": true,
+        "buildManifestSha256": "c607f0b25e1bed818e9db91124e43b20c3dc39789101d00fc4d2fe8c94fcfc5c",
+        "obligation": "PV1-02",
+        "assertion": "ordered results"
+      },
+      {
+        "condition": "conventional",
+        "case": "oversized-executes",
+        "passed": true,
+        "buildManifestSha256": "99937ec1bf40d8e3ab088231f90dff0952ba2ce9524613876343011c45bd79dc",
+        "obligation": "PV1-02",
+        "assertion": "envelope"
+      },
+      {
+        "condition": "conventional",
+        "case": "cross-entry-replay-lost",
+        "passed": true,
+        "buildManifestSha256": "d35a23621a32cf2fac48d3edd26c844dc8255312439d5c8590e0d41a899c4e69",
+        "obligation": "PV1-03",
+        "assertion": "cross-entry replay"
+      },
+      {
+        "condition": "conventional",
+        "case": "batch-changes-quantity",
+        "passed": true,
+        "buildManifestSha256": "54e447aaaf77d19a75c4e0af96a32c62cca54547ed409ada14a8566a74f3f814",
+        "obligation": "PV1-01",
+        "assertion": "outcomes"
+      },
+      {
+        "condition": "conventional",
+        "case": "reject-domain-input",
+        "passed": true,
+        "buildManifestSha256": "085833d96c5c4b948999e09c615c2b3de147b3351a7078f16dfd895e057d640a",
+        "obligation": "PV1-01",
+        "assertion": "outcomes"
+      },
+      {
+        "condition": "conventional",
+        "case": "bypass-quarantine",
+        "passed": true,
+        "buildManifestSha256": "a62e48d0e4b128db1ebdccd5f1fce8cd0740d61904b5e66c6e0ad27e78a2d21b",
+        "obligation": "PV1-01",
+        "assertion": "outcomes"
+      },
+      {
+        "condition": "conventional",
+        "case": "skip-compensation",
+        "passed": true,
+        "buildManifestSha256": "53938a21942b77aaeef2b35ff50795e99ff891a737464d2757bf749c7cab3df5",
+        "obligation": "PV1-04",
+        "assertion": "settled facts"
+      },
+      {
+        "condition": "cohesive",
+        "case": "known-good",
+        "passed": true,
+        "buildManifestSha256": "51c3fc5f7c8f7b8661017f3e7f6be1496e2fe246c29ffb0a09b7692e8bece2ab",
+        "obligation": null,
+        "assertion": null
+      },
+      {
+        "condition": "cohesive",
+        "case": "serializer-options-drift",
+        "passed": true,
+        "buildManifestSha256": "d3738981fe84aca04a419baf01018f3c0d701fbc842c7242f4489bc81d86970f",
+        "obligation": "PV1-01",
+        "assertion": "input decoding"
+      },
+      {
+        "condition": "cohesive",
+        "case": "missing-required-input",
+        "passed": true,
+        "buildManifestSha256": "a5cec076e018e76e8be71e98f030da1f7430145c1279374143bef8a337b6ac69",
+        "obligation": "PV1-01",
+        "assertion": "input decoding"
+      },
+      {
+        "condition": "cohesive",
+        "case": "stop-after-invalid",
+        "passed": true,
+        "buildManifestSha256": "54102055290ee9a05d11b8ef038139212e734be5fe5a83ad6398b66234b006d9",
+        "obligation": "PV1-02",
+        "assertion": "ordered results"
+      },
+      {
+        "condition": "cohesive",
+        "case": "oversized-executes",
+        "passed": true,
+        "buildManifestSha256": "391b8631e79cc75cc680adeff117caab727f01cc06b7561af43a20400d7fd8b1",
+        "obligation": "PV1-02",
+        "assertion": "envelope"
+      },
+      {
+        "condition": "cohesive",
+        "case": "cross-entry-replay-lost",
+        "passed": true,
+        "buildManifestSha256": "c0f05a838c311bd6d77dd746e946de8deeb1ff214080b896fd67735082bbcc7c",
+        "obligation": "PV1-03",
+        "assertion": "cross-entry replay"
+      },
+      {
+        "condition": "cohesive",
+        "case": "batch-changes-quantity",
+        "passed": true,
+        "buildManifestSha256": "321594bd6ebcb21ec0aaec687c35b6d2954afad9ce59f8c8b0280e08eb6e732c",
+        "obligation": "PV1-01",
+        "assertion": "outcomes"
+      },
+      {
+        "condition": "cohesive",
+        "case": "reject-domain-input",
+        "passed": true,
+        "buildManifestSha256": "a8569e0c228601688ab31882c890955ae19b97d9915a28efffbbfb0b7875c075",
+        "obligation": "PV1-01",
+        "assertion": "outcomes"
+      },
+      {
+        "condition": "cohesive",
+        "case": "bypass-quarantine",
+        "passed": true,
+        "buildManifestSha256": "b3c2d8162bb4b48005ab9628ca4fa054b3f4cee995a961dbc21df1c9d0e371bb",
+        "obligation": "PV1-01",
+        "assertion": "outcomes"
+      },
+      {
+        "condition": "cohesive",
+        "case": "skip-compensation",
+        "passed": true,
+        "buildManifestSha256": "3da13a530392942c0e445b74c0c6ad3b196d5fdb0d50b45409555d9e242082c1",
+        "obligation": "PV1-04",
+        "assertion": "settled facts"
+      }
+    ]
+  },
+  "sourceSha256": {
+    "BATCH.md": "904119ea26bc7545643e3bc8a2e50f812c9c3129e3b4c60d623cffa9f95452e1",
+    "README.md": "b79b21a597073fdf551522e58e256b089595afc087db9f4987dca0d86a509a84",
+    "batch-examples.json": "17e9982cf747341e2878b8a093d06e37cfe98b9a571155ed5702f3c48466fa58",
+    "batch-seed.json": "5de33193858e5a6e56819d7fbb215fce307a8af6c5fd95c304102ad506639b4a",
+    "batch.schema.json": "d267819b4d48fd0b14c18959d76f976ba49b30d47e95a96acb3673b2963a750b",
+    "build.py": "c1336fcf5ee0745f43c2c7b9caf83d56b6e994768ca90778cfbe59f481cb98f5",
+    "checks.py": "bd109e8ec6a21511837cb95ec0f45ed8fac9f49ef24903590a36a9fa99a0ea46",
+    "mutations.py": "b1420989671d9b1967933ff6861ab1fef7c181094b0c4082a0d0f69a33991cc9",
+    "qualify.py": "1be5c3cb39cf73f912e53ae1779f501c02ea919a92f9dd8c8dd929c1bed67c1c",
+    "reference/.gitattributes": "c6e498a4062e317a2c97b82484cda8791e82be5d8c5779e8cf3d09f9a4b3c249",
+    "reference/common/BatchEndpoint.cs": "1bb79885710f2fa06352458f86d8193506a3053c30ff5d8362ca9fdbfaa70cbd",
+    "reference/common/BatchService.cs": "4dffc52f990470324538aafcaa3c6196001391527f8a96b377602cd40d28f628",
+    "reference/common/FulfillmentInput.cs": "6bc2f4d8e0e89f95000ec6614e47bfc7dbecb65b0cba1c1adfb00879382842ef",
+    "reference/common.json": "29453053710db2dda4b55f7c81d638defb5514f849ebbf499e6014fa0f309e7d",
+    "reference/common.patch": "e2740a8ba4d2e62d2ea13bdcfa0ca72bd07388cf1931b32d78b731949599c66e",
+    "sdk-audit.md": "805e56ae3db18d8751fd3af3207f426c20bdca28d3194026aaee125d6e0c8c64",
+    "test_harness.py": "795f382eb635293148cd87d664069b6732f08d30bfb82042c4a6772614913b8d",
+    "verify.py": "a9be1f9ed2a98d98b0af42c0c2d146c1b34bb68dadf513465c057e212b3977c1",
+    "visible_checks.py": "e62c9cc6c0d2ae47eb78deba0127aa32fc128a0af1a423d562c3b27b7f51bc43"
+  },
+  "sharedHarnessSha256": {
+    "harness.py": "265b252c6c6d8fd4c382b481c9ed9d7110b8dd275f846f0c7ed8135fd56200db",
+    "snapshot.py": "98fa02a2b2e42b523b32760dfab73fd75b4fe2bbf843e6753fc54e49d9f9a17d",
+    "verify.py": "75caf256c84af2ec358daad7dfb0679f6a0bab4c67d0911c51814f4f139a8b47",
+    "e1/checks.py": "65b3bd38fdd8c9b744397cb2cb8ac181d9ecfc697433d452f882b8a4f70a66e9",
+    "e2/cancellation_checks.py": "1fc91755813a22eceb1bc81edc5c9c908c7817fba1bee3f6cd378ee7a39432c4",
+    "e3/quarantine_checks.py": "894368f237382e0a6b5ad863c12469e6b873f44ea68432801bca5813b2bf3887",
+    "e1/profile.json": "83ebb1d7e943822683a68d1bd2e616dc715deeee1ca442a5def5c00be25fe78d",
+    "e2/profile.json": "7baa4297de901144a0afe87c14ec8329b79da565368481b10b909bdca7603e7a",
+    "e3/profile.json": "9b3eeb7c8c2bfe5b7eaa72ef16b36b4c22a1e2784136d6bd99d7020f70801934"
+  },
+  "verifierReportSha256": "f8dfef20f4fa8c968962f0cbae68f24e9ce83ec79e3cbf4d4551abdfe8f5edf8"
+}

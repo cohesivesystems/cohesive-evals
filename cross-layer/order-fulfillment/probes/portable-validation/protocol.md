@@ -1,15 +1,16 @@
-# Portable validation across entry points
+# Validation reuse across single and batch API operations
 
-Specification candidate for [#26](https://github.com/cohesivesystems/cohesive-evals/issues/26).
+Protocol for [#26](https://github.com/cohesivesystems/cohesive-evals/issues/26).
 No implementation, qualified result or Cohesive advantage is asserted here.
-This is a separate probe on G3; it does not add E4, change H/L, or expand the
+This tests validation reuse across API operations, not transport portability.
+A non-HTTP transport would be a separate probe. This is a separate probe on G3; it does not add E4, change H/L, or expand the
 [pilot matrix](../../evolution/test-matrix.md).
 
 ## Two changes
 
 | Stage | Parent | Task | Retained obligations |
 |---|---|---|---|
-| PV1 | Gold G3 | Add a non-HTTP batch entry point for fulfillment. | B + E1 + E2 + E3, plus PV1 below. |
+| PV1 | Gold G3 | Add `POST /fulfillment/batch` for multiple fulfillment intents. | B + E1 + E2 + E3, plus PV1 below. |
 | PV2 | Qualified PV1 | Limit new fulfillment request IDs to 64 UTF-16 code units, on both entry points. | All PV1 behavior except the explicitly narrowed input domain. |
 
 Use the same parents and public requirements in both conditions. PV2 is a new
@@ -19,41 +20,38 @@ its original result. Pre-task failures and new regressions are recorded separate
 
 ## Batch contract (PV1)
 
-Add `--batch-input FILE --batch-output FILE` to the service host. Input is a
-UTF-8 JSON array of at most 100 fulfillment objects. An empty array is valid.
-The host starts its ordinary HTTP interface and uses the same local identity,
-admission registry, capacity and worker for both entry points. The batch path
-calls application services directly; it must not loop back through HTTP.
-The host stays available for HTTP reads and replay after batch completion.
-Readiness means HTTP is listening; the completed output file signals batch completion.
-Both flags must be supplied together. Input and output must be distinct files,
-and output must not already exist. Invalid configuration fails before admission;
-write output through a temporary sibling and rename it only when complete.
+`POST /fulfillment/batch` accepts an `application/json` array containing 0–100
+fulfillment items. The existing `POST /fulfillment` remains the single-item API.
+ASP.NET Core binds the whole request to a typed array using the configured JSON
+options; a thin endpoint calls a typed batch application service. Each item uses the same queue,
+request identities, capacity, host-provided caller identity and domain workflow
+as a single-item request. No CLI, file protocol or JSON-RPC layer is added.
 
-Parse and validate the entire envelope before any item is admitted. Invalid JSON,
-a non-array or more than 100 elements yields `{ "error": "InvalidBatch" }` and
-no effects. A syntactically valid array containing an invalid item still processes
-its valid siblings. An unreadable input or unwritable output is an operational
-failure, never a successful empty batch or a behavioral rejection.
+Malformed JSON, a non-array, any item decoding failure or more than 100 items
+returns HTTP 400 without admission or effects, including for valid preceding
+items. Oversized arrays return `{ "error": "InvalidBatch" }`; binding failures
+use the framework's 400 response with unspecified body. Successfully decoded
+null items or items with null/blank identifiers receive per-item 400 while valid
+siblings continue. Empty arrays succeed with an empty result.
 
-Process items in array order. Wait for each admitted item's terminal result before
-starting the next item, so shared-stock examples have deterministic outcomes.
-There is no batch transaction, rollback of successful siblings, batch identity or
-automatic retry. Duplicates within a batch and across HTTP/batch use the same
-request identity rules. Tests await batch completion before issuing HTTP mutations;
-concurrent independent intents and crash recovery remain out of scope.
+Valid envelopes return HTTP 200 with `{ "items": [...] }`, including partial or
+all-item rejection. Items execute in array order; each admitted item settles
+before the next starts. Each result has a zero-based `index` and
+`admission: {status, body}` using the single-item API's status numbers/bodies.
+Admitted items additionally have `completion: {status, body}` matching the result
+endpoint. Admission failures omit `completion`; unspecified 400/503 bodies are
+`null`, while 409 retains `RequestIdentityConflict`. An execution failure records
+completion 500/`ExecutionFailed` and later items continue. Qualification treats an
+unexpected execution failure as a failure, not a domain rejection.
 
-Write one completed JSON object `{ "items": [...] }` atomically after processing.
-Each item has its zero-based `index` and `admission: {status, body}` using the HTTP
-contract's status numbers and JSON bodies. An admitted item additionally has
-`completion: {status, body}` matching the result endpoint. Admission failures omit
-`completion`. Normalize unspecified 400/503 bodies to `null` in the batch output;
-409 retains `RequestIdentityConflict`. An execution failure records completion
-500/`ExecutionFailed`, starts no automatic retry, and does not erase earlier
-results. Later items continue; qualification treats any execution failure in a
-correct-reference scenario as a failure, not an expected domain outcome.
+There is no batch transaction, rollback of successful siblings, batch identity
+or automatic retry. The batch service uses the host lifetime, so disconnecting
+a caller does not cancel accepted work. This adds no crash-recovery guarantee.
+Tests alternate settled single-item and batch requests; concurrent independent
+intents remain outside this probe. HTTP/host failures are operational failures,
+never successful empty batches or defect-detection credit.
 
-Transport-specific operation IDs and absolute URLs need not match between
+Generated operation IDs and absolute URLs need not match between
 isolated runs. Replay within one host must return the same admission and result.
 The verifier compares normalized admissions/completions and all settled business
 facts, not timing or generated identifiers across hosts.
@@ -62,9 +60,24 @@ facts, not timing or generated identifiers across hosts.
 
 | Layer | Required behavior |
 |---|---|
-| Transport | Decode JSON and required fields/types. Wrong root/item shape, missing/null fields, blank identifiers, fractional/overflow quantities and wrong JSON types fail before admission. Required names are exactly `requestId`, `orderId`, `sku`, `quantity`; extra properties are ignored. Identifiers are JSON strings. Quantity is a JSON number with an exact signed 32-bit integer value: `1`, `1.0` and `1e0` are equivalent; numeric strings and booleans are rejected. Duplicate property names are invalid. Apply these rules to HTTP and batch alike, aligning both with the published G3 schemas. |
-| Input-only | PV1 retains G3 rules. PV2 adds `requestId.Length <= 64` in UTF-16 code units. Case and exact text remain significant; do not trim, normalize or truncate. HTTP returns 400 and batch item admission returns 400/null. Validate before identity lookup or capacity checks. Invalid input consumes no identity and has no business effects. |
+| Transport | The matched references use ASP.NET Core DTO binding for the single request and typed array binding for the batch, with the same configured HTTP JSON options. Keep .NET web defaults and `RespectRequiredConstructorParameters = true`. Malformed JSON, incompatible types, missing constructor fields and out-of-range quantities reject the entire request before any admission, including all siblings in a batch. JSON null array elements decode successfully and receive per-item input rejection. No custom token parser is needed. |
+| Input-only | Reject null/blank identifiers after deserialization. PV1 retains G3 application rules. PV2 adds `requestId.Length <= 64` in UTF-16 code units. Case and exact text remain significant; do not trim, normalize or truncate. HTTP returns 400 and batch item admission returns 400/null. Validate before identity lookup or capacity checks. Invalid input consumes no identity and has no business effects. |
 | State-dependent | Both paths execute the same G3 domain contract: order/reservation lookup, missing inventory, nonpositive quantity, quarantine, quantity limit, stock and lifecycle precedence. Nonpositive quantity remains admissible input with domain outcome `InvalidQuantity`. |
+
+Equivalent idiomatic deserialization is allowed; grading checks behavior rather
+than requiring these exact calls. The pinned serializer's accepted encodings are
+part of the probe contract:
+property matching is case-insensitive, unknown properties are ignored, and
+repeated properties whose values deserialize use the last value. Quantity uses
+the built-in `Int32` converter: `1` and the numeric string `"1"` are accepted;
+`1.0`, `1e0`, their quoted forms, booleans, null and overflow are rejected.
+Identifiers remain strings with case-sensitive values. Replay identity compares
+the deserialized intent, so equivalent encodings must retain the same receipt.
+Schemas describe the canonical typed form, not every accepted JSON spelling;
+JSON Schema cannot distinguish integer-valued tokens `1` and `1.0`. Independent
+wire examples/checks pin these differences rather than adding custom converters.
+This revises the earlier custom-decoder requirements; original G0–G3 snapshots
+are unchanged. Deserializer behavior is infrastructure, not portability credit.
 
 The new rule applies only to fulfillment request IDs, not order IDs, SKUs or
 read routes. Nonblank IDs of length 1 and 64 remain valid; 65 fails in PV2.
@@ -72,10 +85,9 @@ A supplementary Unicode character counts as two UTF-16 code units. Test valid
 Unicode strings; unpaired-surrogate decoding is outside this rule's witness set.
 At capacity, a valid retained identity replays, a valid new identity returns 503,
 and a new overlength identity returns 400. Identity conflicts retain 409.
-The startup batch admits at most 100 items. Capacity witnesses fill the remaining
-registry through HTTP after batch completion, then replay batch identities through
-HTTP. Batch-at-capacity and HTTP-to-batch replay are not independently reachable
-in this single-startup-file interface and are not claimed as tested.
+Single-item and batch calls share the host registry. Test replay in both
+directions and fill the registry through single-item calls before checking batch
+admission/replay at capacity.
 
 Rejected input must not invoke domain work. A well-formed domain rejection is
 admitted and retained, so replay after inventory/lifecycle changes remains stable.
@@ -90,8 +102,8 @@ boundaries. All ordinary scenarios retain unrelated order/inventory sentinels.
 | ID | Visible example | Maintainer extension | Defect and required witness |
 |---|---|---|---|
 | PV1-01 | One valid HTTP intent and the same batch intent in identical fresh worlds produce the same outcome/facts. | Every G3 completion outcome, including reservation match/conflict and competing rejection conditions. | Batch bypasses quarantine or lifecycle guard → exact outcome and physical-state assertion. |
-| PV1-02 | Batch has malformed item, success and stock rejection; valid siblings finish in order. | Empty/100/101 elements, malformed envelope, non-object items, shared-stock ordering, invalid first/middle/last items. | Whole-batch rollback, stop on item rejection or partial execution before envelope validation → ordered results/preservation assertion. |
-| PV1-03 | Duplicate item admits once; conflicting payload returns 409. | Replay batch result through HTTP, HTTP retry after changed stock/configuration, rejection replay, capacity and distinct request IDs for the same order. | Separate registries or replay bypass → admission identity/effect-count assertion. |
+| PV1-02 | Batch has a decoded invalid input, success and stock rejection; valid siblings finish in order. | Empty/100/101 elements, malformed requests followed by valid requests, incompatible item types reject the entire batch before effects or identity retention; shared-stock ordering and decoded invalid first/middle/last items. | Whole-batch rollback, stop on item rejection or partial execution before envelope validation → ordered results/preservation assertion. |
+| PV1-03 | Duplicate item admits once; conflicting payload returns 409. | Replay in both directions, retries after changed stock/configuration, rejection replay, single-item and batch capacity, and distinct request IDs for the same order. | Separate registries or replay bypass → admission identity/effect-count assertion. |
 | PV1-04 | Invalid input leaves stock and reservations unchanged. | Observe all physical rows, sentinels and retained outcomes after each settled scenario; run cumulative G0–G3 checks. | Validation after effects, extra reservation or unrelated update → preservation/retention assertion. |
 | PV2-01 | IDs of length 64 pass, 65 fail on HTTP and batch. | Length 1, empty/blank, 63/64/65, supplementary Unicode boundaries, case differences and long order/SKU IDs unaffected. | HTTP-only or batch-only stale validator, off-by-one or scalar-count length → entry-point boundary assertion. |
 | PV2-02 | Mixed valid/overlength batch preserves valid siblings; rejected ID consumes no capacity. | Invalid input combined with missing entity, quarantine, shortage and full admission registry; valid zero/negative quantity still reaches domain rejection. | Rule implemented as domain guard, truncated identity or capacity checked first → admission classification/no-effects assertion. |
@@ -114,7 +126,7 @@ or give Cohesive extra repair feedback. Both receive the same public cases, task
 budget and dependency policy; any extra library must be pinned before execution.
 
 The existing handwritten HTTP filter does not establish model-driven portability.
-Before implementing, audit the pinned SDK for transport-independent input
+Before implementing, audit the pinned SDK for reusable input
 validation and record which checks are generated, shared manually or unsupported.
 If portability needs an SDK change, scope and qualify that upgrade separately;
 do not silently switch packages in one condition. Keep runtime behavioral parity
