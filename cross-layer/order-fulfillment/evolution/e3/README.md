@@ -45,6 +45,8 @@ Each generation's `profile.json` declares the inventory fields it adds, their
 physical columns and neutral values. The harness selects columns and projects
 HTTP/physical observations generically. Before hiding a newer field from older
 checks (including G0), it verifies presence, exact JSON type and neutral value.
+The check models read their neutral defaults from these same verifier profiles;
+production code and contract generation do not supply these expectations.
 There are no E3 branches or hard-coded field defaults in the shared harness.
 
 Eight buildable defects per condition must fail the named assertion:

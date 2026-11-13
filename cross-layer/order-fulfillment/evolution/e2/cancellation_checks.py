@@ -1,6 +1,7 @@
 """Independent settled-state E2 model and targeted contract witnesses."""
 import copy
 import json
+from pathlib import Path
 import random
 import time
 
@@ -22,10 +23,16 @@ def fixture():
                          {'sku':'e2-max','available':2147483647}], 'reservations':[]}
 
 
+def inventory_defaults(generation):
+    """Read defaults authored in the independent verifier profile, not the app."""
+    profile = json.loads((Path(__file__).resolve().parents[1] / generation / 'profile.json').read_text())
+    return {name: field['neutral'] for name, field in profile['inventoryFields'].items()}
+
+
 class Checks:
     prefix = 'e2'
     seed_fixture = staticmethod(fixture)
-    inventory_defaults = {'maxPerOrder': 2147483647}
+    inventory_defaults = {**inventory_defaults('e1'), **inventory_defaults('e2')}
     fulfillment_obligation = 'E2-02'
     replay_obligation = 'E2-03'
 

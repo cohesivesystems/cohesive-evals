@@ -21,7 +21,7 @@ def fixture():
 class Checks(prior.Checks):
     prefix = 'e3'
     seed_fixture = staticmethod(fixture)
-    inventory_defaults = {**prior.Checks.inventory_defaults, 'quarantined': False}
+    inventory_defaults = {**prior.Checks.inventory_defaults, **prior.inventory_defaults('e3')}
     fulfillment_obligation = 'E3-02'
     replay_obligation = 'E3-03'
 

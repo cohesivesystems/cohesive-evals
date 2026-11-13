@@ -223,5 +223,23 @@
   "qualificationNote": "Qualification ran before the final explicit missing-field guard for nullable profile defaults. Current profiles use non-null defaults, so their behavior is unchanged. The guard is unit-tested and the final E3 paired verification includes it.",
   "inheritedCheckSha256": {
     "../e2/cancellation_checks.py": "99f98c17afed5d1953303253882892d6d284f6b554988f40645c9c1e2f4002a7"
+  },
+  "profileDefaultsFollowup": {
+    "reviewBaseCommit": "f15780c4e7a6fc5184047e067ee421a1bd8b59c8",
+    "sourceSha256": {
+      "e2/cancellation_checks.py": "1fc91755813a22eceb1bc81edc5c9c908c7817fba1bee3f6cd378ee7a39432c4",
+      "e3/quarantine_checks.py": "894368f237382e0a6b5ad863c12469e6b873f44ea68432801bca5813b2bf3887",
+      "e1/profile.json": "83ebb1d7e943822683a68d1bd2e616dc715deeee1ca442a5def5c00be25fe78d",
+      "e2/profile.json": "7baa4297de901144a0afe87c14ec8329b79da565368481b10b909bdca7603e7a",
+      "e3/profile.json": "9b3eeb7c8c2bfe5b7eaa72ef16b36b4c22a1e2784136d6bd99d7020f70801934"
+    },
+    "verifierReportSha256": "5c78a88b1c45fe2c7c248942d401d5be19094d35a6be2c3004ff0aa3699b9aa1",
+    "passed": true,
+    "conditions": [
+      "conventional",
+      "cohesive"
+    ],
+    "sharedHarnessTests": 6,
+    "note": "Neutral defaults now load from verifier profiles. Cumulative G0/E1/E2/E3 verification and clean restart rerun for both conditions. Application binaries unchanged. Mutation qualification above belongs to the prior revision and was not rerun for this data-loading-only change."
   }
 }
