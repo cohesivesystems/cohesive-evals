@@ -89,3 +89,6 @@ The [PV1 batch references](probes/portable-validation/pv1/README.md) implement i
 first step with independent qualification. The [PV2 request ID limit](probes/portable-validation/pv2/README.md)
 adds the shared 64-UTF-16-unit input rule and its qualification. These separate
 probes do not extend the existing pilot matrix.
+
+The [typed input constraint audit](probes/portable-validation/typed-input-audit/README.md)
+records the SDK enforcement prerequisite for model-authored request ID validation.
