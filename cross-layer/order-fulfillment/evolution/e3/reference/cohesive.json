@@ -1,0 +1,22 @@
+{
+  "src/Fulfillment.Application/Contracts.cs": {
+    "before": "4343aecd8e2da3d1e31c261bbeb8734fef8e18a20137bbcceeaada81fe97c47a",
+    "after": "67e1680d0d6605c6afbef441d8ab7a7cef28e5c295b1461828d367e3786b9781"
+  },
+  "src/Fulfillment.Application/FulfillmentBackend.cs": {
+    "before": "a609a94f9b74914b4c3656f3c5c9938f3b0672f9c104b61f2a5fc58a81db5ce8",
+    "after": "2bc4676aa2cc847854ac75b52cb271b240c95561f147bcdf539f1ddac7037814"
+  },
+  "src/Fulfillment.Application/FulfillmentDomain.cs": {
+    "before": "eadfd4dcaac3392e054d9c2a3578857723bf8307fd79f9ae702c4eb76cff275d",
+    "after": "0799e0e3279acb84aaade7182eeb322859d6e67b56db8355e9bd03b1d2981f54"
+  },
+  "src/Fulfillment.Application/FulfillmentPostgresMappings.cs": {
+    "before": "4ddc04a151e8687e935a7d058697994bc5d7a7cd1533cddfe1ae55ec2642d1d8",
+    "after": "a2b5a91b864eac926d237650b114dd0c0db591509b7cb605ec24884a6cc09789"
+  },
+  "src/Fulfillment.Application/Program.cs": {
+    "before": "7fe8a5afc39869148add2b9bbddf24e62e4867dd1febeff5cd68f2eeb589e0b6",
+    "after": "fc9d14a0ec29adadcd339df21be9b1e93ec86df222b66bb943eeef41f5012b42"
+  }
+}

@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from harness import profile, selected_profiles, detected
+from harness import profile, selected_profiles, detected, prior_inventory
 from snapshot import apply_delta
 
 
@@ -12,6 +12,8 @@ class SharedHarnessTests(unittest.TestCase):
         self.assertEqual([p['name'] for p in selected_profiles('e1')], ['e1'])
         self.assertEqual([p['name'] for p in selected_profiles('e2')], ['e1', 'e2'])
         self.assertEqual([p['name'] for p in selected_profiles('e2', True)], ['e2'])
+        self.assertEqual([p['name'] for p in selected_profiles('e3')], ['e1', 'e2', 'e3'])
+        self.assertEqual([p['name'] for p in selected_profiles('e3', True)], ['e3'])
 
     def test_only_intended_behavioral_failure_earns_credit(self):
         good = {'kind': 'behavioral', 'obligation': 'E2-02', 'assertion': 'cancelled fulfillment'}
@@ -21,6 +23,28 @@ class SharedHarnessTests(unittest.TestCase):
                                 (1, {**good, 'obligation': 'E1-02'}),
                                 (1, {**good, 'assertion': 'different failure'})]:
             self.assertFalse(detected(status, failure, 'E2-02', 'cancelled fulfillment'))
+
+    def test_prior_inventory_checks_new_field_before_adapting(self):
+        value = {'sku': 'prior', 'available': 2, 'maxPerOrder': 3, 'quarantined': False}
+        self.assertEqual(prior_inventory(value), {'sku': 'prior', 'available': 2, 'maxPerOrder': 3})
+        self.assertIn('quarantined', value)
+        for invalid in ({**value, 'quarantined': True}, {**value, 'quarantined': 0},
+                        {k: v for k, v in value.items() if k != 'quarantined'}):
+            with self.assertRaises(AssertionError):
+                prior_inventory(invalid)
+
+    def test_all_generation_mutations_have_one_anchor(self):
+        with tempfile.TemporaryDirectory() as directory:
+            for generation in ('e1', 'e2', 'e3'):
+                p = profile(generation)
+                refs = p['build'].materialize(Path(directory) / generation)
+                for condition in ('conventional', 'cohesive'):
+                    cases = p['mutations'].mutations(condition)
+                    self.assertEqual(set(cases), set(p['mutations'].EXPECTED_ASSERTIONS))
+                    for name, (file, before, after, _) in cases.items():
+                        source = (refs / condition / 'src/Fulfillment.Application' / file).read_text()
+                        self.assertEqual(source.count(before), 1, (generation, condition, name))
+                        self.assertNotEqual(before, after)
 
     def test_delta_rejects_parent_and_output_drift_without_writing_parent(self):
         p = profile('e2')

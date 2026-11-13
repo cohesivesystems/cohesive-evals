@@ -76,5 +76,7 @@ decisions and the implementation/qualification sequence. The shared
 public supplements, wire/seed schemas and examples for both conditions. It is a preparation
 plan. The [E1 quantity-limit references and qualification](evolution/e1/README.md)
 implement G1 in both conditions while retaining G0. The [E2 cancellation references](evolution/e2/README.md)
-add G2 with cumulative G0/E1 checks and cancellation qualification. E3 and H/L references,
-full cumulative qualification and campaign admission remain outstanding.
+add G2 with cumulative G0/E1 checks and cancellation qualification. The
+[E3 quarantine references](evolution/e3/README.md) add G3 with cumulative checks
+and quarantine qualification. H/L references, acceptance-breadth review and
+campaign admission remain outstanding.

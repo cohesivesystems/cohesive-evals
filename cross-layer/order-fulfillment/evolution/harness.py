@@ -18,7 +18,8 @@ import uuid
 
 ROOT = Path(__file__).resolve().parent
 CASE = ROOT.parent
-GENERATIONS = ('e1', 'e2')
+CHECK_MODULES = {'e1': 'checks.py', 'e2': 'cancellation_checks.py', 'e3': 'quarantine_checks.py'}
+GENERATIONS = tuple(CHECK_MODULES)
 CONDITIONS = ('conventional', 'cohesive')
 IMAGE = 'postgres:17.10-alpine3.24'
 
@@ -32,7 +33,7 @@ def load(name, path):
 
 def profile(generation):
     folder = ROOT / generation
-    checks_file = 'checks.py' if generation == 'e1' else 'cancellation_checks.py'
+    checks_file = CHECK_MODULES[generation]
     return {
         'name': generation,
         'build': load(generation + '_build', folder / 'build.py'),
@@ -82,7 +83,7 @@ def start(executable, folder, env, log, ready_path):
         raise
 
 
-def observe(container, condition, generation):
+def observe(container, condition, generation, target_generation=None):
     # Identifiers and scope are selected from trusted profile constants, never request data.
     assert generation in GENERATIONS
     tables = {
@@ -91,11 +92,37 @@ def observe(container, condition, generation):
     }
     order, order_id, inventory, reservation, reservation_id = tables[condition]
     prefix = generation + '-%'
+    quarantine_column = ',quarantined' if target_generation == 'e3' else ''
     sql = f'''SELECT json_build_object(
       'orders',(SELECT coalesce(json_agg(x),'[]') FROM (SELECT {order_id} AS id,status FROM {order} WHERE {order_id} LIKE '{prefix}') x),
-      'inventory',(SELECT coalesce(json_agg(x),'[]') FROM (SELECT sku,available,max_per_order AS "maxPerOrder" FROM {inventory} WHERE sku LIKE '{prefix}') x),
+      'inventory',(SELECT coalesce(json_agg(x),'[]') FROM (SELECT sku,available,max_per_order AS "maxPerOrder"{quarantine_column} FROM {inventory} WHERE sku LIKE '{prefix}') x),
       'reservations',(SELECT coalesce(json_agg(x),'[]') FROM (SELECT {reservation_id} AS id,order_id AS "orderId",sku,quantity FROM {reservation} WHERE order_id LIKE '{prefix}') x));'''
-    return json.loads(run('docker', 'exec', container, 'psql', '-U', 'postgres', '-d', condition, '-At', '-c', sql))
+    facts = json.loads(run('docker', 'exec', container, 'psql', '-U', 'postgres', '-d', condition, '-At', '-c', sql))
+    if target_generation == 'e3' and generation != 'e3':
+        facts['inventory'] = [prior_inventory(item) for item in facts['inventory']]
+    return facts
+
+
+def prior_inventory(item):
+    # Earlier worlds never issue quarantine commands. Check the new neutral field
+    # before adapting their unchanged expectations; never silently discard it.
+    if item.get('quarantined') is not False:
+        raise AssertionError(('prior inventory quarantine default/preservation', item))
+    return {key: value for key, value in item.items() if key != 'quarantined'}
+
+
+def prior_client(Client, target_generation):
+    if target_generation != 'e3':
+        return Client
+
+    class PriorClient(Client):
+        def request(self, method, path, body=None, raw=None):
+            status, value = super().request(method, path, body, raw)
+            if status == 200 and path.startswith('/inventory/') and isinstance(value, dict):
+                value = prior_inventory(value)
+            return status, value
+
+    return PriorClient
 
 
 def matching_artifacts(fixtures, profiles):
@@ -115,7 +142,9 @@ def verify(args):
     base = load('baseline_http', CASE / 'conditions/conventional/tests/contract_tests.py')
     Client = base.Client
 
-    class InventoryClient(Client):
+    EarlierClient = prior_client(Client, args.generation)
+
+    class InventoryClient(EarlierClient):
         def expect(self, label, method, path, status, body=None, expected=None, raw=None):
             if path.startswith('/inventory/') and isinstance(expected, dict) and 'maxPerOrder' not in expected:
                 expected = {**expected, 'maxPerOrder': 2147483647}
@@ -169,14 +198,15 @@ def verify(args):
                 try:
                     if not args.only_generation:
                         observations['baseline'] = base.exercise(url)
-                        observations['invariants'] = invariants.exercise(Client, url,
+                        observations['invariants'] = invariants.exercise(EarlierClient, url,
                             lambda seed: invariants.observe(run, name, condition, seed), output)
                     for p in profiles:
                         generation = p['name']
+                        ProfileClient = Client if generation == 'e3' else EarlierClient
                         if not args.only_generation:
-                            observations['visible' + generation.upper()] = p['visible'].exercise(Client, url)
-                        checker = p['checks'].Checks(Client, url,
-                            lambda g=generation: observe(name, condition, g), output)
+                            observations['visible' + generation.upper()] = p['visible'].exercise(ProfileClient, url)
+                        checker = p['checks'].Checks(ProfileClient, url,
+                            lambda g=generation: observe(name, condition, g, args.generation), output)
                         observations[generation] = checker.run()
                         checkers.append((generation, checker))
                 finally:
@@ -184,7 +214,8 @@ def verify(args):
                 process, url = start(executable, folder, env, log, ready_path)
                 try:
                     for generation, checker in checkers:
-                        checker.c = Client(url)
+                        ProfileClient = Client if generation == 'e3' else EarlierClient
+                        checker.c = ProfileClient(url)
                         checker.after_restart()
                         observations[generation]['commands'] = len(checker.trace)
                         observations[generation]['cleanRestartVerified'] = True

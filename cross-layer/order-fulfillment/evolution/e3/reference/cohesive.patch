@@ -1,0 +1,171 @@
+--- a/src/Fulfillment.Application/Contracts.cs
++++ b/src/Fulfillment.Application/Contracts.cs
+@@ -5,7 +5,7 @@
+ public sealed record ReservationView(string Id, string Sku, int Quantity, int AvailableStock);
+ public sealed record OrderDetailsView(string Id, string Status, IReadOnlyList<ReservationView> Reservations);
+ public sealed record AvailabilityView(string ReservationId, string Sku, int Quantity, int AvailableStock);
+-public sealed record InventoryView(string Sku, int Available, int MaxPerOrder);
++public sealed record InventoryView(string Sku, int Available, int MaxPerOrder, bool Quarantined);
+ public sealed record FulfillmentRequest(string RequestId, string OrderId, string Sku, int Quantity);
+ public sealed record Completion(string Status, string Outcome);
+ public sealed record Admission(string OperationId, string ResultUrl);
+@@ -23,10 +23,11 @@
+     void MapSubmit(WebApplication app);
+     void MapCancel(WebApplication app);
+     void MapInventoryLimits(WebApplication app);
++    void MapQuarantine(WebApplication app);
+ }
+ 
+ public sealed record SeedOrder(string Id, string Status);
+-public sealed record SeedInventory(string Sku, int Available, int MaxPerOrder = int.MaxValue);
++public sealed record SeedInventory(string Sku, int Available, int MaxPerOrder = int.MaxValue, bool Quarantined = false);
+ public sealed record SeedReservation(string Id, string OrderId, string Sku, int Quantity);
+ public sealed record SeedData(SeedOrder[] Orders, SeedInventory[] Inventory, SeedReservation[] Reservations)
+ {
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -64,7 +64,7 @@
+     public async Task Seed(SeedData data)
+     {
+         foreach (var order in data.Orders) await orders.Upsert(Context(), new Order(order.Id, "local", Enum.Parse<OrderStatus>(order.Status)));
+-        foreach (var item in data.Inventory) await inventory.Upsert(Context(), new InventoryItem(item.Sku, "local", item.Available, item.MaxPerOrder));
++        foreach (var item in data.Inventory) await inventory.Upsert(Context(), new InventoryItem(item.Sku, "local", item.Available, item.MaxPerOrder, item.Quarantined));
+         foreach (var row in data.Reservations) await reservations.Upsert(Context(), new Reservation(row.Id, "local", row.OrderId, row.Sku, row.Quantity));
+     }
+     public async Task<OrderCreated> CreateOrder()
+@@ -75,7 +75,7 @@
+     public async Task<OrderSummary?> GetOrder(string id) =>
+         await orders.TryGetEntity(Context(), id, new(partitionKey: "local")) is { } order ? new(order.Id, order.Status.ToString()) : null;
+     public async Task<InventoryView?> GetInventory(string sku) =>
+-        await inventory.TryGetEntity(Context(), sku, new(partitionKey: "local")) is { } item ? new(item.Sku, item.Available, item.MaxPerOrder) : null;
++        await inventory.TryGetEntity(Context(), sku, new(partitionKey: "local")) is { } item ? new(item.Sku, item.Available, item.MaxPerOrder, item.Quarantined) : null;
+     public void MapInventoryLimits(WebApplication app)
+     {
+         var endpoint = Cohesive.Api.Api.Define().Entity<InventoryItem>().Command("SetQuantityLimit")
+@@ -86,8 +86,21 @@
+             .MapEntityApi<InventoryItem>(domain.Inventory.Definition, inventory, "local", bindings => bindings
+                 .Transition(endpoint, domain.InventoryTransitions.SetLimit)
+                 .Input(context => QuantityLimitInput.Get(context.HttpContext))
+-                .OnApplied((state, _) => TypedResults.Ok(new InventoryView(state.Sku, state.Available, state.MaxPerOrder)))
++                .OnApplied((state, _) => TypedResults.Ok(new InventoryView(state.Sku, state.Available, state.MaxPerOrder, state.Quarantined)))
+                 .OnRejected(_ => TypedResults.Conflict(new ErrorResponse("InvalidQuantityLimit"))));
++    }
++    public void MapQuarantine(WebApplication app)
++    {
++        foreach (var (command, route, quarantined) in new[]
++        {
++            ("Quarantine", "/inventory/{id}/quarantine", true),
++            ("ClearQuarantine", "/inventory/{id}/clear-quarantine", false)
++        })
++            app.MapGroup("").MapEntityApi<InventoryItem>(domain.Inventory.Definition, inventory, "local", bindings => bindings
++                .Transition(command, route, domain.InventoryTransitions.SetQuarantine)
++                .Input(_ => new QuarantineChange(quarantined))
++                .OnApplied((state, _) => TypedResults.Ok(new InventoryView(state.Sku, state.Available, state.MaxPerOrder, state.Quarantined)))
++                .OnRejected(_ => throw new InvalidOperationException("Quarantine transition unexpectedly rejected.")));
+     }
+     public async Task<OrderDetailsView?> GetDetails(string id)
+     {
+--- a/src/Fulfillment.Application/FulfillmentDomain.cs
++++ b/src/Fulfillment.Application/FulfillmentDomain.cs
+@@ -19,7 +19,7 @@
+     /// <summary>Canonical partition field shared by the example entities.</summary>
+     public const string PartitionField = "partition";
+     /// <summary>Declares the shared entities and their canonical references.</summary>
+-    public FulfillmentDomain() : base(revision: "6")
++    public FulfillmentDomain() : base(revision: "7")
+     {
+         (Orders, Inventory, Reservations) = Discover(DomainDiscovery.For<FulfillmentDomain>(),
+             entities => (entities.Entity<Order>(), entities.Entity<InventoryItem>(), entities.Entity<Reservation>()));
+@@ -59,7 +59,8 @@
+     [property: JsonPropertyName(FulfillmentDomain.InventoryIdField)] string Sku,
+     [property: JsonPropertyName("partition")] string Partition,
+     [property: JsonPropertyName("available")] int Available,
+-    [property: JsonPropertyName("maxPerOrder")] int MaxPerOrder = int.MaxValue);
++    [property: JsonPropertyName("maxPerOrder")] int MaxPerOrder = int.MaxValue,
++    [property: JsonPropertyName("quarantined")] bool Quarantined = false);
+ 
+ /// <summary>One reservation linking an order to a stock item; multiple reservations per order are permitted.</summary>
+ /// <param name="Id">Reservation observation identity.</param>
+@@ -175,6 +176,7 @@
+     /// <summary>Quantity must be positive.</summary>
+     InvalidQuantity,
+     /// <summary>Available stock cannot satisfy the request.</summary>
++    InventoryQuarantined,
+     QuantityLimitExceeded,
+     InsufficientStock,
+     /// <summary>Order submission rejected; reserved stock was released.</summary>
+@@ -190,6 +192,7 @@
+ /// <summary>Quantity-only inventory intent; the binding selects the authoritative SKU.</summary>
+ /// <param name="Quantity">Positive units to reserve or release.</param>
+ public sealed record StockQuantity(int Quantity);
++public sealed record QuarantineChange(bool Quarantined);
+ /// <summary>Closed stock mutation outcome.</summary>
+ [JsonConverter(typeof(JsonStringEnumConverter<StockOutcome>))]
+ public enum StockOutcome
+@@ -201,6 +204,7 @@
+     /// <summary>Quantity must be positive.</summary>
+     InvalidQuantity,
+     /// <summary>Available stock cannot satisfy the request.</summary>
++    InventoryQuarantined,
+     QuantityLimitExceeded,
+     InsufficientStock
+ }
+@@ -240,6 +244,7 @@
+     /// <summary>Checks stock and decrements it atomically with the operation receipt.</summary>
+     public Transition<InventoryItem, StockQuantity, StockResult> Reserve { get; }
+     public Transition<InventoryItem, QuantityLimit, bool> SetLimit { get; }
++    public Transition<InventoryItem, QuarantineChange, bool> SetQuarantine { get; }
+     /// <summary>Compensates a previously accepted reservation in this process.</summary>
+     public Transition<InventoryItem, StockQuantity, StockResult> Release { get; }
+ 
+@@ -247,15 +252,21 @@
+     /// <param name="inventory">Canonical inventory entity authority.</param>
+     public InventoryTransitions(DomainEntity<InventoryItem> inventory)
+     {
++        SetQuarantine = inventory.Transition<QuarantineChange, bool>(
++            id: new("inventory/set-quarantine"), revision: new("1"), transition => transition
++                .Set(new("quarantine/update"), item => item.Quarantined, (_, input) => input.Quarantined)
++                .Return(true));
+         SetLimit = inventory.Transition<QuantityLimit, bool>(
+             id: new("inventory/set-limit"), revision: new("1"), transition => transition
+                 .Requires((item, input) => input.MaxPerOrder > 0, (_, _) => false)
+                 .Set(new("limit/update"), item => item.MaxPerOrder, (_, input) => input.MaxPerOrder)
+                 .Return(true));
+         Reserve = inventory.Transition<StockQuantity, StockResult>(
+-            id: new("fulfillment/reserve"), revision: new("4"), transition => transition
++            id: new("fulfillment/reserve"), revision: new("5"), transition => transition
+                 .Requires((item, input) => input.Quantity > 0,
+                     (_, _) => new StockResult(StockOutcome.InvalidQuantity, FulfillmentOutcome.InvalidQuantity))
++                .Requires((item, input) => !item.Quarantined,
++                    (_, _) => new StockResult(StockOutcome.InventoryQuarantined, FulfillmentOutcome.InventoryQuarantined))
+                 .Requires((item, input) => input.Quantity <= item.MaxPerOrder,
+                     (_, _) => new StockResult(StockOutcome.QuantityLimitExceeded, FulfillmentOutcome.QuantityLimitExceeded))
+                 .Requires((item, input) => item.Available >= input.Quantity,
+@@ -274,7 +285,7 @@
+ 
+ /// <summary>Canonical multi-entity sequence. This syntax is compiled into Process IR, never executed as C#.</summary>
+ /// <param name="domain">Entity and transition authority used by the process.</param>
+-[Process(id: "fulfillment/submit", revision: "10")]
++[Process(id: "fulfillment/submit", revision: "11")]
+ public sealed partial class FulfillmentProcess(FulfillmentDomain domain) : ProcessModel<FulfillOrder, FulfillmentResult>
+ {
+     /// <inheritdoc />
+--- a/src/Fulfillment.Application/FulfillmentPostgresMappings.cs
++++ b/src/Fulfillment.Application/FulfillmentPostgresMappings.cs
+@@ -20,7 +20,7 @@
+             .Column(x => x.Sku, "sku").Column(x => x.Quantity, "quantity").Build();
+         Inventory = PostgresEntityRepositoryMapping.For(domain.Inventory)
+             .Table("public", "cohesive_inventory").Identity(x => x.Sku, "sku")
+-            .Partition(x => x.Partition, "partition_key").Column(x => x.Available, "available").Column(x => x.MaxPerOrder, "max_per_order").Build();
++            .Partition(x => x.Partition, "partition_key").Column(x => x.Available, "available").Column(x => x.MaxPerOrder, "max_per_order").Column(x => x.Quarantined, "quarantined").Build();
+     }
+     /// <summary>Shared constraints for orders/reservations in either database placement.</summary>
+     /// <param name="schema">Native schema declaration for the mapped entities.</param>
+--- a/src/Fulfillment.Application/Program.cs
++++ b/src/Fulfillment.Application/Program.cs
+@@ -52,4 +52,5 @@
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapSubmit(app);
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapInventoryLimits(app);
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapCancel(app);
++app.Services.GetRequiredService<IFulfillmentBackend>().MapQuarantine(app);
+ await app.RunAsync();
