@@ -4,7 +4,11 @@ from pathlib import Path
 import tempfile
 import unittest
 from jsonschema import Draft202012Validator
-from bundle import PROFILES, ROOT, baseline, documents, emit
+from bundle import PROFILES as GENERATED_PROFILES, ROOT, baseline, documents, emit
+
+# Deliberately independent of features.json and the generator.
+PROFILES = [('G0', None), ('G1', None), ('G2', None), ('G3', None),
+            ('G0', 'H'), ('G0', 'L'), ('G3', 'H'), ('G3', 'L')]
 
 
 def validator(document, name=''):
@@ -15,6 +19,39 @@ def validator(document, name=''):
 
 
 class ContractTests(unittest.TestCase):
+    def test_profile_catalog(self):
+        self.assertEqual(GENERATED_PROFILES, PROFILES)
+
+    def test_decision_order_and_conflict_codes(self):
+        # These expectations come from the protocol, not the manifest's rule list.
+        for checkpoint, probe in PROFILES:
+            with self.subTest(checkpoint=checkpoint, probe=probe):
+                depth = int(checkpoint[1])
+                expected = ['OrderMissing', 'existing reservation match/conflict',
+                            'InventoryMissing', 'InvalidQuantity']
+                conflicts = ['OrderNotDraft', 'RequestIdentityConflict']
+                if depth == 3:
+                    expected += ['InventoryQuarantined']
+                if depth >= 1:
+                    expected += ['QuantityLimitExceeded']
+                expected += ['InsufficientStock']
+                if probe == 'H':
+                    expected += ['OrderOnHold']
+                if depth >= 2:
+                    expected += ['OrderCancelled']
+                    conflicts += ['OrderCancelled', 'OrderNotCancellable']
+                if probe == 'H':
+                    conflicts += ['OrderOnHold', 'OrderNotHoldable', 'OrderHoldNotReleasable']
+                expected += ['OrderRejected for any other non-Draft state', 'ReservedAndSubmitted']
+                bundle = documents(checkpoint, probe)
+                section = bundle['CONTRACT.md'].split('## Active fulfillment decision order\n', 1)[1]
+                section = section.split('## Provisioning and persistence', 1)[0]
+                import re
+                actual = re.findall(r'^\d+\. (.+)\.$', section, re.M)
+                self.assertEqual(actual, expected)
+                wire = json.loads(bundle['schemas.json'])
+                self.assertEqual(wire['$defs']['Conflict']['properties']['code']['enum'], conflicts)
+
     def test_public_examples_for_every_profile(self):
         count = 0
         for checkpoint, probe in PROFILES:

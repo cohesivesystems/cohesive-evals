@@ -5,6 +5,11 @@ the matrix's contract gaps. These are candidate contracts for
 future reference implementations, not a claim that those implementations exist.
 G0 application files remain unchanged.
 
+`features.json` declares checkpoint composition, allowed probes, feature schema
+additions, seed defaults and ordered decision rules. `bundle.py` applies those
+additions; it contains no feature-specific branches. Supplements hold public
+behavior prose. Test expectations are written separately from the manifest.
+
 `bundle.py` emits identical public artifacts for either condition: `CONTRACT.md`,
 `schemas.json`, `seed.schema.json`, and `contract-examples.json`. It combines G0
 with only the selected active supplements. H/L texts are identical at both ages.
