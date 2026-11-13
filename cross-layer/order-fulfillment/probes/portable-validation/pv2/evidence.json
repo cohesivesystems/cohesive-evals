@@ -1,0 +1,445 @@
+{
+  "date": "2026-11-13",
+  "parentCommit": "14949865b2123336f6f5121fb4d2ee065c0bd748",
+  "scope": "PV2 shared manual request ID validation in both conditions; no SDK upgrade, live migration, concurrency, durable recovery or performance claim",
+  "protocolSha256": "bd9b019d9ca87550f058c6f54a6d54ebef43955cf06aa99b2c527265a55c0ea4",
+  "postgresImage": "postgres:17.10-alpine3.24",
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "reports": {
+    "pv2": "927ea0bd7a8a0783e12cea44faf54774216bf2ec1d6975aa3521976476f3fb78",
+    "qualification": "3339a2669659a84bad0cf91d07e45561126b3807f99a7890dbae8e2bddfc61e7",
+    "retainedPV1": "ef0e17b7d76a03513d32928a9c84ab20b46e9c03d7051a8cfb01a51f09e5f0e9",
+    "retainedG0G3": "eba8bc02a410c9e30e9a18bbe6b79351fb838b67237567fffb3412e64d65a993"
+  },
+  "harnessTests": {
+    "pv2": 1,
+    "pv1": 3,
+    "evolution": 6
+  },
+  "conditions": {
+    "conventional": {
+      "pv2": {
+        "run": {
+          "commands": 37,
+          "finalFacts": {
+            "orders": [
+              {
+                "id": "negative",
+                "status": "Draft"
+              },
+              {
+                "id": "order-ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+                "status": "Submitted"
+              },
+              {
+                "id": "quarantined",
+                "status": "Draft"
+              },
+              {
+                "id": "sentinel",
+                "status": "Draft"
+              },
+              {
+                "id": "short",
+                "status": "Draft"
+              },
+              {
+                "id": "success",
+                "status": "Submitted"
+              },
+              {
+                "id": "zero",
+                "status": "Draft"
+              }
+            ],
+            "inventory": [
+              {
+                "sku": "quarantine",
+                "available": 0,
+                "maxPerOrder": 1,
+                "quarantined": false
+              },
+              {
+                "sku": "empty",
+                "available": 0,
+                "maxPerOrder": 5,
+                "quarantined": false
+              },
+              {
+                "sku": "sentinel",
+                "available": 13,
+                "maxPerOrder": 4,
+                "quarantined": false
+              },
+              {
+                "sku": "sku-sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+                "available": 2,
+                "maxPerOrder": 5,
+                "quarantined": false
+              },
+              {
+                "sku": "stock",
+                "available": 8,
+                "maxPerOrder": 5,
+                "quarantined": false
+              }
+            ],
+            "reservations": [
+              {
+                "id": "order-ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+                "orderId": "order-ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+                "sku": "sku-sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+                "quantity": 1
+              },
+              {
+                "id": "success",
+                "orderId": "success",
+                "sku": "stock",
+                "quantity": 2
+              }
+            ]
+          }
+        },
+        "capacity": {
+          "commands": 1003,
+          "retainedIdentities": 1000
+        },
+        "visibleChecks": 5,
+        "buildManifestSha256": "8c2932187f871494ef5d2a1e4565d65db8da8c2063570591098e9f92d490b196"
+      },
+      "retainedPV1": {
+        "passed": true,
+        "businessItems": 17,
+        "decodingItemsPerOperation": 32,
+        "envelopes": 5,
+        "requestRecoveryCases": 5,
+        "visibleChecks": 5,
+        "buildManifestSha256": "8c2932187f871494ef5d2a1e4565d65db8da8c2063570591098e9f92d490b196"
+      },
+      "retainedG0G3": {
+        "buildManifestSha256": "8c2932187f871494ef5d2a1e4565d65db8da8c2063570591098e9f92d490b196",
+        "baselineHttpChecks": 52,
+        "baselineInvariantCommands": 180,
+        "modelCommands": {
+          "e1": 118,
+          "e2": 92,
+          "e3": 95
+        },
+        "visibleExamples": {
+          "e1": 5,
+          "e2": 5,
+          "e3": 5
+        },
+        "cleanRestartVerified": true
+      }
+    },
+    "cohesive": {
+      "pv2": {
+        "run": {
+          "commands": 37,
+          "finalFacts": {
+            "orders": [
+              {
+                "id": "negative",
+                "status": "Draft"
+              },
+              {
+                "id": "order-ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+                "status": "Submitted"
+              },
+              {
+                "id": "quarantined",
+                "status": "Draft"
+              },
+              {
+                "id": "sentinel",
+                "status": "Draft"
+              },
+              {
+                "id": "short",
+                "status": "Draft"
+              },
+              {
+                "id": "success",
+                "status": "Submitted"
+              },
+              {
+                "id": "zero",
+                "status": "Draft"
+              }
+            ],
+            "inventory": [
+              {
+                "sku": "quarantine",
+                "available": 0,
+                "maxPerOrder": 1,
+                "quarantined": false
+              },
+              {
+                "sku": "empty",
+                "available": 0,
+                "maxPerOrder": 5,
+                "quarantined": false
+              },
+              {
+                "sku": "sentinel",
+                "available": 13,
+                "maxPerOrder": 4,
+                "quarantined": false
+              },
+              {
+                "sku": "sku-sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+                "available": 2,
+                "maxPerOrder": 5,
+                "quarantined": false
+              },
+              {
+                "sku": "stock",
+                "available": 8,
+                "maxPerOrder": 5,
+                "quarantined": false
+              }
+            ],
+            "reservations": [
+              {
+                "id": "order-ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+                "orderId": "order-ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+                "sku": "sku-sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+                "quantity": 1
+              },
+              {
+                "id": "success",
+                "orderId": "success",
+                "sku": "stock",
+                "quantity": 2
+              }
+            ]
+          }
+        },
+        "capacity": {
+          "commands": 1003,
+          "retainedIdentities": 1000
+        },
+        "visibleChecks": 5,
+        "buildManifestSha256": "ec18e1bfc89f5bf2d0dc38abdc3b4f08f7055d65a2a0e7d68b64eb13a12e1771"
+      },
+      "retainedPV1": {
+        "passed": true,
+        "businessItems": 17,
+        "decodingItemsPerOperation": 32,
+        "envelopes": 5,
+        "requestRecoveryCases": 5,
+        "visibleChecks": 5,
+        "buildManifestSha256": "ec18e1bfc89f5bf2d0dc38abdc3b4f08f7055d65a2a0e7d68b64eb13a12e1771"
+      },
+      "retainedG0G3": {
+        "buildManifestSha256": "ec18e1bfc89f5bf2d0dc38abdc3b4f08f7055d65a2a0e7d68b64eb13a12e1771",
+        "baselineHttpChecks": 52,
+        "baselineInvariantCommands": 180,
+        "modelCommands": {
+          "e1": 118,
+          "e2": 92,
+          "e3": 95
+        },
+        "visibleExamples": {
+          "e1": 5,
+          "e2": 5,
+          "e3": 5
+        },
+        "cleanRestartVerified": true
+      }
+    }
+  },
+  "qualification": {
+    "passed": true,
+    "correctReferences": 2,
+    "namedDefectsDetected": 18,
+    "cases": [
+      {
+        "condition": "conventional",
+        "case": "known-good",
+        "passed": true,
+        "buildManifestSha256": "6ffbd1d4364ab49db6931e8ec53009e69f988a6a29fdda9da9bb4524a9cfb1ee",
+        "obligation": null,
+        "assertion": null
+      },
+      {
+        "condition": "conventional",
+        "case": "stale-validator",
+        "passed": true,
+        "buildManifestSha256": "294010306faa76a20514c31f3550a4e7b72990159537ce3ceb4b7eef147d7aca",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      {
+        "condition": "conventional",
+        "case": "reject-64",
+        "passed": true,
+        "buildManifestSha256": "29deb09ed364f8362ef1581cd9c18b66b2b807fd4d49e85d4907a71f4921029a",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      {
+        "condition": "conventional",
+        "case": "accept-65",
+        "passed": true,
+        "buildManifestSha256": "73d5ee0a1ff82b9b5704b65408e2bfb62f39a1a61e646da142a6ee1e99d1e31b",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      {
+        "condition": "conventional",
+        "case": "grapheme-counting",
+        "passed": true,
+        "buildManifestSha256": "c88cfd991b2d31dd4c94c272d2c39dca015cbaf861621370cfe2bb2e96e391c4",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      {
+        "condition": "conventional",
+        "case": "single-truncates",
+        "passed": true,
+        "buildManifestSha256": "ae26f63d4e33fb9420fe98cb30824704a898e5bd8a540d6668b995fe6fb825b7",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      {
+        "condition": "conventional",
+        "case": "batch-truncates",
+        "passed": true,
+        "buildManifestSha256": "9c23f5ea0f527281afc3bf90c4bc2812c1c801aa568f3288efcd9c8751bf5a7c",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      {
+        "condition": "conventional",
+        "case": "capacity-before-validation",
+        "passed": true,
+        "buildManifestSha256": "3749f68684cc742e99c65faa5e148aee3ea62a39e210432dcb6112f74aeddb25",
+        "obligation": "PV2-02",
+        "assertion": "capacity precedence"
+      },
+      {
+        "condition": "conventional",
+        "case": "trim-identity",
+        "passed": true,
+        "buildManifestSha256": "a8cb6f7798f73b73f33528291bf710a9168913e184ff007d121f42ca0945769c",
+        "obligation": "PV2-03",
+        "assertion": "identity preservation"
+      },
+      {
+        "condition": "conventional",
+        "case": "reset-identities",
+        "passed": true,
+        "buildManifestSha256": "7ad318883948962faa8fa97059ae89954dd3519d698113e28d2666642fe39944",
+        "obligation": "PV2-03",
+        "assertion": "identity preservation"
+      },
+      {
+        "condition": "cohesive",
+        "case": "known-good",
+        "passed": true,
+        "buildManifestSha256": "43dc6387267ad675e4836579265a147e5a90ae635459a51c5f2ec0dc970198ab",
+        "obligation": null,
+        "assertion": null
+      },
+      {
+        "condition": "cohesive",
+        "case": "stale-validator",
+        "passed": true,
+        "buildManifestSha256": "881e7194d4ae87159633c616627071be85b5b246d4ace3013198f4906fb75a2b",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      {
+        "condition": "cohesive",
+        "case": "reject-64",
+        "passed": true,
+        "buildManifestSha256": "1050eacb0e789465ab793ea0cb04ba04962c38c0b14f85cf4f8bddbdf94b9da9",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      {
+        "condition": "cohesive",
+        "case": "accept-65",
+        "passed": true,
+        "buildManifestSha256": "33b51a91b0c27fd344de71d26ac05c57d12b6c2406217812b0e0ade8041809dd",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      {
+        "condition": "cohesive",
+        "case": "grapheme-counting",
+        "passed": true,
+        "buildManifestSha256": "1bc739b61c0232a73da26effc991b7f1c72d8b5921e1bb2878139a9586a3903e",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      {
+        "condition": "cohesive",
+        "case": "single-truncates",
+        "passed": true,
+        "buildManifestSha256": "9b6eb4de7dc8349b317b39386f3a50ac8dbcd31ad6d9426b469860f40a414093",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      {
+        "condition": "cohesive",
+        "case": "batch-truncates",
+        "passed": true,
+        "buildManifestSha256": "33283aa7957574750d1f247d31364e8c048eaf9f8244acf0ae8532ef081bfdc4",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      {
+        "condition": "cohesive",
+        "case": "capacity-before-validation",
+        "passed": true,
+        "buildManifestSha256": "52d48d31c76adf2a39ce42ccb3c9e7db15f6bbb38a9ead760bc02ee0b3b8754f",
+        "obligation": "PV2-02",
+        "assertion": "capacity precedence"
+      },
+      {
+        "condition": "cohesive",
+        "case": "trim-identity",
+        "passed": true,
+        "buildManifestSha256": "8ea024eb871ba0ea11dd5a2bb417f9a0903958b96ec18a9b6a35de8ec7bda476",
+        "obligation": "PV2-03",
+        "assertion": "identity preservation"
+      },
+      {
+        "condition": "cohesive",
+        "case": "reset-identities",
+        "passed": true,
+        "buildManifestSha256": "11ec91de261823785d8df993bd7c0c9068f0917625eccfe4270a7b8d479e085a",
+        "obligation": "PV2-03",
+        "assertion": "identity preservation"
+      }
+    ]
+  },
+  "sourceSha256": {
+    "README.md": "b4c004f323fe62e4bb2e6a71fd30d05801aad3553a800b25becc9e8b6fa84b06",
+    "REQUEST-ID.md": "b9753aac4bdc8e67482b065aa99c709eb1b7be343a3ed8d2a6072e25d886b4f0",
+    "build.py": "bde915e0189ad16837267b58f64dcf03ead7264537bdf8f60bcdc5ef8c62516f",
+    "length_checks.py": "9ad0587d5142d6b0a53cb70d120879a9d52c2811127fce2666fc13f11d78e450",
+    "mutations.py": "fe3648d023fe2a05865d5e3e876fcc8a101afd08dedcaf2912e8827a05d603b9",
+    "qualify.py": "2e3caa2f6af86821e7f0e7231a87cbf7a3ddb22fe98f90ddcf669b7e6f5e38b9",
+    "reference/.gitattributes": "fb25a78a6381f5646d71aacea4486f6aeeeb03c4d71740227011024be0d20a8f",
+    "reference/common.json": "346a8a14f480a5a3f70f1d3f6834f4bc7ddde61111b4effdf3f64de49811348d",
+    "reference/common.patch": "d6aa84e45eb9a1ded7bfbb77758634e481ebc856069f5302c033b48c9a321176",
+    "test_harness.py": "11544f00147e7d329f989aae674eb661fbf08bee958ed0ff6df0f78583a24f7d",
+    "verify.py": "b028403a8d92faa28bbfff713c06c70d65632ae4e3a8788281b98aed194833b2",
+    "visible_checks.py": "e1161a5079abff6349380cade52338db9cb6e65f3780493e90ccffc2d9075d58"
+  },
+  "sharedHarnessSha256": {
+    "order-fulfillment/probes/portable-validation/pv1/build.py": "c1336fcf5ee0745f43c2c7b9caf83d56b6e994768ca90778cfbe59f481cb98f5",
+    "order-fulfillment/probes/portable-validation/pv1/verify.py": "a9be1f9ed2a98d98b0af42c0c2d146c1b34bb68dadf513465c057e212b3977c1",
+    "order-fulfillment/probes/portable-validation/pv1/checks.py": "bd109e8ec6a21511837cb95ec0f45ed8fac9f49ef24903590a36a9fa99a0ea46",
+    "order-fulfillment/probes/portable-validation/pv1/visible_checks.py": "e62c9cc6c0d2ae47eb78deba0127aa32fc128a0af1a423d562c3b27b7f51bc43",
+    "order-fulfillment/probes/portable-validation/pv1/qualify.py": "351600cd0f9824c3f6e76536405f1981fb6b734d8dbfbf08fbd0a47c989f9c36",
+    "order-fulfillment/probes/portable-validation/pv1/mutations.py": "b1420989671d9b1967933ff6861ab1fef7c181094b0c4082a0d0f69a33991cc9",
+    "order-fulfillment/evolution/harness.py": "265b252c6c6d8fd4c382b481c9ed9d7110b8dd275f846f0c7ed8135fd56200db",
+    "order-fulfillment/evolution/snapshot.py": "98fa02a2b2e42b523b32760dfab73fd75b4fe2bbf843e6753fc54e49d9f9a17d",
+    "order-fulfillment/evolution/verify.py": "75caf256c84af2ec358daad7dfb0679f6a0bab4c67d0911c51814f4f139a8b47"
+  }
+}

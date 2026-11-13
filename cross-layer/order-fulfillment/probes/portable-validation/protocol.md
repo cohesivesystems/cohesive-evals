@@ -145,7 +145,8 @@ experiment; this specification sets no repetition count and authorizes no runs.
    implement matched PV1 references and the independent verifier in one child issue.
 2. Qualify PV1 against running defects; review conventional idiomaticity, acceptance
    breadth and package/history isolation before calling it an admissible parent.
-3. Implement PV2 as deltas from the qualified PV1 parent; qualify stale-validator,
+3. [PV2 implementation issue #40](https://github.com/cohesivesystems/cohesive-evals/issues/40):
+   implement PV2 as deltas from the qualified PV1 parent; qualify stale-validator,
    ordering, identity and preservation defects in both conditions.
 4. Retain source/package/build hashes, traces, named detection results and scope
    limits. A separate reviewed execution plan must set budgets, feedback and

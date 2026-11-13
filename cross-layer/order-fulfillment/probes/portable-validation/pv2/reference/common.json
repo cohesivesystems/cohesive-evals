@@ -1,0 +1,6 @@
+{
+  "src/Fulfillment.Application/FulfillmentInput.cs": {
+    "before": "6bc2f4d8e0e89f95000ec6614e47bfc7dbecb65b0cba1c1adfb00879382842ef",
+    "after": "7b01de01c48a30ff2de43d73239b018c117ae1c666fe13075bb4a53642465b34"
+  }
+}
