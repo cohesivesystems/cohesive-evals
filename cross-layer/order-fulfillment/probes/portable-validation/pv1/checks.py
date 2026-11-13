@@ -52,16 +52,29 @@ def scenario():
 def decoding():
     # JSON text, not Python floats: keep exact fractional and exponent witnesses.
     template='{"requestId":"pv1-decode-%d","orderId":"pv1-missing","sku":"pv1-stock","quantity":%s}'
-    quantities=[('1',True),('1.0',True),('1e0',True),('2147483647',True),('-2147483648',True),
-        ('0',True),('-1',True),('true',False),('"1"',False),('1.5',False),('2147483648',False),
-        ('-2147483649',False),('1.00000000000000000000000000001',False),('1e999',False),('0e999',True)]
+    quantities=[('1',True),('1.0',False),('1e0',False),('2147483647',True),('-2147483648',True),
+        ('0',True),('-1',True),('true',False),('"1"',True),('1.5',False),('2147483648',False),
+        ('-2147483649',False),('1.00000000000000000000000000001',False),('1e999',False),('0e999',False),('null',False),('"1.0"',False),('"1e0"',False),('"2147483648"',False)]
     rows=[(template%(i,q),valid) for i,(q,valid) in enumerate(quantities)]
     normal=template%(99,'1')
-    rows += [(raw,False) for raw in ['null','[]','true','3','{}',normal.replace('"requestId"','"RequestId"'),
+    rows += [(raw,False) for raw in ['null','[]','true','3','{}',
         normal.replace('"pv1-decode-99"','null'),normal.replace('"pv1-decode-99"','"  "'),
-        normal.replace('"quantity":1','"quantity":1,"quantity":1'),normal.replace(',"quantity":1','')]]
+        normal.replace(',"quantity":1','')]]
     rows += [(normal.replace('"pv1-decode-99"','"pv1-😀"')[:-1]+',"extra":42}',True)]
     return rows
+
+def binding_examples():
+    # Independently authored typed intents: verify values through cross-entry replay,
+    # not just acceptance or identical domain outcomes for a missing order.
+    canonical=request('binding')
+    return [
+        (json.dumps({k.upper():v for k,v in canonical.items()}),canonical),
+        (json.dumps({**canonical,'quantity':'1'}),canonical),
+        ('{"requestId":"ignored","REQUESTID":"pv1-binding","orderId":"pv1-missing",'
+         '"sku":"pv1-stock","quantity":2,"quantity":1}',canonical),
+        (json.dumps({**canonical,'extra':{'ignored':True}}),canonical),
+    ]
+
 
 def canonical(facts):
     return {k:sorted(v,key=lambda x:json.dumps(x,sort_keys=True)) for k,v in facts.items()}

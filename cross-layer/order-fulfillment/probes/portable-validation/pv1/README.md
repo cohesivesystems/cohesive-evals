@@ -4,7 +4,7 @@ Implementation of [#37](https://github.com/cohesivesystems/cohesive-evals/issues
 under the [portable-validation protocol](../protocol.md). Maintainer-only;
 do not include this directory, its history or successors in participant workspaces.
 
-Both references compose G3 with the same input decoder, file adapter and queue
+Both references compose G3 with standard DTO deserialization, a file adapter and queue
 refactor. HTTP and batch share admission identities, capacity, results and a
 single worker. Conventional still calls its domain services; Cohesive still calls
 its compiled process. No domain implementation is copied into the adapter.
@@ -16,7 +16,7 @@ partially successful, with one atomic output file. A read-only observer checks
 all physical business rows, including unrelated sentinels.
 
 See [BATCH.md](BATCH.md) for public behavior and [sdk-audit.md](sdk-audit.md) for
-pinned capabilities and limitations. Input validation is handwritten and shared
+pinned capabilities and limitations. Only application input validation is handwritten and shared
 in both conditions; this is not evidence of a model-driven portability advantage.
 PV2 and any SDK upgrades remain separate.
 
@@ -33,7 +33,8 @@ python3 -B -m unittest discover -s cross-layer/order-fulfillment/probes/portable
 ```
 
 Known-good qualification runs the PV1 suite; the separate cumulative command
-checks all G0–G3 obligations. Each condition has seven buildable defects: stop
+checks all G0–G3 obligations. Each condition has nine buildable defects: mismatched batch serializer options,
+missing required-constructor checks, stop
 on invalid input, oversized-envelope execution, lost cross-entry replay, changed
 quantity, rejection of valid domain input, bypassed quarantine and skipped
 compensation. Detection requires the exact named behavioral assertion;
@@ -43,7 +44,7 @@ build/setup failures, timeouts, 5xx and unrelated failures earn no credit.
 
 [evidence.json](evidence.json) retains source/report hashes and compact results;
 the adjacent build manifests bind application inputs to outputs. Each condition
-runs 17 business items through each transport, 26 decoding items per transport,
+runs 17 business items through each transport, 32 decoding items per transport,
 five envelope cases, six operational-failure cases and five public smoke checks.
 The capacity check fills all 1,000 host-local identities and retains batch replay.
 The separate cumulative run retains 52 G0 HTTP checks, 180 invariant commands,
@@ -52,7 +53,7 @@ These counts describe checks, not independent experimental samples.
 
 ## Review and scope
 
-Conventional idiomaticity review: input decoding lives at the transport boundary;
+Conventional idiomaticity review: standard DTO deserialization handles transport decoding;
 input-only predicates are shared; domain services remain authoritative; DI owns
 one queue; `BackgroundService` owns work; task completion replaces adapter polling.
 No library ban or forced duplication is imposed. Independent PR review is still

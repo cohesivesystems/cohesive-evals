@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Http.Json;
 using System.Text.Json.Serialization;
 
 namespace Fulfillment.Application;
@@ -8,7 +10,7 @@ public sealed record BatchItem(int Index, OperationReply Admission,
 
 // A one-shot file adapter, using the same queue instance as the HTTP endpoints.
 public sealed class BatchInput(IConfiguration configuration, OperationQueue queue,
-    IHostApplicationLifetime lifetime) : BackgroundService
+    IHostApplicationLifetime lifetime, IOptions<JsonOptions> jsonOptions) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -43,7 +45,9 @@ public sealed class BatchInput(IConfiguration configuration, OperationQueue queu
                     var items = new List<BatchItem>();
                     foreach (var item in document.RootElement.EnumerateArray())
                     {
-                        var request = FulfillmentInput.Parse(item);
+                        FulfillmentRequest? request;
+                        try { request = item.Deserialize<FulfillmentRequest>(jsonOptions.Value.SerializerOptions); }
+                        catch (JsonException) { request = null; }
                         var admission = request is null ? new OperationReply(400) : queue.Submit(request);
                         var completion = admission.Body is Admission receipt
                             ? await queue.WaitForCompletion(receipt.OperationId, stoppingToken) : null;

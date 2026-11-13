@@ -14,6 +14,7 @@ from harness import detected, CONDITIONS
 def qualify(output):
     output.mkdir(parents=True,exist_ok=False)
     refs=build.materialize(output/'references');records=[]
+    expected_count=sum(1+len(mutations.mutations(condition)) for condition in CONDITIONS)
     for condition in CONDITIONS:
         folder=refs/condition
         for name,mutation in {'known-good':None,**mutations.mutations(condition)}.items():
@@ -41,7 +42,7 @@ def qualify(output):
                     passed=result.returncode==0 and report.exists() and json.loads(report.read_text()).get('passed') is True
                 records.append({'condition':condition,'case':name,'passed':passed,'failure':failure,
                     'buildManifestSha256':fingerprint})
-                (output/'report.json').write_text(json.dumps({'passed':all(x['passed'] for x in records),'complete':len(records)==16,'cases':records},indent=2)+'\n')
+                (output/'report.json').write_text(json.dumps({'passed':all(x['passed'] for x in records),'complete':len(records)==expected_count,'cases':records},indent=2)+'\n')
                 if not passed:raise RuntimeError(('qualification failed',condition,name,failure))
                 print(condition,name,'qualified',flush=True)
             finally:

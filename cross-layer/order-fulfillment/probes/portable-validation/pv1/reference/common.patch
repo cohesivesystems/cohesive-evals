@@ -8,15 +8,6 @@
  HostSetup.Configure(builder.Services);
  var app = builder.Build();
  await app.Services.GetRequiredService<IFulfillmentBackend>().Initialize();
-@@ -47,7 +48,7 @@
-     await backend.GetDetails(id) is { } details
-         ? ReadResults.Reply(details.Reservations.Select(r => new AvailabilityView(r.Id, r.Sku, r.Quantity, r.AvailableStock)).ToArray(), details.Reservations.Count)
-         : Results.NotFound());
--app.MapPost("/fulfillment", (FulfillmentRequest request, OperationQueue queue) => queue.Admit(request));
-+app.MapPost("/fulfillment", FulfillmentInput.AdmitHttp);
- app.MapGet("/fulfillment/results/{operationId}", (string operationId, OperationQueue queue) => queue.Result(operationId));
- app.Services.GetRequiredService<IFulfillmentBackend>().MapSubmit(app);
- app.Services.GetRequiredService<IFulfillmentBackend>().MapInventoryLimits(app);
 --- a/src/Fulfillment.Application/OperationQueue.cs
 +++ b/src/Fulfillment.Application/OperationQueue.cs
 @@ -4,6 +4,11 @@

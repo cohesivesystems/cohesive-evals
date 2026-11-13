@@ -1,6 +1,6 @@
 # Portable validation across entry points
 
-Specification candidate for [#26](https://github.com/cohesivesystems/cohesive-evals/issues/26).
+Protocol for [#26](https://github.com/cohesivesystems/cohesive-evals/issues/26).
 No implementation, qualified result or Cohesive advantage is asserted here.
 This is a separate probe on G3; it does not add E4, change H/L, or expand the
 [pilot matrix](../../evolution/test-matrix.md).
@@ -62,9 +62,24 @@ facts, not timing or generated identifiers across hosts.
 
 | Layer | Required behavior |
 |---|---|
-| Transport | Decode JSON and required fields/types. Wrong root/item shape, missing/null fields, blank identifiers, fractional/overflow quantities and wrong JSON types fail before admission. Required names are exactly `requestId`, `orderId`, `sku`, `quantity`; extra properties are ignored. Identifiers are JSON strings. Quantity is a JSON number with an exact signed 32-bit integer value: `1`, `1.0` and `1e0` are equivalent; numeric strings and booleans are rejected. Duplicate property names are invalid. Apply these rules to HTTP and batch alike, aligning both with the published G3 schemas. |
-| Input-only | PV1 retains G3 rules. PV2 adds `requestId.Length <= 64` in UTF-16 code units. Case and exact text remain significant; do not trim, normalize or truncate. HTTP returns 400 and batch item admission returns 400/null. Validate before identity lookup or capacity checks. Invalid input consumes no identity and has no business effects. |
+| Transport | The matched references use ASP.NET Core DTO binding for HTTP and `JsonSerializer.Deserialize<FulfillmentRequest>` with the same configured HTTP JSON options for each batch item. Keep .NET web defaults and `RespectRequiredConstructorParameters = true`. Malformed JSON, incompatible types, missing constructor fields and out-of-range quantities fail before admission. No custom token parser is needed. |
+| Input-only | Reject null/blank identifiers after deserialization. PV1 retains G3 application rules. PV2 adds `requestId.Length <= 64` in UTF-16 code units. Case and exact text remain significant; do not trim, normalize or truncate. HTTP returns 400 and batch item admission returns 400/null. Validate before identity lookup or capacity checks. Invalid input consumes no identity and has no business effects. |
 | State-dependent | Both paths execute the same G3 domain contract: order/reservation lookup, missing inventory, nonpositive quantity, quarantine, quantity limit, stock and lifecycle precedence. Nonpositive quantity remains admissible input with domain outcome `InvalidQuantity`. |
+
+Equivalent idiomatic deserialization is allowed; grading checks behavior rather
+than requiring these exact calls. The pinned serializer's accepted encodings are
+part of the probe contract:
+property matching is case-insensitive, unknown properties are ignored, and
+repeated properties whose values deserialize use the last value. Quantity uses
+the built-in `Int32` converter: `1` and the numeric string `"1"` are accepted;
+`1.0`, `1e0`, their quoted forms, booleans, null and overflow are rejected.
+Identifiers remain strings with case-sensitive values. Replay identity compares
+the deserialized intent, so equivalent encodings must retain the same receipt.
+Schemas describe the canonical typed form, not every accepted JSON spelling;
+JSON Schema cannot distinguish integer-valued tokens `1` and `1.0`. Independent
+wire examples/checks pin these differences rather than adding custom converters.
+This revises the earlier custom-decoder requirements; original G0–G3 snapshots
+are unchanged. Deserializer behavior is infrastructure, not portability credit.
 
 The new rule applies only to fulfillment request IDs, not order IDs, SKUs or
 read routes. Nonblank IDs of length 1 and 64 remain valid; 65 fails in PV2.

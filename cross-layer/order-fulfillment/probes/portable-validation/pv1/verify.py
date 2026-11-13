@@ -129,13 +129,18 @@ def verify(args):
                         checks.require(checks.canonical(w.facts())==checks.canonical(before),'PV1-04','settled facts','capacity writes')
                 finally:w.close()
             checks.require(record['batch']==record['http'],'PV1-01','transport parity',record)
-            rows=checks.decoding();raw='['+','.join(x[0] for x in rows)+']'
+            rows=checks.decoding();bindings=checks.binding_examples();binding_start=len(rows)
+            rows += [(raw,True) for raw,_ in bindings]
+            raw='['+','.join(x[0] for x in rows)+']'
             expected_decode=[{'status':202,'outcome':'OrderMissing'} if valid else {'status':400} for _,valid in rows]
             for mode in ('batch','http'):
                 w=world('decode-'+mode,raw if mode=='batch' else None,True)
                 try:
                     result=w.batch()['items'] if mode=='batch' else [w.http(raw,i) for i,(raw,_) in enumerate(rows)]
                     checks.check_items(result,expected_decode,'input decoding')
+                    for index,(_,intent) in enumerate(bindings,binding_start):
+                        replay=w.http(json.dumps(intent),index)
+                        checks.require(replay==result[index],'PV1-03','deserialized intent replay',(replay,result[index]))
                     checks.require(checks.canonical(w.facts())==checks.canonical(checks.fixture()),'PV1-04','input preservation',w.facts())
                     trace.append({'mode':'decode-'+mode,'items':result})
                 finally:w.close()

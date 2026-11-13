@@ -9,11 +9,16 @@ non-array or excess items produces `{"error":"InvalidBatch"}` without execution.
 Otherwise items execute in order, awaiting completion individually. Invalid
 items do not stop valid siblings. Successful items are not rolled back.
 
-Fulfillment fields are exactly `requestId`, `orderId`, `sku`, `quantity`.
-Identifiers must be nonblank strings. Quantity must be an exact signed 32-bit
-integer JSON number (`1.0` and `1e0` are accepted). Numeric strings, booleans and
-duplicate properties are invalid. Extra properties are ignored. These decoding
-rules also apply to POST /fulfillment. Nonpositive quantities reach the domain.
+HTTP uses standard ASP.NET Core DTO binding. Batch deserializes each item with
+those same configured JSON options, including required constructor fields.
+Canonical fields are `requestId`, `orderId`, `sku`, `quantity`. Property matching
+is case-insensitive; unknown fields are ignored. Repeated properties whose values
+deserialize use the last value. Identifiers must be nonblank strings; their values
+remain case-sensitive. Quantity uses the built-in signed 32-bit integer converter:
+`1` and `"1"` work; `1.0`, `1e0`, their quoted forms, booleans, null and overflow
+fail. Nonpositive quantities reach the domain. Equivalent deserialized intents
+replay the same request. Schemas describe canonical typed values; wire checks
+cover accepted encodings that JSON Schema cannot distinguish.
 
 The output is published atomically as `{"items":[...]}`. Each item contains
 `index`, `admission:{status,body}` and, when admitted,

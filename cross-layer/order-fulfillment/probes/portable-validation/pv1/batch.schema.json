@@ -30,7 +30,8 @@
           "minimum": -2147483648,
           "maximum": 2147483647
         }
-      }
+      },
+      "description": "Canonical typed request, not an exhaustive wire-acceptance schema. BATCH.md and independent wire checks define standard deserializer behavior (numeric strings, property aliases, duplicate fields, integer token spellings)."
     },
     "reply": {
       "type": "object",
