@@ -1,0 +1,182 @@
+{
+  "date": "2026-11-12",
+  "baselineCommit": "b334d3dcc71926d14e21eb46eeace73857d0ca8d",
+  "scope": "G1 sequential settled behavior; no live migration, concurrency, crash recovery or campaign admission",
+  "postgresImage": "postgres:17.10-alpine3.24",
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "verifierReportSha256": "5b8b2f37d46ff80d526b729e73cac7218fdc9cd569ee3e024e1b29f5451bd24e",
+  "qualificationReportSha256": "aa09e73c026d08546e1dc2d5d2f60aff5aeeea3a772f1fc3b746ae61ebbc42a3",
+  "sourceSha256": {
+    "build.py": "22fc6f9d64e5e8e61b24ffa7f4fae6972c133ac752dd63442aa229e146712383",
+    "checks.py": "65b3bd38fdd8c9b744397cb2cb8ac181d9ecfc697433d452f882b8a4f70a66e9",
+    "qualify.py": "ac036d4433458338e258bbbec66b07e6ccc1a552bee37b28c688bd29cb126b5a",
+    "reference/cohesive/FulfillmentBackend.cs": "73353ff4d0c69f55bbfa80b8a777629dfdd9d06149a17c801673c4603b4b9f85",
+    "reference/cohesive/FulfillmentDomain.cs": "5ba04cb518391646a0c69fb1de524469a2b216f6bb8031ddb6a10a69d5ead446",
+    "reference/cohesive/FulfillmentPostgresMappings.cs": "4ddc04a151e8687e935a7d058697994bc5d7a7cd1533cddfe1ae55ec2642d1d8",
+    "reference/common/Contracts.cs": "c32430dd0f34fa29e8423bf812b69c8d8a44d5ab5baf629d6f406ce1bb167e34",
+    "reference/common/Program.cs": "0ddfbb8f8563fd60ca47080086cf188c7aac2471fc647980d9deb6c52f07536d",
+    "reference/common/QuantityLimitInput.cs": "06b4ad1af3f2d80e639349afea16b522710b5e87b3df0e331019375ec72db3c3",
+    "reference/conventional/Domain.cs": "9b7ac57d9a370f9e761b20cf189d96af5fe47e76faffdad1aa01e432c9638005",
+    "reference/conventional/FulfillmentBackend.cs": "6eae60b681cee1aefe193b1517d2ac7d33fab62b515cf3480cc03541dde7bfd7",
+    "reference/conventional/OrderStore.cs": "277426f4360183c387707b663bf884b2b1a8be72dc8c62a0ef871b3912551f65",
+    "reference/conventional/Seeding.cs": "9461a48159721cbedae6a76f44f8efba9118d85a1ea7595446dbd7591c9b8ed9",
+    "test_harness.py": "5161543b406078b0c35f2458995d00492c2075203741a7730916162afdfb1ba7",
+    "verify.py": "4ea57ac99730e8080e1a5a1641689dd85d44a6a8ffea43714fffb7be34b3ad72",
+    "visible_checks.py": "af703129bf2f9d9182ba2076cd230181f3191cb89a9e4984fb690f8fff4eb7ce"
+  },
+  "conditions": {
+    "conventional": {
+      "passed": true,
+      "baselineHttpChecks": 52,
+      "baselineInvariantCommands": 180,
+      "visibleE1Checks": 5,
+      "e1Commands": 118,
+      "cleanRestartVerified": true,
+      "buildManifestSha256": "20fb9eddef2958e8d32dee6549dbe8377238075acccf24930708fa2274ff604a"
+    },
+    "cohesive": {
+      "passed": true,
+      "baselineHttpChecks": 52,
+      "baselineInvariantCommands": 180,
+      "visibleE1Checks": 5,
+      "e1Commands": 118,
+      "cleanRestartVerified": true,
+      "buildManifestSha256": "299e029a6c409b24db8d87d4e88115b6612e96b6164badac8de41f785f988137"
+    }
+  },
+  "qualification": {
+    "passed": true,
+    "cases": [
+      {
+        "condition": "conventional",
+        "case": "known-good",
+        "passed": true,
+        "obligation": null,
+        "assertion": null,
+        "buildManifestSha256": "7c07a747474a2e507cab2990215d9683be423ce159270da415ec3b2b263b3e43"
+      },
+      {
+        "condition": "conventional",
+        "case": "wrong-default",
+        "passed": true,
+        "obligation": "E1-01",
+        "assertion": "seed/default/read",
+        "buildManifestSha256": "fc0bf8373b2b7eb5261992655e36a300c1e31ae06ec62c1828294097033b9c65"
+      },
+      {
+        "condition": "conventional",
+        "case": "lost-replay",
+        "passed": true,
+        "obligation": "E1-03",
+        "assertion": "retained admission",
+        "buildManifestSha256": "44e0816b2a45baa3f2a5a6468bb28750653a6d94eeb6d672f05c1af8a9334abe"
+      },
+      {
+        "condition": "conventional",
+        "case": "missing-limit",
+        "passed": true,
+        "obligation": "E1-02",
+        "assertion": "limit enforcement",
+        "buildManifestSha256": "d325080780b25e1f5fcaea8c8f7bb5daf20da5feb9a93ccfa3a8d8d7482cf584"
+      },
+      {
+        "condition": "conventional",
+        "case": "off-by-one",
+        "passed": true,
+        "obligation": "E1-02",
+        "assertion": "inclusive boundary",
+        "buildManifestSha256": "a88b56c46d24cbcf11fb90a217dbde14b83f54ffeb111abec8d0da19c9fe99e2"
+      },
+      {
+        "condition": "conventional",
+        "case": "wrong-precedence",
+        "passed": true,
+        "obligation": "E1-02",
+        "assertion": "limit before shortage",
+        "buildManifestSha256": "533bf4a2e3e09059c5fd8f3e5416d922589517ef90210018c69568133eebef37"
+      },
+      {
+        "condition": "conventional",
+        "case": "configuration-changes-stock",
+        "passed": true,
+        "obligation": "E1-01",
+        "assertion": "integral input",
+        "buildManifestSha256": "0161543b03aeee73a45f31592a4d56cb9abceb16a4433b9888002f44ae30acd3"
+      },
+      {
+        "condition": "conventional",
+        "case": "skipped-compensation",
+        "passed": true,
+        "obligation": "E1-02",
+        "assertion": "lifecycle rejection preserves stock",
+        "buildManifestSha256": "e2812d617c3905a66a3ad347642c7e9f88fbc69eb700f5fa1d343649a9de17a9"
+      },
+      {
+        "condition": "cohesive",
+        "case": "known-good",
+        "passed": true,
+        "obligation": null,
+        "assertion": null,
+        "buildManifestSha256": "6e2cceae413ad845d104618aded18d88340490a5f31e0cfe327e3446397b5205"
+      },
+      {
+        "condition": "cohesive",
+        "case": "wrong-default",
+        "passed": true,
+        "obligation": "E1-01",
+        "assertion": "seed/default/read",
+        "buildManifestSha256": "103ca136ac9b036e31fc2d45ca481c331d2dcb5a8df01f53bc10c12553fdc8e9"
+      },
+      {
+        "condition": "cohesive",
+        "case": "lost-replay",
+        "passed": true,
+        "obligation": "E1-03",
+        "assertion": "retained admission",
+        "buildManifestSha256": "bb4812cbae6791411c7a236b2eb63dc52e82b2418e0cde83f626e050bcae2b02"
+      },
+      {
+        "condition": "cohesive",
+        "case": "missing-limit",
+        "passed": true,
+        "obligation": "E1-02",
+        "assertion": "limit enforcement",
+        "buildManifestSha256": "b53acd088fe23f1cabae7f4071b0610a1f3f2efd34db1ebb25fc9d6fd8f2a72b"
+      },
+      {
+        "condition": "cohesive",
+        "case": "off-by-one",
+        "passed": true,
+        "obligation": "E1-02",
+        "assertion": "inclusive boundary",
+        "buildManifestSha256": "ce4d2078cdde73116ff3414a3810b50ae351c0cba4305a17f5a122bba04cd30c"
+      },
+      {
+        "condition": "cohesive",
+        "case": "wrong-precedence",
+        "passed": true,
+        "obligation": "E1-02",
+        "assertion": "limit before shortage",
+        "buildManifestSha256": "35544a2d3267a740f32af50ea12bc3d70bd1d1282316c07117edaa42677392c7"
+      },
+      {
+        "condition": "cohesive",
+        "case": "configuration-changes-stock",
+        "passed": true,
+        "obligation": "E1-01",
+        "assertion": "integral input",
+        "buildManifestSha256": "cbfcc46206d6760b4b927f8fe5182e7d07eb88b46b712ff0ab00b1f70616ba1a"
+      },
+      {
+        "condition": "cohesive",
+        "case": "skipped-compensation",
+        "passed": true,
+        "obligation": "E1-02",
+        "assertion": "lifecycle rejection preserves stock",
+        "buildManifestSha256": "a440b035eb6ce9abea4f9fab5dfa4fb0a963fb8402ea027c17f2921f8e3968a0"
+      }
+    ]
+  },
+  "harnessTests": 2,
+  "contractTests": 7
+}

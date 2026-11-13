@@ -1,0 +1,28 @@
+{
+  "inputs": {
+    "Directory.Build.props": "367185d34eedc40df516835650552ad7c22e1cce937f93038a3ed675c582fe9c",
+    "NuGet.config": "026760bf198d064aab475ee175033c6db3c732abb90672a652e5b36fe4fdefc7",
+    "global.json": "30fdf1d1d5cfadd6447ab39d18cc5eec405cf1a5ec5b2e4b1d228a6fe757846d",
+    "src/Fulfillment.Application/Contracts.cs": "c32430dd0f34fa29e8423bf812b69c8d8a44d5ab5baf629d6f406ce1bb167e34",
+    "src/Fulfillment.Application/Domain.cs": "9b7ac57d9a370f9e761b20cf189d96af5fe47e76faffdad1aa01e432c9638005",
+    "src/Fulfillment.Application/Fulfillment.Application.csproj": "9049b5bea55fa39198ca5b9adf89fecbde1e649c6c598ae5938934f50a6518e3",
+    "src/Fulfillment.Application/FulfillmentBackend.cs": "6eae60b681cee1aefe193b1517d2ac7d33fab62b515cf3480cc03541dde7bfd7",
+    "src/Fulfillment.Application/OperationQueue.cs": "2900fd73d40df61bf4bd458c66b21fa72fef37dddb3227df18b8873bcc712d13",
+    "src/Fulfillment.Application/OrderStore.cs": "277426f4360183c387707b663bf884b2b1a8be72dc8c62a0ef871b3912551f65",
+    "src/Fulfillment.Application/Program.cs": "0ddfbb8f8563fd60ca47080086cf188c7aac2471fc647980d9deb6c52f07536d",
+    "src/Fulfillment.Application/QuantityLimitInput.cs": "06b4ad1af3f2d80e639349afea16b522710b5e87b3df0e331019375ec72db3c3",
+    "src/Fulfillment.Application/ReadResults.cs": "5034e6e89198e4406c01d85f2ce51afee1d1dcef153430ff4c76953b707fbeb7",
+    "src/Fulfillment.Application/Seeding.cs": "9461a48159721cbedae6a76f44f8efba9118d85a1ea7595446dbd7591c9b8ed9",
+    "src/Fulfillment.Application/packages.lock.json": "ef0b1094a4ffbf71f97742bf7e8ffc6a232e1a11aefd31161fb469345ed67d86"
+  },
+  "artifacts": {
+    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application": "d6eb0a445ef0ee5d67ae457f70cc4b2c2ef9c348b448958bdef9200f0a6289b0",
+    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.deps.json": "af715182ec29f544acde313334556161b764326d4bb7a559e29c765c5887d64b",
+    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.dll": "ab4bc26d3a17c9917766c3a65c017e75f055aaad9ec9db62b4deff7e30cc1000",
+    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.pdb": "3aab3af59f88f79c6602013bea5e2f02e57770f8146d86341b56c09539adf093",
+    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.runtimeconfig.json": "2854c873c21edc9fa7c2056f9d4744054aeb11f009d271702daa7794b74e895f",
+    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.staticwebassets.endpoints.json": "eb6525c892afda953a2560f151f9c5e5bc6e79ef6741d886488ac450262c91e3",
+    "src/Fulfillment.Application/bin/Debug/net10.0/Npgsql.dll": "e2bcafe1660fe4543fe9dfcabed972ec8d32259e5ea8009462ce1de23c7034c2"
+  },
+  "sdk": "10.0.402"
+}
