@@ -80,3 +80,9 @@ add G2 with cumulative G0/E1 checks and cancellation qualification. The
 [E3 quarantine references](evolution/e3/README.md) add G3 with cumulative checks
 and quarantine qualification. H/L references, acceptance-breadth review and
 campaign admission remain outstanding.
+
+## Follow-up probes
+
+The separate [portable-validation specification](probes/portable-validation/protocol.md)
+defines a non-HTTP batch entry point followed by a shared input-rule change.
+It is a protocol candidate, not an implemented extension of the pilot matrix.
