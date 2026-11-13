@@ -11,6 +11,9 @@ The first pilot compares idiomatic conventional C# with
 that the comparison can be fair, repeatable, and independently scored before
 we automate or broaden it.
 
+New to the terminology? See the [evaluation glossary](GLOSSARY.md) for short
+definitions and how this pilot uses them.
+
 ## Repository layout
 
 ```text
