@@ -2,11 +2,15 @@
 """Ordinary public smoke checks for batch-examples.json and batch-seed.json."""
 import argparse
 import json
-from pathlib import Path
 import urllib.request
 
-def exercise(url, output):
-    items=json.loads(output.read_text())['items']
+def exercise(url):
+    example=[{'requestId':'example','orderId':'draft','sku':'stock','quantity':2}, None,
+             {'requestId':'example','orderId':'draft','sku':'stock','quantity':2}]
+    request=urllib.request.Request(url+'/fulfillment/batch',data=json.dumps(example).encode(),headers={'Content-Type':'application/json'})
+    with urllib.request.urlopen(request) as response:
+        assert response.status==200
+        items=json.load(response)['items']
     assert len(items)==3
     assert [x['admission']['status'] for x in items]==[202,400,202]
     assert items[0]['admission']==items[2]['admission']
@@ -22,5 +26,4 @@ def exercise(url, output):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--url',required=True)
-    parser.add_argument('--output',type=Path,required=True)
-    args=parser.parse_args();print(exercise(args.url,args.output),'public checks passed')
+    args=parser.parse_args();print(exercise(args.url),'public checks passed')

@@ -1,1 +1,15 @@
-[{"requestId":"example","orderId":"draft","sku":"stock","quantity":2},null,{"requestId":"example","orderId":"draft","sku":"stock","quantity":2}]
+[
+  {
+    "requestId": "example",
+    "orderId": "draft",
+    "sku": "stock",
+    "quantity": 2
+  },
+  null,
+  {
+    "requestId": "example",
+    "orderId": "draft",
+    "sku": "stock",
+    "quantity": 2
+  }
+]

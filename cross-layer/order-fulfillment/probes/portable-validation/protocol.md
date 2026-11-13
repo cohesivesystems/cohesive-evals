@@ -1,15 +1,16 @@
-# Portable validation across entry points
+# Validation reuse across single and batch API operations
 
 Protocol for [#26](https://github.com/cohesivesystems/cohesive-evals/issues/26).
 No implementation, qualified result or Cohesive advantage is asserted here.
-This is a separate probe on G3; it does not add E4, change H/L, or expand the
+This tests validation reuse across API operations, not transport portability.
+A non-HTTP transport would be a separate probe. This is a separate probe on G3; it does not add E4, change H/L, or expand the
 [pilot matrix](../../evolution/test-matrix.md).
 
 ## Two changes
 
 | Stage | Parent | Task | Retained obligations |
 |---|---|---|---|
-| PV1 | Gold G3 | Add a non-HTTP batch entry point for fulfillment. | B + E1 + E2 + E3, plus PV1 below. |
+| PV1 | Gold G3 | Add `POST /fulfillment/batch` for multiple fulfillment intents. | B + E1 + E2 + E3, plus PV1 below. |
 | PV2 | Qualified PV1 | Limit new fulfillment request IDs to 64 UTF-16 code units, on both entry points. | All PV1 behavior except the explicitly narrowed input domain. |
 
 Use the same parents and public requirements in both conditions. PV2 is a new
@@ -19,39 +20,37 @@ its original result. Pre-task failures and new regressions are recorded separate
 
 ## Batch contract (PV1)
 
-Start the service with `--batch-cli true`. The CLI reads one UTF-8 JSON array
-per line from stdin and writes one JSON response per line to stdout. Each array
-contains at most 100 fulfillment items; an empty array is valid. Logs go to
-stderr. The ordinary HTTP interface remains available during the CLI session.
-EOF ends the session and stops the host normally. File redirection belongs to
-the shell; there are no application file options, atomic publication requirements
-or file-management tasks in this probe.
+`POST /fulfillment/batch` accepts an `application/json` array containing 0–100
+fulfillment items. The existing `POST /fulfillment` remains the single-item API.
+A thin endpoint deserializes each item with the same configured JSON options
+and calls a typed batch application service. Each item uses the same queue,
+request identities, capacity, host-provided caller identity and domain workflow
+as a single-item request. No CLI, file protocol or JSON-RPC layer is added.
 
-The thin adapter deserializes each item with the configured HTTP JSON options
-and calls a typed batch application service. It never loops back through HTTP.
-The application service accepts typed requests (including an invalid-item marker),
-checks the batch limit before execution, and processes items sequentially through
-the same admission registry and worker used by HTTP. It has no console, file or
-JSON parsing responsibilities. Both paths use the same host-provided identity.
+Malformed JSON, a non-array or more than 100 items returns HTTP 400 without
+admission or effects. Non-array/oversized envelopes return
+`{ "error": "InvalidBatch" }`; malformed JSON uses the framework's 400 response
+with unspecified body. Invalid items within a valid envelope receive per-item
+400 while valid siblings continue. Empty arrays succeed with an empty result.
 
-An invalid JSON line, a non-array or more than 100 elements returns
-`{ "error": "InvalidBatch" }` with no admissions or effects. A bad line does not
-end the session. An invalid item in a valid array gets a per-item 400; valid
-siblings still run. Wait for each admitted item to complete before starting the
-next. There is no batch transaction, rollback of successful siblings, batch
-identity or automatic retry. Tests alternate completed CLI batches and HTTP
-operations; concurrent independent intents and crash recovery remain out of scope.
-
-Each valid envelope returns `{ "items": [...] }`. Each item has its zero-based
-`index` and `admission: {status, body}` using HTTP status numbers and JSON bodies.
+Valid envelopes return HTTP 200 with `{ "items": [...] }`, including partial or
+all-item rejection. Items execute in array order; each admitted item settles
+before the next starts. Each result has a zero-based `index` and
+`admission: {status, body}` using the single-item API's status numbers/bodies.
 Admitted items additionally have `completion: {status, body}` matching the result
 endpoint. Admission failures omit `completion`; unspecified 400/503 bodies are
 `null`, while 409 retains `RequestIdentityConflict`. An execution failure records
 completion 500/`ExecutionFailed` and later items continue. Qualification treats an
-unexpected execution failure as a failure, not a domain rejection. Stream/host
-failures are operational failures, never successful empty batches or detections.
+unexpected execution failure as a failure, not a domain rejection.
 
-Transport-specific operation IDs and absolute URLs need not match between
+There is no batch transaction, rollback of successful siblings, batch identity
+or automatic retry. The batch service uses the host lifetime, so disconnecting
+a caller does not cancel accepted work. This adds no crash-recovery guarantee.
+Tests alternate settled single-item and batch requests; concurrent independent
+intents remain outside this probe. HTTP/host failures are operational failures,
+never successful empty batches or defect-detection credit.
+
+Generated operation IDs and absolute URLs need not match between
 isolated runs. Replay within one host must return the same admission and result.
 The verifier compares normalized admissions/completions and all settled business
 facts, not timing or generated identifiers across hosts.
@@ -85,10 +84,9 @@ A supplementary Unicode character counts as two UTF-16 code units. Test valid
 Unicode strings; unpaired-surrogate decoding is outside this rule's witness set.
 At capacity, a valid retained identity replays, a valid new identity returns 503,
 and a new overlength identity returns 400. Identity conflicts retain 409.
-Multiple CLI batches share the host registry. Test replay in both directions
-(HTTP→CLI and CLI→HTTP), and fill the registry through HTTP before testing CLI
-admission/replay at capacity. EOF is tested after settled work; shutdown with
-outstanding independent HTTP requests is outside this sequential probe.
+Single-item and batch calls share the host registry. Test replay in both
+directions and fill the registry through single-item calls before checking batch
+admission/replay at capacity.
 
 Rejected input must not invoke domain work. A well-formed domain rejection is
 admitted and retained, so replay after inventory/lifecycle changes remains stable.
@@ -103,8 +101,8 @@ boundaries. All ordinary scenarios retain unrelated order/inventory sentinels.
 | ID | Visible example | Maintainer extension | Defect and required witness |
 |---|---|---|---|
 | PV1-01 | One valid HTTP intent and the same batch intent in identical fresh worlds produce the same outcome/facts. | Every G3 completion outcome, including reservation match/conflict and competing rejection conditions. | Batch bypasses quarantine or lifecycle guard → exact outcome and physical-state assertion. |
-| PV1-02 | Batch has malformed item, success and stock rejection; valid siblings finish in order. | Empty/100/101 elements, malformed lines followed by valid lines, non-object items, shared-stock ordering, invalid first/middle/last items and clean EOF. | Whole-batch rollback, stop on item rejection or partial execution before envelope validation → ordered results/preservation assertion. |
-| PV1-03 | Duplicate item admits once; conflicting payload returns 409. | Replay in both directions, retries after changed stock/configuration, rejection replay, HTTP and CLI capacity, and distinct request IDs for the same order. | Separate registries or replay bypass → admission identity/effect-count assertion. |
+| PV1-02 | Batch has malformed item, success and stock rejection; valid siblings finish in order. | Empty/100/101 elements, malformed requests followed by valid requests, non-object items, shared-stock ordering, invalid first/middle/last items. | Whole-batch rollback, stop on item rejection or partial execution before envelope validation → ordered results/preservation assertion. |
+| PV1-03 | Duplicate item admits once; conflicting payload returns 409. | Replay in both directions, retries after changed stock/configuration, rejection replay, single-item and batch capacity, and distinct request IDs for the same order. | Separate registries or replay bypass → admission identity/effect-count assertion. |
 | PV1-04 | Invalid input leaves stock and reservations unchanged. | Observe all physical rows, sentinels and retained outcomes after each settled scenario; run cumulative G0–G3 checks. | Validation after effects, extra reservation or unrelated update → preservation/retention assertion. |
 | PV2-01 | IDs of length 64 pass, 65 fail on HTTP and batch. | Length 1, empty/blank, 63/64/65, supplementary Unicode boundaries, case differences and long order/SKU IDs unaffected. | HTTP-only or batch-only stale validator, off-by-one or scalar-count length → entry-point boundary assertion. |
 | PV2-02 | Mixed valid/overlength batch preserves valid siblings; rejected ID consumes no capacity. | Invalid input combined with missing entity, quarantine, shortage and full admission registry; valid zero/negative quantity still reaches domain rejection. | Rule implemented as domain guard, truncated identity or capacity checked first → admission classification/no-effects assertion. |
@@ -127,7 +125,7 @@ or give Cohesive extra repair feedback. Both receive the same public cases, task
 budget and dependency policy; any extra library must be pinned before execution.
 
 The existing handwritten HTTP filter does not establish model-driven portability.
-Before implementing, audit the pinned SDK for transport-independent input
+Before implementing, audit the pinned SDK for reusable input
 validation and record which checks are generated, shared manually or unsupported.
 If portability needs an SDK change, scope and qualify that upgrade separately;
 do not silently switch packages in one condition. Keep runtime behavioral parity

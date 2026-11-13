@@ -1,43 +1,21 @@
 --- a/src/Fulfillment.Application/Program.cs
 +++ b/src/Fulfillment.Application/Program.cs
-@@ -3,6 +3,8 @@
- using System.Text.Json.Serialization;
- 
- var builder = WebApplication.CreateBuilder(args);
-+var batchCli = builder.Configuration.GetValue<bool>("batch-cli");
-+if (batchCli) builder.Logging.AddConsole(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
- var connection = builder.Configuration.GetConnectionString("Orders")
-     ?? throw new InvalidOperationException("Set ConnectionStrings__Orders to a dedicated PostgreSQL database.");
- builder.Services.ConfigureHttpJsonOptions(options =>
-@@ -14,6 +16,8 @@
+@@ -14,6 +14,7 @@
  builder.Services.AddSingleton<IFulfillmentBackend, FulfillmentBackend>();
  builder.Services.AddSingleton<OperationQueue>();
  builder.Services.AddHostedService(provider => provider.GetRequiredService<OperationQueue>());
 +builder.Services.AddSingleton<BatchService>();
-+builder.Services.AddSingleton<BatchCli>();
  HostSetup.Configure(builder.Services);
  var app = builder.Build();
  await app.Services.GetRequiredService<IFulfillmentBackend>().Initialize();
-@@ -53,4 +57,18 @@
+@@ -48,6 +49,7 @@
+         ? ReadResults.Reply(details.Reservations.Select(r => new AvailabilityView(r.Id, r.Sku, r.Quantity, r.AvailableStock)).ToArray(), details.Reservations.Count)
+         : Results.NotFound());
+ app.MapPost("/fulfillment", (FulfillmentRequest request, OperationQueue queue) => queue.Admit(request));
++app.MapPost("/fulfillment/batch", BatchEndpoint.Execute);
+ app.MapGet("/fulfillment/results/{operationId}", (string operationId, OperationQueue queue) => queue.Result(operationId));
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapSubmit(app);
  app.Services.GetRequiredService<IFulfillmentBackend>().MapInventoryLimits(app);
- app.Services.GetRequiredService<IFulfillmentBackend>().MapCancel(app);
- app.Services.GetRequiredService<IFulfillmentBackend>().MapQuarantine(app);
--await app.RunAsync();
-+if (batchCli)
-+{
-+    await app.StartAsync();
-+    try
-+    {
-+        await app.Services.GetRequiredService<BatchCli>().RunAsync(Console.In, Console.Out, app.Lifetime.ApplicationStopping);
-+    }
-+    catch (OperationCanceledException) when (app.Lifetime.ApplicationStopping.IsCancellationRequested) { }
-+    finally
-+    {
-+        await app.StopAsync();
-+        await app.DisposeAsync();
-+    }
-+}
-+else await app.RunAsync();
 --- a/src/Fulfillment.Application/OperationQueue.cs
 +++ b/src/Fulfillment.Application/OperationQueue.cs
 @@ -4,6 +4,11 @@

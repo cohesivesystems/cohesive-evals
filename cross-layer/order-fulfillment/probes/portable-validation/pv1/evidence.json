@@ -2,13 +2,13 @@
   "date": "2026-11-13",
   "parentCommit": "9b7791fbd1025a640d8945b5999f502a52a7c407",
   "g3Commit": "43a0edd773709304dd8aae7591491bb6785da948",
-  "reviewBaseCommit": "51e59ce98f0628988bae1a719fafee9e0fb9afc9",
-  "scope": "Sequential JSON-lines CLI and HTTP parity on G3 with a typed batch service; includes bidirectional replay, CLI capacity and EOF; no PV2, scored campaign or durable recovery",
-  "protocolSha256": "721e299155df7e16905c3374d635f22e122d2dfc523f7b698c9e54b1cf28561c",
+  "reviewBaseCommit": "f974aedd7631454c69aff586018a3943558de256",
+  "scope": "Validation reuse across single-item and batch HTTP APIs on G3; includes per-item outcomes, bidirectional replay and capacity; no cross-transport claim, PV2, scored campaign or durable recovery",
+  "protocolSha256": "65b4f77ecfd2ac60637737c90eca4a17ceae0f0c08432f27c2ffe24302ae26e2",
   "postgresImage": "postgres:17.10-alpine3.24",
   "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
-  "qualificationReportSha256": "a86aaf8b9469fe1e2cc33c9533f5975de6d4b2c31128e77e58cb8b6ddb60a48c",
-  "cumulativeReportSha256": "965318c2f021f3c49bc8816165cc4462d33acaf5271a1aed942e87c56f673fe2",
+  "qualificationReportSha256": "2b196cf21d28cbad21647665430b464949a88b369767199a5430c646a5d731a3",
+  "cumulativeReportSha256": "8dee1250efb5108bce64b656b0cfe99f1b31c625f51abefd91c085bc9a142d9c",
   "harnessTests": {
     "pv1": 3,
     "evolution": 6
@@ -17,14 +17,14 @@
     "conventional": {
       "passed": true,
       "businessItems": 17,
-      "decodingItemsPerTransport": 32,
       "envelopes": 5,
-      "cliLineRecoveryCases": 5,
+      "requestRecoveryCases": 5,
       "visibleChecks": 5,
-      "buildManifestSha256": "39958605ca0d8afc03c62d6fbbbb6397be825981cc1a2cd15be8d48279cef3b7",
-      "verifierReportSha256": "c7a6453f18e77215cabe2f4bca701a0fe23ff8502682daab28d11e54ba53c4c1",
+      "buildManifestSha256": "bca15f642f39a1b7e15d3aac510aad1c2c4f1d1e629a8cdf778ce04d3070878f",
+      "decodingItemsPerOperation": 32,
+      "verifierReportSha256": "d78c992e12e7b89ebbed214d1ce4ef63991d629e7482aa9179b116a25196424c",
       "cumulative": {
-        "buildManifestSha256": "6ceb4b143bd9c5f03fbc7bd2723a172c0f3bc957f29d31c7de618f0553cf58da",
+        "buildManifestSha256": "62855911ba61f063dd6d22a0e8fddbbcb2daeb636325ff87e5d20c5cb53cb7d6",
         "baselineHttpChecks": 52,
         "baselineInvariantCommands": 180,
         "modelCommands": {
@@ -43,14 +43,14 @@
     "cohesive": {
       "passed": true,
       "businessItems": 17,
-      "decodingItemsPerTransport": 32,
       "envelopes": 5,
-      "cliLineRecoveryCases": 5,
+      "requestRecoveryCases": 5,
       "visibleChecks": 5,
-      "buildManifestSha256": "fd1ff8f7a9665031393c73d4a02ab056fa807f531fa2c2f7c896d0e55b9229a4",
-      "verifierReportSha256": "ae1d2730945540bbfe7d50fdf9a4704e011091cd2f0e2c27e2f24c8d8f38392a",
+      "buildManifestSha256": "e5e61dab405a9694de2b5f00f845dbd52a3898760eee173df1b3f4f0d7310eb6",
+      "decodingItemsPerOperation": 32,
+      "verifierReportSha256": "c42897297f0854cb403d908c9bb77f2ff85fd6fa063d82249c24168c7e0a4c53",
       "cumulative": {
-        "buildManifestSha256": "732f1713f21666df8b723c872db13902d0b0233b1534fbdd48e2b6e3ebc88aa0",
+        "buildManifestSha256": "a80fa392ec052867382e43a646098483c2e2c19653105dba7538963008288f0f",
         "baselineHttpChecks": 52,
         "baselineInvariantCommands": 180,
         "modelCommands": {
@@ -76,7 +76,7 @@
         "condition": "conventional",
         "case": "known-good",
         "passed": true,
-        "buildManifestSha256": "39958605ca0d8afc03c62d6fbbbb6397be825981cc1a2cd15be8d48279cef3b7",
+        "buildManifestSha256": "bca15f642f39a1b7e15d3aac510aad1c2c4f1d1e629a8cdf778ce04d3070878f",
         "obligation": null,
         "assertion": null
       },
@@ -84,7 +84,7 @@
         "condition": "conventional",
         "case": "batch-options-drift",
         "passed": true,
-        "buildManifestSha256": "ed6118dd6cb819835d4fe57a350ed686581d51c2bd3b0bd5a25acb012217d716",
+        "buildManifestSha256": "9b502e302538ab4859ba5216a59bc3915a836728cc569c13a25a369b3037cf38",
         "obligation": "PV1-01",
         "assertion": "input decoding"
       },
@@ -92,7 +92,7 @@
         "condition": "conventional",
         "case": "missing-required-input",
         "passed": true,
-        "buildManifestSha256": "6d5c0781c02cfc04f2dd0526dc02d7c500a563624c0f4f47012e37f324d45907",
+        "buildManifestSha256": "59bee61aa7d5f5de7e080d4114cde7edeb7b0447e8f014eee3e952c94a28a2fa",
         "obligation": "PV1-01",
         "assertion": "input decoding"
       },
@@ -100,7 +100,7 @@
         "condition": "conventional",
         "case": "stop-after-invalid",
         "passed": true,
-        "buildManifestSha256": "41e41585d40ea280ec9ceae7e7328ee58bc64570d158554909a00a141e89a854",
+        "buildManifestSha256": "accbaefcd42384dd1ec29cfcc9fff398d0306f0e3769378373845fbee9643aae",
         "obligation": "PV1-02",
         "assertion": "ordered results"
       },
@@ -108,7 +108,7 @@
         "condition": "conventional",
         "case": "oversized-executes",
         "passed": true,
-        "buildManifestSha256": "ab74b9a4bbff10c37ff4c26515c5fd1f498cc098862131709d3b9d527bb2f073",
+        "buildManifestSha256": "cbfca230253dc662b394a0a456d254f3c8cda1e2290bd7b5c0272889f3c6a19a",
         "obligation": "PV1-02",
         "assertion": "envelope"
       },
@@ -116,7 +116,7 @@
         "condition": "conventional",
         "case": "cross-entry-replay-lost",
         "passed": true,
-        "buildManifestSha256": "5650223ca80eb0b523ca467ce07bd8bf7e0ef9d4ad4a738c2db513724fe9490a",
+        "buildManifestSha256": "61a661d48b9f178691ac59388acd0b6e3ae400bf8725c923b9689a73dae7a582",
         "obligation": "PV1-03",
         "assertion": "cross-entry replay"
       },
@@ -124,7 +124,7 @@
         "condition": "conventional",
         "case": "batch-changes-quantity",
         "passed": true,
-        "buildManifestSha256": "4cf3ad3ad6c2135fc790944869c66b47fb1aa75395c0f82cc5c813a9b488541e",
+        "buildManifestSha256": "71db527dfce684c705b88955f893da9e7477834a641026b97a77029f8559a988",
         "obligation": "PV1-01",
         "assertion": "outcomes"
       },
@@ -132,7 +132,7 @@
         "condition": "conventional",
         "case": "reject-domain-input",
         "passed": true,
-        "buildManifestSha256": "09e1868ab5db7107df9a672f9d7c236eaced2d50f5c5049c6f1d8d568390f5d5",
+        "buildManifestSha256": "014e44526f6c6e50ec95d450bc18424208f4df5fb89ad1c105f061e1cccbdf86",
         "obligation": "PV1-01",
         "assertion": "outcomes"
       },
@@ -140,7 +140,7 @@
         "condition": "conventional",
         "case": "bypass-quarantine",
         "passed": true,
-        "buildManifestSha256": "48230f926c893e833d3bbe0f6a7988fdac5db09428f68235eddfdfcc8ab77636",
+        "buildManifestSha256": "56f4324b17ba080f4a23dd674450bff75cc523638f8e11c62ee4c8df58044cd9",
         "obligation": "PV1-01",
         "assertion": "outcomes"
       },
@@ -148,7 +148,7 @@
         "condition": "conventional",
         "case": "skip-compensation",
         "passed": true,
-        "buildManifestSha256": "69e4398ad619137a9253b77ae331ec24a77275f97b2081b4558b4b228cfda31c",
+        "buildManifestSha256": "c44123f74c3f7c8795abffc7e8d68c6cbd2f2981e4cfe7240d8f710035739467",
         "obligation": "PV1-04",
         "assertion": "settled facts"
       },
@@ -156,7 +156,7 @@
         "condition": "cohesive",
         "case": "known-good",
         "passed": true,
-        "buildManifestSha256": "fd1ff8f7a9665031393c73d4a02ab056fa807f531fa2c2f7c896d0e55b9229a4",
+        "buildManifestSha256": "e5e61dab405a9694de2b5f00f845dbd52a3898760eee173df1b3f4f0d7310eb6",
         "obligation": null,
         "assertion": null
       },
@@ -164,7 +164,7 @@
         "condition": "cohesive",
         "case": "batch-options-drift",
         "passed": true,
-        "buildManifestSha256": "92a20744c245004978b14ceec85b01f67339cfcdbbaf6628dd3d5549c75bad2c",
+        "buildManifestSha256": "e7383aae2d2a94ef724b4c5e289ff71ce46e39e3ab694f2b02fcd8740ea352c6",
         "obligation": "PV1-01",
         "assertion": "input decoding"
       },
@@ -172,7 +172,7 @@
         "condition": "cohesive",
         "case": "missing-required-input",
         "passed": true,
-        "buildManifestSha256": "a73f8f3b391dd4e49556839c26fa1f6fc919ccac55527b1da531210c5e801095",
+        "buildManifestSha256": "80015844a17fe40b60966fd41a0ffdc0dce23b4ce4838280140a17cb02acfa4f",
         "obligation": "PV1-01",
         "assertion": "input decoding"
       },
@@ -180,7 +180,7 @@
         "condition": "cohesive",
         "case": "stop-after-invalid",
         "passed": true,
-        "buildManifestSha256": "9baf86a8693608a6a600fe3012fea0480227d6f3cdaf89ad8786f130e150578f",
+        "buildManifestSha256": "62713218c206ae22b7bd8f31156147b28915a5114355fb7bbabb43c81705eae1",
         "obligation": "PV1-02",
         "assertion": "ordered results"
       },
@@ -188,7 +188,7 @@
         "condition": "cohesive",
         "case": "oversized-executes",
         "passed": true,
-        "buildManifestSha256": "08fec60ddca3815d442d215db649b1f49c43a20a934d1038cd4ee58bbcff294c",
+        "buildManifestSha256": "b300699d74e2dd7119b1c340b0935c5f83b77f5e1847136d40d312752f5b2245",
         "obligation": "PV1-02",
         "assertion": "envelope"
       },
@@ -196,7 +196,7 @@
         "condition": "cohesive",
         "case": "cross-entry-replay-lost",
         "passed": true,
-        "buildManifestSha256": "9ff65400116143e7d58e29e67681615b08a12a9c776a2761b1dddce92edb808c",
+        "buildManifestSha256": "7b2657fdd7861ae4fb73445d67eef7a4964d3dfe0ba50b29152fa27ffe4ce8b3",
         "obligation": "PV1-03",
         "assertion": "cross-entry replay"
       },
@@ -204,7 +204,7 @@
         "condition": "cohesive",
         "case": "batch-changes-quantity",
         "passed": true,
-        "buildManifestSha256": "abc5bc357e97536a3a19c4ead55672b05b2d4f5db90c7eb4c03908ab9b354881",
+        "buildManifestSha256": "ab2f8669d0661f94320d30dba5181e1cea37b5e164e83bb061d47b582a1516d5",
         "obligation": "PV1-01",
         "assertion": "outcomes"
       },
@@ -212,7 +212,7 @@
         "condition": "cohesive",
         "case": "reject-domain-input",
         "passed": true,
-        "buildManifestSha256": "dad758c40df26bf3cf7f4cd496cb6fad167af294c9052a466179d4b51cc0fafd",
+        "buildManifestSha256": "aeade243f7d51f426398d951364339ef8fdf1aca154fdeb18f8cd6f249f1833c",
         "obligation": "PV1-01",
         "assertion": "outcomes"
       },
@@ -220,7 +220,7 @@
         "condition": "cohesive",
         "case": "bypass-quarantine",
         "passed": true,
-        "buildManifestSha256": "14f8c69c852b198ed90a9904d720de576d8b9668b91807ed49758a5efccbb1eb",
+        "buildManifestSha256": "f1be244eed4cf8ea2a124d560b029c896794b4423980fd3663f26d8e6db5f68b",
         "obligation": "PV1-01",
         "assertion": "outcomes"
       },
@@ -228,32 +228,32 @@
         "condition": "cohesive",
         "case": "skip-compensation",
         "passed": true,
-        "buildManifestSha256": "e2450ecfb302514a58883969102d7e1f1f5a3c93d5fb8746b0892508637e38cb",
+        "buildManifestSha256": "29651ad68c340266d512c312385052cf4f75d5a7e9a0405be7f1ed5b3f27026a",
         "obligation": "PV1-04",
         "assertion": "settled facts"
       }
     ]
   },
   "sourceSha256": {
-    "BATCH.md": "a5b21dafa55671c56fc63c684fe0057932824eb2667ad7bef743a7131a1f2f51",
-    "README.md": "87f0a4433296b81798ad3f10d21f6b198de008662b166b9b93276be5b5eecc0d",
-    "batch-examples.json": "228f92c65d77bec0fe63053770c35564a5914604d3497b1db6d945ec7524fe63",
+    "BATCH.md": "a489be2dc7d08f7f27db271de57b04adcf27e1442c8f7ece01f3cc8c0a74d2f3",
+    "README.md": "e2611cbf10d72e152a25bf5a408348dfac56a54bc9e156bb57a8c4df65ac85d8",
+    "batch-examples.json": "17e9982cf747341e2878b8a093d06e37cfe98b9a571155ed5702f3c48466fa58",
     "batch-seed.json": "5de33193858e5a6e56819d7fbb215fce307a8af6c5fd95c304102ad506639b4a",
     "batch.schema.json": "dcb4ce5da3bd73c87b280220d12bd27264d1a71e6a445c8c9e89513378d83ff8",
     "build.py": "c1336fcf5ee0745f43c2c7b9caf83d56b6e994768ca90778cfbe59f481cb98f5",
     "checks.py": "8724ec35e6bbd9815f0a79c49314df22049e61e8e259468cf3d8c3deffb2b9ee",
-    "mutations.py": "7246912a8380bf8f586f0128029cb1f7985af928186d5e65790195cbd2cf671a",
+    "mutations.py": "c15532da7f977a0d52b556a6dbee81d943a14c707334ba9936d658c6608aa425",
     "qualify.py": "1be5c3cb39cf73f912e53ae1779f501c02ea919a92f9dd8c8dd929c1bed67c1c",
     "reference/.gitattributes": "c6e498a4062e317a2c97b82484cda8791e82be5d8c5779e8cf3d09f9a4b3c249",
-    "reference/common/BatchCli.cs": "b19effd361d8d18cd8cd37bec913eb77cdfc00caee76e44aac88b7a04f66d83a",
+    "reference/common/BatchEndpoint.cs": "e4bb2d7947d89292696677a24d987fb2f9be1b225d8ea6fc7c5cec323428ae04",
     "reference/common/BatchService.cs": "ab7092162b1e4463ed6c0a7a5419d36bc0f8fa185675c8b29bd1372974d26b21",
     "reference/common/FulfillmentInput.cs": "6bc2f4d8e0e89f95000ec6614e47bfc7dbecb65b0cba1c1adfb00879382842ef",
-    "reference/common.json": "7634005525d1ebea2a0869da34d4b81a11a897ae87cee361b9a3361dd5d7b315",
-    "reference/common.patch": "749acb7026766aee6c862f8b7f00a96d9133ba810668837f585765d4e8ae362e",
-    "sdk-audit.md": "c5098cacd4d5f75287f0f6ec557d92bcf6c616516aa59b9faeb4efd926c1b63c",
+    "reference/common.json": "29453053710db2dda4b55f7c81d638defb5514f849ebbf499e6014fa0f309e7d",
+    "reference/common.patch": "e2740a8ba4d2e62d2ea13bdcfa0ca72bd07388cf1931b32d78b731949599c66e",
+    "sdk-audit.md": "2def15714096da4770ace99b3897907b5cc17b24c392706cbc00a8ddf816ecfc",
     "test_harness.py": "795f382eb635293148cd87d664069b6732f08d30bfb82042c4a6772614913b8d",
-    "verify.py": "45c9bb3a03995f7e976b5d5a9e5e99dabd8ec399030e8c10e951b5c41c02f0c2",
-    "visible_checks.py": "8e5030db743d4064430b6ded2779689a3380500f14984d674fa6998f205f7d70"
+    "verify.py": "6333dad5bc3af18386192e6349075089e7361d03d2eda544a76e7531aa155d9c",
+    "visible_checks.py": "e62c9cc6c0d2ae47eb78deba0127aa32fc128a0af1a423d562c3b27b7f51bc43"
   },
   "sharedHarnessSha256": {
     "harness.py": "265b252c6c6d8fd4c382b481c9ed9d7110b8dd275f846f0c7ed8135fd56200db",
