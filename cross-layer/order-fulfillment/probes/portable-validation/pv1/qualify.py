@@ -11,13 +11,13 @@ import mutations
 sys.path.insert(0,str(build.CASE/'evolution'))
 from harness import detected, CONDITIONS
 
-def qualify(output):
+def qualify(output, *, builder=build, cases=mutations.mutations):
     output.mkdir(parents=True,exist_ok=False)
-    refs=build.materialize(output/'references');records=[]
-    expected_count=sum(1+len(mutations.mutations(condition)) for condition in CONDITIONS)
+    refs=builder.materialize(output/'references');records=[]
+    expected_count=sum(1+len(cases(condition)) for condition in CONDITIONS)
     for condition in CONDITIONS:
         folder=refs/condition
-        for name,mutation in {'known-good':None,**mutations.mutations(condition)}.items():
+        for name,mutation in {'known-good':None,**cases(condition)}.items():
             out=output/condition/name;out.mkdir(parents=True)
             path=None;original=None
             try:
@@ -26,12 +26,12 @@ def qualify(output):
                     path=folder/'src/Fulfillment.Application'/file;original=path.read_text()
                     if original.count(before)!=1:raise ValueError(('mutation anchor count',name,original.count(before)))
                     path.write_text(original.replace(before,after))
-                with (out/'build.log').open('w') as log:build.build_tools.build_candidate(folder,log)
+                with (out/'build.log').open('w') as log:builder.build_tools.build_candidate(folder,log)
                 manifest=folder/'build-manifest.json'
                 (out/'build-manifest.json').write_bytes(manifest.read_bytes())
-                fingerprint=build.build_tools.verify_build(folder)
+                fingerprint=builder.build_tools.verify_build(folder)
                 with (out/'verify.log').open('w') as log:
-                    result=subprocess.run([sys.executable,'-B',str(build.ROOT/'verify.py'),'--fixtures',str(refs),
+                    result=subprocess.run([sys.executable,'-B',str(builder.ROOT/'verify.py'),'--fixtures',str(refs),
                         '--condition',condition,'--output',str(out/'verification')],stdout=log,stderr=log,timeout=300)
                 failurepath=out/'verification/failure.json'
                 failure=json.loads(failurepath.read_text()) if failurepath.exists() else None

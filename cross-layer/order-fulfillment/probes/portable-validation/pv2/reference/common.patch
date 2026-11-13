@@ -1,0 +1,11 @@
+--- a/src/Fulfillment.Application/FulfillmentInput.cs
++++ b/src/Fulfillment.Application/FulfillmentInput.cs
+@@ -5,6 +5,7 @@
+ public static class FulfillmentInput
+ {
+     public static bool IsValid(FulfillmentRequest request) =>
+-        !string.IsNullOrWhiteSpace(request.RequestId) && !string.IsNullOrWhiteSpace(request.OrderId)
++        !string.IsNullOrWhiteSpace(request.RequestId) && request.RequestId.Length <= 64
++        && !string.IsNullOrWhiteSpace(request.OrderId)
+         && !string.IsNullOrWhiteSpace(request.Sku);
+ }

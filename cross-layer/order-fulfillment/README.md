@@ -86,5 +86,6 @@ campaign admission remain outstanding.
 The separate [single/batch API validation specification](probes/portable-validation/protocol.md)
 defines single-item/batch API validation reuse followed by a shared input-rule change.
 The [PV1 batch references](probes/portable-validation/pv1/README.md) implement its
-first step with independent qualification. This separate probe does not extend
-the existing pilot matrix; PV2 remains unimplemented.
+first step with independent qualification. The [PV2 request ID limit](probes/portable-validation/pv2/README.md)
+adds the shared 64-UTF-16-unit input rule and its qualification. These separate
+probes do not extend the existing pilot matrix.
