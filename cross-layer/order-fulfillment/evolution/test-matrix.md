@@ -2,7 +2,7 @@
 
 Status: candidate maintainer plan, 2026-11-11. This matrix translates the
 [protocol v0.1](../protocol.md) into implementation and qualification work for
-[COH-130](https://linear.app/cohesive-ari/issue/COH-130). It does not freeze new
+[issue #8](https://github.com/cohesivesystems/cohesive-evals/issues/8). It does not freeze new
 requirements, claim unimplemented checks pass, or authorize agent runs.
 
 Keep this directory, reference implementations, hidden fixtures, mutation recipes,

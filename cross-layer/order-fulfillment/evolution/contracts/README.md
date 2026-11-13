@@ -1,6 +1,7 @@
 # Shared contract supplements
 
-COH-161 resolves the matrix's contract gaps. These are candidate contracts for
+[Issue #9](https://github.com/cohesivesystems/cohesive-evals/issues/9) resolves
+the matrix's contract gaps. These are candidate contracts for
 future reference implementations, not a claim that those implementations exist.
 G0 application files remain unchanged.
 

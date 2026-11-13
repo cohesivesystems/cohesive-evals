@@ -496,7 +496,7 @@ and yields an explicitly incomplete campaign rather than adaptive early success.
 
 ## Freeze checklist and follow-through
 
-- [ ] COH-130: matched G0–G3 fixtures, ordinary visible tests, and independent
+- [ ] [Issue #8](https://github.com/cohesivesystems/cohesive-evals/issues/8): matched G0–G3 fixtures, ordinary visible tests, and independent
   conventional review; implemented PostgreSQL checks pass on a disposable fixture.
 - [ ] Exact common CONTRACT.md/JSON schemas, milestone supplements, request/replay
   encoding, and all prompt hashes are recorded without changing the semantics above.
@@ -510,15 +510,15 @@ and yields an explicitly incomplete campaign rather than adaptive early success.
 - [ ] The exact protocol, fixtures, manifest and oracle are content-addressed
   together as the evidence-run release.
 
-COH-129 defines this protocol; COH-130 implements and qualifies it. No evaluation
+This document defines the protocol; [issue #8](https://github.com/cohesivesystems/cohesive-evals/issues/8)
+tracks implementation and qualification. No evaluation
 run or runtime qualification is asserted by authoring this document.
 
 ## References
 
 - [Evaluation vision](https://app.notion.com/p/3b88cf7881f9812a9263d9949a808600)
-- [Case selection COH-128](https://linear.app/cohesive-ari/issue/COH-128)
-- [Protocol COH-129](https://linear.app/cohesive-ari/issue/COH-129)
-- [Fixture and oracle COH-130](https://linear.app/cohesive-ari/issue/COH-130)
+- [Initial case and protocol implementation, PR #4](https://github.com/cohesivesystems/cohesive-evals/pull/4)
+- [Fixture and oracle tracking, issue #8](https://github.com/cohesivesystems/cohesive-evals/issues/8)
 - [Implemented fulfillment model](https://github.com/cohesivesystems/cohesive/blob/b0af008d85871ad8866d7d4311707ecd926529de/eng/examples/aspire-first/Orders.Model/FulfillmentDomain.cs)
 - [Integration test source](https://github.com/cohesivesystems/cohesive/blob/b0af008d85871ad8866d7d4311707ecd926529de/src/Cohesive.Adapters.Aspire.Tests/FulfillmentProcessIntegrationTests.cs)
 - [HTTP outcome completeness implementation](https://github.com/cohesivesystems/cohesive/blob/b0af008d85871ad8866d7d4311707ecd926529de/src/adapters/Cohesive.Adapters.AspNet/Entities/TransitionRejectionResponses.cs)

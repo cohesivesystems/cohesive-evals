@@ -85,7 +85,8 @@ class ContractTests(unittest.TestCase):
             for outcome, enabled in [('QuantityLimitExceeded',depth>=1),('OrderCancelled',depth>=2),
                                      ('InventoryQuarantined',depth>=3),('OrderOnHold',probe=='H')]:
                 self.assertEqual(validator(wire, 'Completion').is_valid({'status':'Rejected','outcome':outcome}), enabled)
-            for forbidden in ['COH-', 'test-matrix', 'LSM-', 'hidden check', 'other condition']:
+            for forbidden in ['COH-', 'github.com/cohesivesystems/cohesive-evals/issues/',
+                              'test-matrix', 'LSM-', 'hidden check', 'other condition']:
                 self.assertNotIn(forbidden, all_text)
         for probe in ['H','L']:
             text = (ROOT/'supplements'/f'{probe}.md').read_text()
