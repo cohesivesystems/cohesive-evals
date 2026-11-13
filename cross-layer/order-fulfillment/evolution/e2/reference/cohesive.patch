@@ -1,0 +1,234 @@
+--- a/src/Fulfillment.Application/Contracts.cs
++++ b/src/Fulfillment.Application/Contracts.cs
+@@ -21,6 +21,7 @@
+     Task<OrderDetailsView?> GetDetails(string id);
+     Task<Completion> Fulfill(string operationId, FulfillmentRequest request);
+     void MapSubmit(WebApplication app);
++    void MapCancel(WebApplication app);
+     void MapInventoryLimits(WebApplication app);
+ }
+ 
+@@ -32,7 +33,7 @@
+     public void Validate()
+     {
+         if (Orders is null || Inventory is null || Reservations is null
+-            || Orders.Any(x => string.IsNullOrWhiteSpace(x.Id) || x.Status is not ("Draft" or "Submitted"))
++            || Orders.Any(x => string.IsNullOrWhiteSpace(x.Id) || x.Status is not ("Draft" or "Submitted" or "Cancelled"))
+             || Inventory.Any(x => string.IsNullOrWhiteSpace(x.Sku) || x.Available < 0 || x.MaxPerOrder <= 0)
+             || Reservations.Any(x => string.IsNullOrWhiteSpace(x.Id) || string.IsNullOrWhiteSpace(x.OrderId) || string.IsNullOrWhiteSpace(x.Sku) || x.Quantity <= 0))
+             throw new ArgumentException("Invalid seed data.");
+--- a/src/Fulfillment.Application/Program.cs
++++ b/src/Fulfillment.Application/Program.cs
+@@ -51,4 +51,5 @@
+ app.MapGet("/fulfillment/results/{operationId}", (string operationId, OperationQueue queue) => queue.Result(operationId));
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapSubmit(app);
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapInventoryLimits(app);
++app.Services.GetRequiredService<IFulfillmentBackend>().MapCancel(app);
+ await app.RunAsync();
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -95,25 +95,26 @@
+         return result is null ? null : new(result.Id, result.Status.ToString(), result.Reservations
+             .OrderBy(r => r.Id, StringComparer.Ordinal).Select(r => new ReservationView(r.Id, r.Sku, r.Quantity, r.AvailableStock)).ToArray());
+     }
++    public void MapCancel(WebApplication app)
++    {
++        app.MapGroup("").MapEntityApi<Order>(domain.Orders.Definition, orders, "local", bindings => bindings
++            .Transition("Cancel", "/orders/{id}/cancel", domain.OrderTransitions.Cancel)
++            .OnApplied((state, _) => TypedResults.Ok(new OrderSummary(state.Id, state.Status.ToString())))
++            .OnRejected(_ => TypedResults.Conflict(new ErrorResponse("OrderNotCancellable"))));
++    }
+     public void MapSubmit(WebApplication app)
+     {
+-        // Preserve the common wire code while the native binding owns exhaustive
+-        // outcome classification. This filter changes only the transport envelope.
+-        var routes = app.MapGroup("").AddEndpointFilter(async (context, next) =>
+-        {
+-            var result = await next(context);
+-            if (result is IValueHttpResult { Value: ProblemDetails problem } && problem.Status == 409
+-                && problem.Extensions.TryGetValue("code", out var raw) && raw is string code && code.StartsWith("orders.submit.", StringComparison.Ordinal))
+-                return Results.Conflict(new ErrorResponse(code["orders.submit.".Length..]));
+-            return result;
+-        });
+-        routes.MapEntityApi<Order>(domain.Orders.Definition, orders, "local", bindings => bindings
++        app.MapGroup("").MapEntityApi<Order>(domain.Orders.Definition, orders, "local", bindings => bindings
+             .Transition("Submit", "/orders/{id}/submit", domain.OrderTransitions.Submit)
+-            .OnApplied((state, outcome) => TypedResults.Ok(new OrderSummary(state.Id, state.Status.ToString())))
+-            .OnRejected(outcome => outcome.Outcome, "orders.submit", responses => responses
+-                .Conflict(SubmissionOutcome.NotDraft, "Order cannot be submitted", "Order must be Draft.")
+-                .NotRejected(SubmissionOutcome.Submitted)));
++            .OnApplied((state, _) => TypedResults.Ok(new OrderSummary(state.Id, state.Status.ToString())))
++            .OnRejected(result => TypedResults.Conflict(new ErrorResponse(result.Outcome switch
++            {
++                SubmissionOutcome.OrderCancelled => "OrderCancelled",
++                SubmissionOutcome.NotDraft => "OrderNotDraft",
++                _ => throw new InvalidOperationException("Unexpected submission rejection.")
++            }))));
+     }
++
+     public async Task<Completion> Fulfill(string operationId, FulfillmentRequest request)
+     {
+         var result = await hosted.Runtime.ExecuteProcessAsync(Context(), "fulfill", new(new(operationId), new("attempt/1")),
+--- a/src/Fulfillment.Application/FulfillmentDomain.cs
++++ b/src/Fulfillment.Application/FulfillmentDomain.cs
+@@ -19,7 +19,7 @@
+     /// <summary>Canonical partition field shared by the example entities.</summary>
+     public const string PartitionField = "partition";
+     /// <summary>Declares the shared entities and their canonical references.</summary>
+-    public FulfillmentDomain() : base(revision: "4")
++    public FulfillmentDomain() : base(revision: "6")
+     {
+         (Orders, Inventory, Reservations) = Discover(DomainDiscovery.For<FulfillmentDomain>(),
+             entities => (entities.Entity<Order>(), entities.Entity<InventoryItem>(), entities.Entity<Reservation>()));
+@@ -92,7 +92,9 @@
+     /// <summary>Order may be submitted.</summary>
+     [JsonStringEnumMemberName("Draft")] Draft,
+     /// <summary>Order has been submitted.</summary>
+-    [JsonStringEnumMemberName("Submitted")] Submitted
++    [JsonStringEnumMemberName("Submitted")] Submitted,
++    /// <summary>Terminal cancelled order.</summary>
++    [JsonStringEnumMemberName("Cancelled")] Cancelled
+ }
+ 
+ /// <summary>Closed submission outcomes, independent of transport messages and status codes.</summary>
+@@ -102,30 +104,45 @@
+     /// <summary>The order was submitted.</summary>
+     [JsonStringEnumMemberName("Submitted")] Submitted,
+     /// <summary>The current lifecycle does not permit submission.</summary>
+-    [JsonStringEnumMemberName("OrderNotDraft")] NotDraft
+-}
++    [JsonStringEnumMemberName("OrderNotDraft")] NotDraft,
++    /// <summary>Cancelled orders cannot be submitted.</summary>
++    [JsonStringEnumMemberName("OrderCancelled")] OrderCancelled
++}
++
++/// <summary>Closed cancellation outcomes.</summary>
++[JsonConverter(typeof(JsonStringEnumConverter<CancellationOutcome>))]
++public enum CancellationOutcome { Cancelled, NotCancellable }
+ 
+ /// <summary>Domain outcome of an order submission attempt.</summary>
+ /// <param name="Status">Order lifecycle state reported by the decision.</param>
+ /// <param name="Outcome">Stable closed outcome; presentation text belongs to the API projection.</param>
+-public sealed record SubmitOrderResult(OrderStatus Status, SubmissionOutcome Outcome);
++public sealed record SubmitOrderResult(OrderStatus Status, SubmissionOutcome Outcome, FulfillmentOutcome FulfillmentOutcome);
+ 
+ /// <summary>POCO-authored order lifecycle; preparation belongs to application binding.</summary>
+ public sealed class OrderTransitions
+ {
+     /// <summary>Only draft orders may be submitted; a rejected decision produces no commit.</summary>
+     public Transition<Order, Cohesive.Prelude.Unit, SubmitOrderResult> Submit { get; }
++    public Transition<Order, Cohesive.Prelude.Unit, CancellationOutcome> Cancel { get; }
+ 
+     /// <summary>Declares guarded order operations against the supplied entity.</summary>
+     /// <param name="orders">Canonical order entity authority.</param>
+     public OrderTransitions(DomainEntity<Order> orders)
+     {
++        Cancel = orders.Transition<CancellationOutcome>(
++            id: new("example/order/cancel"), revision: new("1"),
++            transition => transition
++                .Requires(order => order.Status == OrderStatus.Draft || order.Status == OrderStatus.Cancelled,
++                    _ => CancellationOutcome.NotCancellable)
++                .Set(order => order.Status, OrderStatus.Cancelled)
++                .Return(CancellationOutcome.Cancelled));
+         Submit = orders.Transition<SubmitOrderResult>(
+-            id: new("example/order/submit"), revision: new("4"),
++            id: new("example/order/submit"), revision: new("6"),
+             transition => transition
+-                .Requires(order => order.Status == OrderStatus.Draft, order => new SubmitOrderResult(order.Status, SubmissionOutcome.NotDraft))
++                .Requires(order => order.Status != OrderStatus.Cancelled, order => new SubmitOrderResult(order.Status, SubmissionOutcome.OrderCancelled, FulfillmentOutcome.OrderCancelled))
++                .Requires(order => order.Status == OrderStatus.Draft, order => new SubmitOrderResult(order.Status, SubmissionOutcome.NotDraft, FulfillmentOutcome.OrderRejected))
+                 .Set(order => order.Status, OrderStatus.Submitted)
+-                .Return(new SubmitOrderResult(OrderStatus.Submitted, SubmissionOutcome.Submitted))
++                .Return(new SubmitOrderResult(OrderStatus.Submitted, SubmissionOutcome.Submitted, FulfillmentOutcome.ReservedAndSubmitted))
+             );
+     }
+ }
+@@ -162,6 +179,7 @@
+     InsufficientStock,
+     /// <summary>Order submission rejected; reserved stock was released.</summary>
+     OrderRejected,
++    OrderCancelled,
+     /// <summary>An existing reservation conflicts with this fulfillment intent.</summary>
+     ReservationConflict
+ }
+@@ -188,7 +206,7 @@
+ }
+ /// <summary>Pure stock mutation result.</summary>
+ /// <param name="Outcome">Closed decision returned by the stock transition.</param>
+-public sealed record StockResult(StockOutcome Outcome);
++public sealed record StockResult(StockOutcome Outcome, FulfillmentOutcome FulfillmentOutcome);
+ /// <summary>Closed reservation creation outcome.</summary>
+ [JsonConverter(typeof(JsonStringEnumConverter<ReservationCreationOutcome>))]
+ public enum ReservationCreationOutcome
+@@ -235,28 +253,28 @@
+                 .Set(new("limit/update"), item => item.MaxPerOrder, (_, input) => input.MaxPerOrder)
+                 .Return(true));
+         Reserve = inventory.Transition<StockQuantity, StockResult>(
+-            id: new("fulfillment/reserve"), revision: new("3"), transition => transition
++            id: new("fulfillment/reserve"), revision: new("4"), transition => transition
+                 .Requires((item, input) => input.Quantity > 0,
+-                    (_, _) => new StockResult(StockOutcome.InvalidQuantity))
++                    (_, _) => new StockResult(StockOutcome.InvalidQuantity, FulfillmentOutcome.InvalidQuantity))
+                 .Requires((item, input) => input.Quantity <= item.MaxPerOrder,
+-                    (_, _) => new StockResult(StockOutcome.QuantityLimitExceeded))
++                    (_, _) => new StockResult(StockOutcome.QuantityLimitExceeded, FulfillmentOutcome.QuantityLimitExceeded))
+                 .Requires((item, input) => item.Available >= input.Quantity,
+-                    (_, _) => new StockResult(StockOutcome.InsufficientStock))
++                    (_, _) => new StockResult(StockOutcome.InsufficientStock, FulfillmentOutcome.InsufficientStock))
+                 .Set(new("stock/update"), item => item.Available, (item, input) => item.Available - input.Quantity)
+-                .Return(new StockResult(StockOutcome.Reserved)));
++                .Return(new StockResult(StockOutcome.Reserved, FulfillmentOutcome.ReservedAndSubmitted)));
+ 
+         Release = inventory.Transition<StockQuantity, StockResult>(
+-            id: new("fulfillment/release"), revision: new("2"), transition => transition
++            id: new("fulfillment/release"), revision: new("3"), transition => transition
+                 .Requires((item, input) => input.Quantity > 0,
+-                    (_, _) => new StockResult(StockOutcome.InvalidQuantity))
++                    (_, _) => new StockResult(StockOutcome.InvalidQuantity, FulfillmentOutcome.InvalidQuantity))
+                 .Set(new("stock/update"), item => item.Available, (item, input) => item.Available + input.Quantity)
+-                .Return(new StockResult(StockOutcome.Released)));
++                .Return(new StockResult(StockOutcome.Released, FulfillmentOutcome.ReservedAndSubmitted)));
+     }
+ }
+ 
+ /// <summary>Canonical multi-entity sequence. This syntax is compiled into Process IR, never executed as C#.</summary>
+ /// <param name="domain">Entity and transition authority used by the process.</param>
+-[Process(id: "fulfillment/submit", revision: "8")]
++[Process(id: "fulfillment/submit", revision: "10")]
+ public sealed partial class FulfillmentProcess(FulfillmentDomain domain) : ProcessModel<FulfillOrder, FulfillmentResult>
+ {
+     /// <inheritdoc />
+@@ -281,19 +299,10 @@
+         // The query is advisory. A retry may observe less stock after its own prior reservation;
+         // exact operation replay and the authoritative transition decide whether to mutate.
+         var reserved = await process.Transition(domain.InventoryTransitions.Reserve, input.Sku, new StockQuantity(input.Quantity));
+-        switch (reserved.Outcome)
+-        {
+-            case StockOutcome.InvalidQuantity:
+-                return new FulfillmentResult(FulfillmentStatus.Rejected, FulfillmentOutcome.InvalidQuantity);
+-            case StockOutcome.QuantityLimitExceeded:
+-                return new FulfillmentResult(FulfillmentStatus.Rejected, FulfillmentOutcome.QuantityLimitExceeded);
+-            case StockOutcome.InsufficientStock:
+-                return new FulfillmentResult(FulfillmentStatus.Rejected, FulfillmentOutcome.InsufficientStock);
+-            case StockOutcome.Reserved:
+-                break;
+-            case StockOutcome.Released:
+-                return process.Unreachable<FulfillmentResult>();
+-        }
++        if (reserved.Outcome == StockOutcome.Released)
++            return process.Unreachable<FulfillmentResult>();
++        if (reserved.Outcome != StockOutcome.Reserved)
++            return new FulfillmentResult(FulfillmentStatus.Rejected, reserved.FulfillmentOutcome);
+         var submitted = await process.Transition(domain.OrderTransitions.Submit, input.OrderId);
+         if (submitted.Outcome == SubmissionOutcome.Submitted)
+         {
+@@ -304,6 +313,6 @@
+             return new FulfillmentResult(FulfillmentStatus.Submitted, FulfillmentOutcome.ReservedAndSubmitted);
+         }
+         await process.Transition(domain.InventoryTransitions.Release, input.Sku, new StockQuantity(input.Quantity));
+-        return new FulfillmentResult(FulfillmentStatus.Rejected, FulfillmentOutcome.OrderRejected);
+-    }
+-}
++        return new FulfillmentResult(FulfillmentStatus.Rejected, submitted.FulfillmentOutcome);
++    }
++}
