@@ -1,10 +1,7 @@
 """Independent G3 decision model, reusing E2's existing command assertions."""
-import copy
 import importlib.util
-import json
 from pathlib import Path
 import random
-import time
 
 spec = importlib.util.spec_from_file_location('e3_prior_checks', Path(__file__).resolve().parents[1] / 'e2/cancellation_checks.py')
 prior = importlib.util.module_from_spec(spec)
@@ -22,26 +19,16 @@ def fixture():
 
 
 class Checks(prior.Checks):
-    def __init__(self, Client, url, observe, output):
-        self.c = Client(url)
-        self.observe = observe
-        self.output = output
-        self.trace = []
-        data = fixture()
-        self.state = {'orders': copy.deepcopy(data['orders']),
-                      'inventory': [{'maxPerOrder': 2147483647, 'quarantined': False, **item} for item in data['inventory']],
-                      'reservations': []}
-        self.history = {}
-        self.counter = 0
+    prefix = 'e3'
+    seed_fixture = staticmethod(fixture)
+    inventory_defaults = {**prior.Checks.inventory_defaults, 'quarantined': False}
+    fulfillment_obligation = 'E3-02'
+    replay_obligation = 'E3-03'
 
-    def record(self, obligation, command, observed, assertion='settled facts/preservation'):
-        facts = self.observe()
-        canonical = lambda state: {k: sorted(v, key=lambda item: json.dumps(item, sort_keys=True)) for k, v in state.items()}
-        entry = {'obligation': obligation, 'command': command, 'observed': observed,
-                 'expectedFacts': copy.deepcopy(self.state), 'facts': facts}
-        self.trace.append(entry)
-        (self.output / 'e3-trace.json').write_text(json.dumps(self.trace, indent=2) + '\n')
-        require(canonical(facts) == canonical(self.state), obligation, (assertion, entry))
+    def inventory_rejection(self, item, quantity):
+        if item['quarantined']:
+            return 'InventoryQuarantined'
+        return super().inventory_rejection(item, quantity)
 
     def quarantine(self, sku, value, raw=None):
         item = self.inventory(sku)
@@ -52,59 +39,6 @@ class Checks(prior.Checks):
         if item:
             item['quarantined'] = value
         self.record('E3-01', {command: sku}, result, 'quarantine preservation')
-
-    def new_request(self, order, sku, quantity, witness='fulfillment outcome'):
-        self.counter += 1
-        request = {'requestId': f'e3-request-{self.counter}', 'orderId': order, 'sku': sku, 'quantity': quantity}
-        item, entity = self.inventory(sku), self.order(order)
-        existing = next((row for row in self.state['reservations'] if row['orderId'] == order), None)
-        if not entity:
-            outcome = 'OrderMissing'
-        elif existing:
-            outcome = 'ReservedAndSubmitted' if existing['sku'] == sku and existing['quantity'] == quantity and entity['status'] == 'Submitted' else 'ReservationConflict'
-        elif not item:
-            outcome = 'InventoryMissing'
-        elif quantity <= 0:
-            outcome = 'InvalidQuantity'
-        elif item['quarantined']:
-            outcome = 'InventoryQuarantined'
-        elif quantity > item['maxPerOrder']:
-            outcome = 'QuantityLimitExceeded'
-        elif quantity > item['available']:
-            outcome = 'InsufficientStock'
-        elif entity['status'] == 'Cancelled':
-            outcome = 'OrderCancelled'
-        elif entity['status'] != 'Draft':
-            outcome = 'OrderRejected'
-        else:
-            outcome = 'ReservedAndSubmitted'
-            entity['status'] = 'Submitted'
-            item['available'] -= quantity
-            self.state['reservations'].append({'id': order, 'orderId': order, 'sku': sku, 'quantity': quantity})
-        response = self.http('POST', '/fulfillment', request)
-        require(response[0] == 202, 'E3-02', ('admission', response))
-        receipt = response[1]
-        deadline = time.monotonic() + 20
-        while True:
-            result = self.http('GET', receipt['resultUrl'])
-            if result[0] != 202:
-                break
-            if time.monotonic() > deadline:
-                raise RuntimeError('Fulfillment did not complete')
-            time.sleep(.02)
-        expected = {'status': 'Submitted' if outcome == 'ReservedAndSubmitted' else 'Rejected', 'outcome': outcome}
-        require(result == (200, expected), 'E3-02', (witness, request, result, expected))
-        self.history[request['requestId']] = (request, receipt, expected)
-        self.record('E3-02', request, result, witness)
-        return request['requestId']
-
-    def replay(self, key):
-        request, receipt, completion = self.history[key]
-        require(self.http('POST', '/fulfillment', request) == (202, receipt), 'E3-03', 'retained admission')
-        require(self.http('GET', receipt['resultUrl']) == (200, completion), 'E3-03', 'retained completion')
-        conflict = self.http('POST', '/fulfillment', {**request, 'quantity': 0 if request['quantity'] != 0 else 1})
-        require(conflict == (409, {'code': 'RequestIdentityConflict'}), 'E3-03', 'identity conflict')
-        self.record('E3-03', {'replay': key}, completion)
 
     def run(self):
         for item in self.state['inventory']:

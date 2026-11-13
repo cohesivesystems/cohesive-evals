@@ -33,21 +33,25 @@
          foreach (var row in data.Reservations) await reservations.Upsert(Context(), new Reservation(row.Id, "local", row.OrderId, row.Sku, row.Quantity));
      }
      public async Task<OrderCreated> CreateOrder()
-@@ -75,7 +75,7 @@
+@@ -74,8 +74,11 @@
+     }
      public async Task<OrderSummary?> GetOrder(string id) =>
          await orders.TryGetEntity(Context(), id, new(partitionKey: "local")) is { } order ? new(order.Id, order.Status.ToString()) : null;
++    static InventoryView ToInventoryView(InventoryItem item) =>
++        new(item.Sku, item.Available, item.MaxPerOrder, item.Quarantined);
++
      public async Task<InventoryView?> GetInventory(string sku) =>
 -        await inventory.TryGetEntity(Context(), sku, new(partitionKey: "local")) is { } item ? new(item.Sku, item.Available, item.MaxPerOrder) : null;
-+        await inventory.TryGetEntity(Context(), sku, new(partitionKey: "local")) is { } item ? new(item.Sku, item.Available, item.MaxPerOrder, item.Quarantined) : null;
++        await inventory.TryGetEntity(Context(), sku, new(partitionKey: "local")) is { } item ? ToInventoryView(item) : null;
      public void MapInventoryLimits(WebApplication app)
      {
          var endpoint = Cohesive.Api.Api.Define().Entity<InventoryItem>().Command("SetQuantityLimit")
-@@ -86,8 +86,21 @@
+@@ -86,8 +89,21 @@
              .MapEntityApi<InventoryItem>(domain.Inventory.Definition, inventory, "local", bindings => bindings
                  .Transition(endpoint, domain.InventoryTransitions.SetLimit)
                  .Input(context => QuantityLimitInput.Get(context.HttpContext))
 -                .OnApplied((state, _) => TypedResults.Ok(new InventoryView(state.Sku, state.Available, state.MaxPerOrder)))
-+                .OnApplied((state, _) => TypedResults.Ok(new InventoryView(state.Sku, state.Available, state.MaxPerOrder, state.Quarantined)))
++                .OnApplied((state, _) => TypedResults.Ok(ToInventoryView(state)))
                  .OnRejected(_ => TypedResults.Conflict(new ErrorResponse("InvalidQuantityLimit"))));
 +    }
 +    public void MapQuarantine(WebApplication app)
@@ -60,7 +64,7 @@
 +            app.MapGroup("").MapEntityApi<InventoryItem>(domain.Inventory.Definition, inventory, "local", bindings => bindings
 +                .Transition(command, route, domain.InventoryTransitions.SetQuarantine)
 +                .Input(_ => new QuarantineChange(quarantined))
-+                .OnApplied((state, _) => TypedResults.Ok(new InventoryView(state.Sku, state.Available, state.MaxPerOrder, state.Quarantined)))
++                .OnApplied((state, _) => TypedResults.Ok(ToInventoryView(state)))
 +                .OnRejected(_ => throw new InvalidOperationException("Quarantine transition unexpectedly rejected.")));
      }
      public async Task<OrderDetailsView?> GetDetails(string id)

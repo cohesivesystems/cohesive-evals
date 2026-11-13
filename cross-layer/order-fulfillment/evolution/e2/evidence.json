@@ -1,17 +1,17 @@
 {
   "date": "2026-11-12",
-  "reviewBaseCommit": "2664656732a91c3553765ea1fc57b2218e6e466d",
+  "reviewBaseCommit": "a14a9559f550e7e2644626f91c60877e940731df",
   "scope": "Sequential settled behavior; no live migration, concurrency or crash recovery",
   "sharedHarnessSha256": {
-    "harness.py": "62c738064d60fd51e6e07ff654dee3d78fa35ed86c57e6e8e741851c31f682f9",
+    "harness.py": "265b252c6c6d8fd4c382b481c9ed9d7110b8dd275f846f0c7ed8135fd56200db",
     "snapshot.py": "98fa02a2b2e42b523b32760dfab73fd75b4fe2bbf843e6753fc54e49d9f9a17d",
     "verify.py": "75caf256c84af2ec358daad7dfb0679f6a0bab4c67d0911c51814f4f139a8b47",
     "qualify.py": "c142454afc1962e8f94749fd1594731bdb10d6c6077cd2d0c6451b94e5b7d027",
-    "test_harness.py": "c5dbd895e7ab0376c37ed5ce28600f038595ef6d11acb7c89e8631e9d6c7f251"
+    "test_harness.py": "fcdf39d367b2407098b1339719f74c32ae28d5821ed7e66ce33f69e3c194e80e"
   },
   "sourceSha256": {
     "build.py": "cd11019f8a9bd7fc3a6961a8559d341055b0cf13107b0c2f637d5a0f57815dd8",
-    "cancellation_checks.py": "c19deda30ca5a26d71eeb51e773701abb11e6cd072059860c9b695ee50264232",
+    "cancellation_checks.py": "99f98c17afed5d1953303253882892d6d284f6b554988f40645c9c1e2f4002a7",
     "mutations.py": "4ca6121f39cad5b1b3c41b2d8d556b90f343d10d3878e0ede45ecf26f94988d7",
     "qualify.py": "bc40156598c463fe8643d4b058886f230b4a162d372ce8f585f72fa37dbc6bd0",
     "reference/cohesive.json": "a89aeaa18a962e94964bd0bb32a34dbf1df3564d9998c50cc34335c826bda927",
@@ -20,9 +20,10 @@
     "reference/conventional.patch": "a06d30d0057ba711777a1c34cff8ae3a045a6edf24334ff5c9050b1fc5209298",
     "test_harness.py": "d4b5ba29a2ca2aa9a5ba54f70cf817c8ef95e21eaeb374ace2f9161a39d159dc",
     "verify.py": "199ac3e38e2cff04dcbb598df98495f1ae5dae0f85de8d2b99dbd07968952ac8",
-    "visible_checks.py": "5d399e742c47e1a913ed84e60cf0f1bf9c570089054f8f6be182663e93678afc"
+    "visible_checks.py": "5d399e742c47e1a913ed84e60cf0f1bf9c570089054f8f6be182663e93678afc",
+    "profile.json": "7baa4297de901144a0afe87c14ec8329b79da565368481b10b909bdca7603e7a"
   },
-  "qualificationReportSha256": "0e8e2894b59cf216ea14cf44ec443ef527920d09c2bcfb7034b4eeab72b9a1c4",
+  "qualificationReportSha256": "a084ad0246b4363d0c251c20fbafad5cf97a9a698450bb342e57070c5d953296",
   "qualification": {
     "passed": true,
     "generation": "e2",
@@ -33,7 +34,7 @@
         "passed": true,
         "obligation": null,
         "assertion": null,
-        "buildManifestSha256": "509b045e07841e0d29cda1c146263d7e55b492a71863f1b0ba6d9ade4e1d85c2"
+        "buildManifestSha256": "ea554f55f336e80f208f659177340eddb292af700440b5ebc64c52b621b3eb4e"
       },
       {
         "condition": "conventional",
@@ -41,7 +42,7 @@
         "passed": true,
         "obligation": "E2-03",
         "assertion": "retained admission",
-        "buildManifestSha256": "18b24256acd3366bee18ad7cb606daa82bc3b74e6ea7fe57fc37ae8ff7f6fcad"
+        "buildManifestSha256": "e70c2a4d0e99f244b8d531d00270336d2e894a0b34951b98ec9ebd5c5863d010"
       },
       {
         "condition": "conventional",
@@ -49,7 +50,7 @@
         "passed": true,
         "obligation": "E2-02",
         "assertion": "limit before cancellation",
-        "buildManifestSha256": "a3c97c22494b2af687ad728fa8072385d7656aeff672a3118f6e08fa4ceb1a73"
+        "buildManifestSha256": "500ddb2b0576c5e92e74c068739fda4a5f448ba1011e7f3e881eaac4fa4d937c"
       },
       {
         "condition": "conventional",
@@ -57,7 +58,7 @@
         "passed": true,
         "obligation": "E2-01",
         "assertion": "cancellation state table",
-        "buildManifestSha256": "016526c853024d7776ecf0a934b60fe96a9f83339173589ac1b6693f38cb32a7"
+        "buildManifestSha256": "d4f02975e91b75714fcf2ab01f8518ef8df43cda95d354138b5f8311ce91d519"
       },
       {
         "condition": "conventional",
@@ -65,7 +66,7 @@
         "passed": true,
         "obligation": "E2-01",
         "assertion": "idempotent cancellation",
-        "buildManifestSha256": "e8080c0882760af6ac87e6b33efaf7f487a0a00f6f9b601a4ec829e23fa9a4e7"
+        "buildManifestSha256": "e64add6c11bdbfdf9b476088fbc6392a5168415c4a4504feef35377629f8fef0"
       },
       {
         "condition": "conventional",
@@ -73,7 +74,7 @@
         "passed": true,
         "obligation": "E2-02",
         "assertion": "direct submit outcome",
-        "buildManifestSha256": "d08088fa3794c7dbd161eb73f2281b562d3ce8168ab498048c281ca040a9dc07"
+        "buildManifestSha256": "4ed8e28ca4f615b5a9d85f616c01861e971fe1927bb7405edd4d2edfdc9bf9d3"
       },
       {
         "condition": "conventional",
@@ -81,7 +82,7 @@
         "passed": true,
         "obligation": "E2-02",
         "assertion": "cancelled fulfillment",
-        "buildManifestSha256": "2fa0ee54aad8d10d1c434cefb4b8ec644407b05c4c4113081046a9065d93095d"
+        "buildManifestSha256": "d90fafcc9d94dd2c2e103a2222deb9de734f32327bfc627f740c0d925ab90866"
       },
       {
         "condition": "conventional",
@@ -89,7 +90,7 @@
         "passed": true,
         "obligation": "E2-02",
         "assertion": "missing inventory before cancellation",
-        "buildManifestSha256": "eae8002adea79bfa92e8888303a0b96237d5815d8ba345cf66a585288cb0d2b6"
+        "buildManifestSha256": "1faf28844991634dd82fab936da066ac106a8760a2b0f7b57fc9d30c9953d0d0"
       },
       {
         "condition": "conventional",
@@ -97,7 +98,7 @@
         "passed": true,
         "obligation": "E2-02",
         "assertion": "cancelled fulfillment",
-        "buildManifestSha256": "a477c1bfef63bd209a56ed2650bcc3ab09e1f190edc028be0ae0c35b69d598ca"
+        "buildManifestSha256": "e7b2d2b7b99224a30bc6bcb07ff7a9a70ac5a2c10a04fbc7c03534f92203f7c5"
       },
       {
         "condition": "cohesive",
@@ -105,7 +106,7 @@
         "passed": true,
         "obligation": null,
         "assertion": null,
-        "buildManifestSha256": "745753cae50ae032cbcfaee35b6a80b75de53d732547e1d1098253000860f63f"
+        "buildManifestSha256": "0b2e1f76af4fd3997afa465dd22fe62e20deca12f8bfc485e2fd7d3ce7c2d405"
       },
       {
         "condition": "cohesive",
@@ -113,7 +114,7 @@
         "passed": true,
         "obligation": "E2-03",
         "assertion": "retained admission",
-        "buildManifestSha256": "47e390cfdadc5ee3fc9f5b72eac4a64f8307d98fc83793d4a44bad20a7a84e01"
+        "buildManifestSha256": "eb3b4e2464f7170834a8a5c11a66a882138b5da3272949711e163e0d9055e671"
       },
       {
         "condition": "cohesive",
@@ -121,7 +122,7 @@
         "passed": true,
         "obligation": "E2-02",
         "assertion": "limit before cancellation",
-        "buildManifestSha256": "8d97183535b0259f8dd66243a09fc8a609c95f86ca6094be9b0370e304241456"
+        "buildManifestSha256": "2f473935f640824b8728996381ba301b92a00ef0ba02433218be48d53940c558"
       },
       {
         "condition": "cohesive",
@@ -129,7 +130,7 @@
         "passed": true,
         "obligation": "E2-01",
         "assertion": "cancellation state table",
-        "buildManifestSha256": "8b1a2aee406894f5c134676cf44021613a82b2f6435b0e99468c31d38bb93639"
+        "buildManifestSha256": "18d517d8a0698f1d4bba49de1665fabe699422c87805d108dbf9dcf8e38d3a42"
       },
       {
         "condition": "cohesive",
@@ -137,7 +138,7 @@
         "passed": true,
         "obligation": "E2-01",
         "assertion": "idempotent cancellation",
-        "buildManifestSha256": "cd679b0f70f074b5c6f6015451961f1f873b618d41c5d8529f9561b779ad8cfc"
+        "buildManifestSha256": "add5d421f620fe8ef1e1def563a4c087d5c8091d341da5968ea7e0907648cde4"
       },
       {
         "condition": "cohesive",
@@ -145,7 +146,7 @@
         "passed": true,
         "obligation": "E2-02",
         "assertion": "direct submit outcome",
-        "buildManifestSha256": "d6534c2b9b24c27a38a695984d1c7cf28678deb637a58d5bfef87bb18db87f12"
+        "buildManifestSha256": "0a152f7b5c49045381fe28fe990687520845c31b71f92da95b8ba03c3bd9056d"
       },
       {
         "condition": "cohesive",
@@ -153,7 +154,7 @@
         "passed": true,
         "obligation": "E2-02",
         "assertion": "cancelled fulfillment",
-        "buildManifestSha256": "ef6a92d61470e4ff35ec012263d8d9ecde04aed8cb7d4bd2c6b63928d695bbc0"
+        "buildManifestSha256": "f25b92ae35de6c8b9c1699480fdf22e347fff6bf66cc4e6c11063303e4478f69"
       },
       {
         "condition": "cohesive",
@@ -161,7 +162,7 @@
         "passed": true,
         "obligation": "E2-02",
         "assertion": "missing inventory before cancellation",
-        "buildManifestSha256": "03f2ea359cd41a880096ef9919fc74cbed3856d4849830b71bde48036969df9a"
+        "buildManifestSha256": "0402ba768334e5c8153c1d1559f6e02a9ecb467e74b9ada866c5a91ab505fd85"
       },
       {
         "condition": "cohesive",
@@ -169,7 +170,7 @@
         "passed": true,
         "obligation": "E2-02",
         "assertion": "cancelled fulfillment",
-        "buildManifestSha256": "05bbebf97106d21dc4e8967ceaa9f0de3878113229bdba93ad8ba859114cd846"
+        "buildManifestSha256": "345df96f870019a5ba796082d6b6748c7ed2d531f8471abbb8b7739260fb467b"
       }
     ]
   },
@@ -181,7 +182,7 @@
       "visibleE1Checks": 5,
       "e1Commands": 118,
       "cleanRestartVerified": true,
-      "buildManifestSha256": "f0cd779a3b4b9fcbc34c39b1c5e1a1c0e32f4e1cef3f23e691b919a8de7d9f03",
+      "buildManifestSha256": "ea554f55f336e80f208f659177340eddb292af700440b5ebc64c52b621b3eb4e",
       "visibleE2Checks": 5,
       "e2Commands": 92
     },
@@ -192,18 +193,24 @@
       "visibleE1Checks": 5,
       "e1Commands": 118,
       "cleanRestartVerified": true,
-      "buildManifestSha256": "f8c059bf466cb9c9e1fa67e2226a0f4bdd69fb8dd574acb28b0c9582de45b174",
+      "buildManifestSha256": "0b2e1f76af4fd3997afa465dd22fe62e20deca12f8bfc485e2fd7d3ce7c2d405",
       "visibleE2Checks": 5,
       "e2Commands": 92
     }
   },
   "verifierReportsSha256": {
-    "conventional": "44e2d703949439b5a8d9a4fd97f8e3f75ed509997457aa1ab66991efcbda3012",
-    "cohesive": "44e2d703949439b5a8d9a4fd97f8e3f75ed509997457aa1ab66991efcbda3012"
+    "conventional": "de2d79d70846a81a4d07f99a143581d0c3180f8b1cbfdb1b1291a0264f62bdab",
+    "cohesive": "bfe6d0e0555a7b4dad2e813932d23145e45a3e5492f4c4bbfa83890c3b3e1689"
   },
-  "sharedHarnessTests": 3,
+  "sharedHarnessTests": 6,
   "generationHarnessTests": 2,
   "contractTests": 7,
   "postgresImage": "postgres:17.10-alpine3.24",
-  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193"
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "profileSha256": {
+    "e1/profile.json": "83ebb1d7e943822683a68d1bd2e616dc715deeee1ca442a5def5c00be25fe78d",
+    "e2/profile.json": "7baa4297de901144a0afe87c14ec8329b79da565368481b10b909bdca7603e7a",
+    "e3/profile.json": "9b3eeb7c8c2bfe5b7eaa72ef16b36b4c22a1e2784136d6bd99d7020f70801934"
+  },
+  "qualificationNote": "Qualification ran before the final explicit missing-field guard for nullable profile defaults. Current profiles use non-null defaults, so their behavior is unchanged. The guard is unit-tested and the final E3 paired verification includes it."
 }

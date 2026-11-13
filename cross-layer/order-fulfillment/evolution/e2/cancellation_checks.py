@@ -23,11 +23,17 @@ def fixture():
 
 
 class Checks:
+    prefix = 'e2'
+    seed_fixture = staticmethod(fixture)
+    inventory_defaults = {'maxPerOrder': 2147483647}
+    fulfillment_obligation = 'E2-02'
+    replay_obligation = 'E2-03'
+
     def __init__(self, Client, url, observe, output):
         self.c=Client(url);self.observe=observe;self.output=output;self.trace=[]
-        data=fixture()
+        data=self.seed_fixture()
         self.state={'orders':copy.deepcopy(data['orders']),
-                    'inventory':[{**x,'maxPerOrder':x.get('maxPerOrder',2147483647)} for x in data['inventory']],
+                    'inventory':[{**self.inventory_defaults, **x} for x in data['inventory']],
                     'reservations':[]}
         self.history={};self.counter=0
 
@@ -41,7 +47,7 @@ class Checks:
         canonical=lambda state:{k:sorted(v,key=lambda x:json.dumps(x,sort_keys=True)) for k,v in state.items()}
         entry={'obligation':obligation,'command':command,'observed':observed,'expectedFacts':copy.deepcopy(self.state),'facts':facts}
         self.trace.append(entry)
-        (self.output/'e2-trace.json').write_text(json.dumps(self.trace,indent=2)+'\n')
+        (self.output/f'{self.prefix}-trace.json').write_text(json.dumps(self.trace,indent=2)+'\n')
         require(canonical(facts)==canonical(self.state),obligation,(assertion,entry))
 
     def inventory(self, sku): return next((x for x in self.state['inventory'] if x['sku']==sku),None)
@@ -55,9 +61,17 @@ class Checks:
         if item: item['maxPerOrder']=value
         self.record('E2-01',{'put':sku,'value':value},response)
 
+    def inventory_rejection(self, item, quantity):
+        """Inventory decisions after positive-quantity validation, before lifecycle."""
+        if quantity > item['maxPerOrder']:
+            return 'QuantityLimitExceeded'
+        if quantity > item['available']:
+            return 'InsufficientStock'
+        return None
+
     def new_request(self, order, sku, quantity, witness="fulfillment outcome"):
         self.counter+=1
-        request={'requestId':f'e2-request-{self.counter}','orderId':order,'sku':sku,'quantity':quantity}
+        request={'requestId':f'{self.prefix}-request-{self.counter}','orderId':order,'sku':sku,'quantity':quantity}
         item=self.inventory(sku);entity=self.order(order)
         existing=next((r for r in self.state['reservations'] if r['orderId']==order),None)
         if not entity: outcome='OrderMissing'
@@ -65,15 +79,14 @@ class Checks:
             outcome='ReservedAndSubmitted' if existing['sku']==sku and existing['quantity']==quantity and entity['status']=='Submitted' else 'ReservationConflict'
         elif not item: outcome='InventoryMissing'
         elif quantity<=0: outcome='InvalidQuantity'
-        elif quantity>item['maxPerOrder']: outcome='QuantityLimitExceeded'
-        elif quantity>item['available']: outcome='InsufficientStock'
+        elif (rejection := self.inventory_rejection(item, quantity)) is not None: outcome=rejection
         elif entity['status']=='Cancelled': outcome='OrderCancelled'
         elif entity['status']!='Draft': outcome='OrderRejected'
         else:
             outcome='ReservedAndSubmitted';entity['status']='Submitted';item['available']-=quantity
             self.state['reservations'].append({'id':order,'orderId':order,'sku':sku,'quantity':quantity})
         response=self.http('POST','/fulfillment',request)
-        require(response[0]==202,'E2-02',('admission',response))
+        require(response[0]==202,self.fulfillment_obligation,('admission',response))
         receipt=response[1];deadline=time.monotonic()+20
         while True:
             result=self.http('GET',receipt['resultUrl'])
@@ -81,18 +94,18 @@ class Checks:
             if time.monotonic()>deadline: raise RuntimeError('Fulfillment did not complete')
             time.sleep(.02)
         expected={'status':'Submitted' if outcome=='ReservedAndSubmitted' else 'Rejected','outcome':outcome}
-        require(result==(200,expected),'E2-02',(witness,request,result,expected))
+        require(result==(200,expected),self.fulfillment_obligation,(witness,request,result,expected))
         self.history[request['requestId']]=(request,receipt,expected)
-        self.record('E2-02',request,result,witness)
+        self.record(self.fulfillment_obligation,request,result,witness)
         return request['requestId']
 
     def replay(self, key):
         request,receipt,completion=self.history[key]
-        require(self.http('POST','/fulfillment',request)==(202,receipt),'E2-03','retained admission')
-        require(self.http('GET',receipt['resultUrl'])==(200,completion),'E2-03','retained completion')
+        require(self.http('POST','/fulfillment',request)==(202,receipt),self.replay_obligation,'retained admission')
+        require(self.http('GET',receipt['resultUrl'])==(200,completion),self.replay_obligation,'retained completion')
         conflict=self.http('POST','/fulfillment',{**request,'quantity':0 if request['quantity'] != 0 else 1})
-        require(conflict==(409,{'code':'RequestIdentityConflict'}),'E2-03','identity conflict')
-        self.record('E2-03',{'replay':key},completion)
+        require(conflict==(409,{'code':'RequestIdentityConflict'}),self.replay_obligation,'identity conflict')
+        self.record(self.replay_obligation,{'replay':key},completion)
 
     def cancel(self, order, raw=None, witness="cancellation state table"):
         entity = self.order(order)

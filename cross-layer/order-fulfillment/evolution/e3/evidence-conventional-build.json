@@ -19,8 +19,8 @@
   "artifacts": {
     "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application": "d6eb0a445ef0ee5d67ae457f70cc4b2c2ef9c348b448958bdef9200f0a6289b0",
     "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.deps.json": "af715182ec29f544acde313334556161b764326d4bb7a559e29c765c5887d64b",
-    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.dll": "19128aa33ce8e7584a26d9656d7fcdd98e8011175250a4ed4c7c0e8b82f5d109",
-    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.pdb": "b1dddde38e6cad7f63011f8f7966768cc48d8261f2a010b9759b0379f10c09a6",
+    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.dll": "39719f33974a5653759bc8b4ed21d53e16c2f082f5a0c2b799f1b3b46fa25eb5",
+    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.pdb": "c8cbe2718bf5896187bc36949c999fc27267fce9fc1690866d9d4c65e2ccfa31",
     "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.runtimeconfig.json": "2854c873c21edc9fa7c2056f9d4744054aeb11f009d271702daa7794b74e895f",
     "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.staticwebassets.endpoints.json": "eb6525c892afda953a2560f151f9c5e5bc6e79ef6741d886488ac450262c91e3",
     "src/Fulfillment.Application/bin/Debug/net10.0/Npgsql.dll": "e2bcafe1660fe4543fe9dfcabed972ec8d32259e5ea8009462ce1de23c7034c2"

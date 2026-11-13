@@ -35,12 +35,17 @@ matching/conflicting reservations, replay across quarantine changes, preservatio
 of stock/limits, direct submission independence, cancellation interactions and
 clean restart persistence of both Boolean values.
 
-The independent E3 model reuses E2's cancel/submit/configure assertions and adds
-its own quarantine decision order, replay witnesses and physical-fact checks.
-It never derives expectations from either implementation. For earlier profiles,
-the harness asserts the new `quarantined` field is exactly false before adapting
-their inventory views/facts to unchanged expectations. Missing, true or non-Boolean
-values fail; the new field is never silently ignored.
+The independent E3 model inherits E2's initialization, trace writer, decision
+chain, polling, replay and existing command assertions. It declares its fixture,
+request/trace prefix and obligation IDs, then overrides one inventory-rejection
+hook to insert quarantine before the inherited limit/stock checks. E3 owns only
+its new command and scenario sequences. No expectations come from either app.
+
+Each generation's `profile.json` declares the inventory fields it adds, their
+physical columns and neutral values. The harness selects columns and projects
+HTTP/physical observations generically. Before hiding a newer field from older
+checks (including G0), it verifies presence, exact JSON type and neutral value.
+There are no E3 branches or hard-coded field defaults in the shared harness.
 
 Eight buildable defects per condition must fail the named assertion:
 
@@ -56,10 +61,20 @@ Eight buildable defects per condition must fail the named assertion:
 | Lost replay | E3-03 | retained admission |
 
 Build/setup failures, HTTP 5xx, timeouts and unrelated assertions earn no detection
-credit. Known-good candidates run cumulative checks; mutants isolate E3. Earlier
-mutation suites are not rerun in this milestone. [evidence.json](evidence.json)
+credit. Known-good candidates run cumulative checks; mutants isolate E3. The E2 mutation suite is also rerun after the shared check refactor; the G0/E1
+mutation suites are not rerun in this revision. [evidence.json](evidence.json)
 retains compact results and source/build fingerprints; run directories contain
 full seeds, traces, expected/observed facts and logs.
+
+## SDK follow-up
+
+Inventory reads and both command responses share one `ToInventoryView` mapper.
+The dummy rejection handler remains necessary for the pinned SDK: only
+`OnRejected` completes the typed binding, even for a Set/Return transition.
+[Cohesive #513](https://github.com/cohesivesystems/cohesive/issues/513) tracks
+completion without a dummy handler, with admission/domain rejection and
+concurrency contracts preserved. An SDK fix and separately qualified package
+upgrade are required before removing it from this reference.
 
 ## Scope
 

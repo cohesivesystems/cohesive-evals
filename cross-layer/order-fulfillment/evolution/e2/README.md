@@ -35,6 +35,8 @@ invariant commands, five visible E1 examples and 118 E1 commands per condition,
 then five visible E2 examples and 92 E2 model commands,
 including 60 mixed operations with fixed seed 162 and a clean restart.
 
+The check engine exposes fixture/default/prefix parameters and an inventory
+rejection hook; E3 inherits its comparison, tracing, polling and replay logic.
 The independent Python model checks cancellation, direct submission, fulfillment,
 configuration and request replay. Read-only physical observations compare all
 orders, inventory settings and reservation rows in the test world after each

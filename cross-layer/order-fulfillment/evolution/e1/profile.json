@@ -1,0 +1,9 @@
+{
+  "checks": "checks.py",
+  "inventoryFields": {
+    "maxPerOrder": {
+      "column": "max_per_order",
+      "neutral": 2147483647
+    }
+  }
+}

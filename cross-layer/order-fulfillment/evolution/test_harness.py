@@ -3,7 +3,9 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from harness import profile, selected_profiles, detected, prior_inventory
+import harness
+from unittest.mock import patch
+from harness import profile, selected_profiles, detected, adapt_inventory, inventory_fields, newer_inventory_fields
 from snapshot import apply_delta
 
 
@@ -26,12 +28,32 @@ class SharedHarnessTests(unittest.TestCase):
 
     def test_prior_inventory_checks_new_field_before_adapting(self):
         value = {'sku': 'prior', 'available': 2, 'maxPerOrder': 3, 'quarantined': False}
-        self.assertEqual(prior_inventory(value), {'sku': 'prior', 'available': 2, 'maxPerOrder': 3})
+        hidden = newer_inventory_fields('e3', 'e2')
+        self.assertEqual(adapt_inventory(value, hidden), {'sku': 'prior', 'available': 2, 'maxPerOrder': 3})
         self.assertIn('quarantined', value)
         for invalid in ({**value, 'quarantined': True}, {**value, 'quarantined': 0},
                         {k: v for k, v in value.items() if k != 'quarantined'}):
             with self.assertRaises(AssertionError):
-                prior_inventory(invalid)
+                adapt_inventory(invalid, hidden)
+
+    def test_field_projection_works_for_new_profile_declarations(self):
+        self.assertEqual(set(inventory_fields('e1')), {'maxPerOrder'})
+        self.assertEqual(inventory_fields('e2'), inventory_fields('e1'))
+        value = {'sku': 'legacy', 'available': 2, 'maxPerOrder': 2147483647, 'quarantined': False}
+        self.assertEqual(adapt_inventory(value, newer_inventory_fields('e3')), {'sku': 'legacy', 'available': 2})
+        for wrong in (None, 0, True, 2147483647.0):
+            with self.assertRaises(AssertionError):
+                adapt_inventory({**value, 'maxPerOrder': wrong}, newer_inventory_fields('e3'))
+        nullable = {'note': {'column': 'note', 'neutral': None}}
+        self.assertEqual(adapt_inventory({**value, 'note': None}, nullable), value)
+        with self.assertRaises(AssertionError):
+            adapt_inventory(value, nullable)
+        addition = {'future': {'inventoryFields': {'tagged': {'column': 'tagged', 'neutral': False}}}}
+        with patch.dict(harness.PROFILE_CONFIG, addition), patch.object(harness, 'GENERATIONS', (*harness.GENERATIONS, 'future')):
+            hidden = newer_inventory_fields('future', 'e3')
+            self.assertEqual(adapt_inventory({**value, 'tagged': False}, hidden), value)
+            with self.assertRaises(AssertionError):
+                adapt_inventory({**value, 'tagged': True}, hidden)
 
     def test_all_generation_mutations_have_one_anchor(self):
         with tempfile.TemporaryDirectory() as directory:

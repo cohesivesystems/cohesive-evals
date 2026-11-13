@@ -5,24 +5,25 @@
   "pythonVersion": "3.9.6",
   "postgresImage": "postgres:17.10-alpine3.24",
   "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
-  "verifierReportSha256": "b02af949a396a4fe0a10e34fed9040a5936970cc9fb1048a087ed03401f3d46e",
-  "qualificationReportSha256": "db3d3a13c939f38b07f97cf7e271b32cbf1355257f33186cc9c5156c60263a92",
+  "verifierReportSha256": "5c78a88b1c45fe2c7c248942d401d5be19094d35a6be2c3004ff0aa3699b9aa1",
+  "qualificationReportSha256": "b1cb4242e2efb882ffa0554f9f9d4e95e6d8c029cd3c7f109bea5151a4e2728c",
   "sourceSha256": {
     "build.py": "0be4e56419dd1d0e33045743e17b82742058d177663ac3e8b46a9fc178f46e8e",
     "mutations.py": "170ee281f73fe4bdf1e6bb3769e57b43972a9cf0561b7a768d4d0fec511e47ee",
-    "quarantine_checks.py": "1930684bb4035ef60660289c7c9af4212490838ccf6d2c7c7ae7f0fb5b10127c",
-    "reference/cohesive.json": "06d8539083a44863f1f12ecd355ac0d575702197a4165c6a01be58a94dfa85f0",
-    "reference/cohesive.patch": "8f517b86465ee0a853cade87ab80a60f7bae1f144dc6c1205308ac5e4f270bce",
+    "quarantine_checks.py": "b8003e36c390256f4097601c93f2c8df08029cbdac6cbdc37604803919a13498",
+    "reference/cohesive.json": "ab5a3564832f62dcd60f83fa223908607a9da3c9366b5e9592069af0025fd127",
+    "reference/cohesive.patch": "f9bb832b464b7fa228178b3b2bdf6f10acd1936c2f3ec5c246bf11db3c4cda04",
     "reference/conventional.json": "20b289874377b31bcd452feb919ecfca3cec9c516f5ee1c9ed5ce19ad414b545",
     "reference/conventional.patch": "cc5f2be7fb8293332cdd8f7c4500945d8bd68df3187e52f47ef1fba34ef5c331",
-    "visible_checks.py": "9a1c49fb3e86b6407adf022a69e0a96c1dc63d0434a78b5a08c0d747a0f49295"
+    "visible_checks.py": "9a1c49fb3e86b6407adf022a69e0a96c1dc63d0434a78b5a08c0d747a0f49295",
+    "profile.json": "9b3eeb7c8c2bfe5b7eaa72ef16b36b4c22a1e2784136d6bd99d7020f70801934"
   },
   "sharedHarnessSha256": {
-    "harness.py": "817da0d0f2b3baa9f5b1ce2867ab7337ed7ab18b865522473d73ae050270f0e3",
+    "harness.py": "265b252c6c6d8fd4c382b481c9ed9d7110b8dd275f846f0c7ed8135fd56200db",
     "snapshot.py": "98fa02a2b2e42b523b32760dfab73fd75b4fe2bbf843e6753fc54e49d9f9a17d",
     "verify.py": "75caf256c84af2ec358daad7dfb0679f6a0bab4c67d0911c51814f4f139a8b47",
     "qualify.py": "c142454afc1962e8f94749fd1594731bdb10d6c6077cd2d0c6451b94e5b7d027",
-    "test_harness.py": "4536ac828f080bbd31b5df835dcc8bebf51416acf14556fd63641a3c60ed12c9"
+    "test_harness.py": "fcdf39d367b2407098b1339719f74c32ae28d5821ed7e66ce33f69e3c194e80e"
   },
   "conditions": {
     "conventional": {
@@ -40,7 +41,7 @@
         "e3": 5
       },
       "cleanRestartVerified": true,
-      "buildManifestSha256": "c55c5c06bd49d88f2b696aeb779f94e8ca6514261b6122c139c1018fbe1df474"
+      "buildManifestSha256": "f9774d1194b415b0dc491f819b04d9784b964eb10c5c33a45a9c178d63e5b524"
     },
     "cohesive": {
       "passed": true,
@@ -57,7 +58,7 @@
         "e3": 5
       },
       "cleanRestartVerified": true,
-      "buildManifestSha256": "65d782a120af3e57a7a266ca124a72cb037c09895f9778df784b56b3594739ee"
+      "buildManifestSha256": "f30517fc09ef924a46e94a96cd41921ec860d6f6420370807fd345f17cc0419b"
     }
   },
   "qualification": {
@@ -70,7 +71,7 @@
         "passed": true,
         "obligation": null,
         "assertion": null,
-        "buildManifestSha256": "10273d8c5b557104f1b01a0a515e372fc6c959eb62c37d0de6fab8132f33adef"
+        "buildManifestSha256": "0ff163cd6f54c4974ff065b440883eaf4a2aa7f84b0cb9b69c0acd2a5e549cd3"
       },
       {
         "condition": "conventional",
@@ -78,7 +79,7 @@
         "passed": true,
         "obligation": "E3-01",
         "assertion": "seed/default/read",
-        "buildManifestSha256": "f45789a37ce7d28e8087068f7b8a326106d0db5465979671d30b13aebca9eac0"
+        "buildManifestSha256": "a9708be2078fb49cbf396d9d90ea3e5d5f55e252ab6fba33519326617db988e9"
       },
       {
         "condition": "conventional",
@@ -86,7 +87,7 @@
         "passed": true,
         "obligation": "E3-03",
         "assertion": "retained admission",
-        "buildManifestSha256": "affdbfc6e0b0717ab34c56736a6271ff6ea69f1c37a380507b049151c02d1141"
+        "buildManifestSha256": "d17dc4725ba229b3eeb446e1944993aa9685cd9b0c9140d49c588eaf4f7b5747"
       },
       {
         "condition": "conventional",
@@ -94,7 +95,7 @@
         "passed": true,
         "obligation": "E3-02",
         "assertion": "quarantine enforcement",
-        "buildManifestSha256": "1f19bff8de134ab8c763872d4b1f5d590015b0e47ed6f39fc152766927a57c32"
+        "buildManifestSha256": "ce443d511de55b40fcc4f6433f27e65692feb383ed35ad46d7cba0601761be17"
       },
       {
         "condition": "conventional",
@@ -102,7 +103,7 @@
         "passed": true,
         "obligation": "E3-02",
         "assertion": "quarantine before limit",
-        "buildManifestSha256": "64ce8f5638343727914306be67c7537fd104d6d6c9c755bc16892100e32f32d0"
+        "buildManifestSha256": "301f98f4300a240d088875530135aa070f997fab0900848aa2cef976e9d560eb"
       },
       {
         "condition": "conventional",
@@ -110,7 +111,7 @@
         "passed": true,
         "obligation": "E3-02",
         "assertion": "invalid quantity before quarantine",
-        "buildManifestSha256": "d9296953692874d97f3b570c265a9a6e185593f3640b4bc52bae4c2a378432b7"
+        "buildManifestSha256": "b0ee7c1e589e4bdb24e2ad2da170ab6045ace68a1f3663bb71deca5b8e00498d"
       },
       {
         "condition": "conventional",
@@ -118,7 +119,7 @@
         "passed": true,
         "obligation": "E3-01",
         "assertion": "quarantine response",
-        "buildManifestSha256": "5b9183b5cc0add86dc28834110037d0e944de6394652ab8a03a932c4b278cae9"
+        "buildManifestSha256": "fd1dd8d56282fef7de1a511f4f74612c226f94f5731fd657aae878791ccf625a"
       },
       {
         "condition": "conventional",
@@ -126,7 +127,7 @@
         "passed": true,
         "obligation": "E3-01",
         "assertion": "quarantine response",
-        "buildManifestSha256": "7414dc8f4441fa4cf786307c4a44ee168256759e9c1e531542d1a1708e832b28"
+        "buildManifestSha256": "bcd1a822bd174e299a40a96266d8c3d8f62752270308efeef40dffadeaa45ca7"
       },
       {
         "condition": "conventional",
@@ -134,7 +135,7 @@
         "passed": true,
         "obligation": "E3-02",
         "assertion": "cancelled compensation",
-        "buildManifestSha256": "2b7495527c3dba74d8225653e4ba4d3d6abb7cb250608bfd9924146140a7b6bc"
+        "buildManifestSha256": "8230c730050cbf1cc9d1a7eb2dd7e0eae2b55ee1fd557a00c387bcb513856153"
       },
       {
         "condition": "cohesive",
@@ -142,7 +143,7 @@
         "passed": true,
         "obligation": null,
         "assertion": null,
-        "buildManifestSha256": "3b58b475cd7bfae20f1098d5fd1955e53235426f06e8018d0e30bb5ce5a5213f"
+        "buildManifestSha256": "08faa97d022bfdfdb5e4fd7f2af4c2175050dee59dab0637fe21a605130ebc6c"
       },
       {
         "condition": "cohesive",
@@ -150,7 +151,7 @@
         "passed": true,
         "obligation": "E3-01",
         "assertion": "seed/default/read",
-        "buildManifestSha256": "85f44ba6ee9980c75b0ccf53f1b37a750b3f6ad9305e05316a2b3a592a9fc19b"
+        "buildManifestSha256": "4b8e4ff7229a5bd90ccf25f1025974fa534263b36c8a1225aa0fbecc639ca7ae"
       },
       {
         "condition": "cohesive",
@@ -158,7 +159,7 @@
         "passed": true,
         "obligation": "E3-03",
         "assertion": "retained admission",
-        "buildManifestSha256": "27e32d63e3f9715b925c4dd256ffd6605260df470f116af90e08c042ada5f56b"
+        "buildManifestSha256": "b32a2b968dd52e2ddaa8fdfb25ed83be29897f907f2cde3e628db3a365940eb6"
       },
       {
         "condition": "cohesive",
@@ -166,7 +167,7 @@
         "passed": true,
         "obligation": "E3-02",
         "assertion": "quarantine enforcement",
-        "buildManifestSha256": "8df3305a229d252c7f88540e3c4155e6bcaee29a82ead91a9374409b136a9a6b"
+        "buildManifestSha256": "d387156bd3d42bd9673f31dc22b608c81fb82eed61d89241818c678733518822"
       },
       {
         "condition": "cohesive",
@@ -174,7 +175,7 @@
         "passed": true,
         "obligation": "E3-02",
         "assertion": "quarantine before limit",
-        "buildManifestSha256": "d8d4fa7f4fb8ba15057be398a58cb38f3273a3a73e3ff9bca9d49eceeafc389d"
+        "buildManifestSha256": "284afebb71ef1dec040bae0c3b346159ce950ddfc64575298db82cf651b2c8b9"
       },
       {
         "condition": "cohesive",
@@ -182,7 +183,7 @@
         "passed": true,
         "obligation": "E3-02",
         "assertion": "invalid quantity before quarantine",
-        "buildManifestSha256": "782874d6d644f75610dbe17fa8bee1dc758d8b31f958ea1c80c2393197921926"
+        "buildManifestSha256": "63144a16575652d27c5bee0b9a0cb0ce53a54dbd9cef39aabdaf47a3d2f35f18"
       },
       {
         "condition": "cohesive",
@@ -190,7 +191,7 @@
         "passed": true,
         "obligation": "E3-01",
         "assertion": "quarantine response",
-        "buildManifestSha256": "1b6e1e9a282daaf7a4aa2186879563effd5c732089011a8f82771b0db347b70d"
+        "buildManifestSha256": "3c7d24f1242ab4194110cb7462a77a81d7d299812354e30acb5935f67c9aeda4"
       },
       {
         "condition": "cohesive",
@@ -198,7 +199,7 @@
         "passed": true,
         "obligation": "E3-01",
         "assertion": "quarantine response",
-        "buildManifestSha256": "41838dfb23cc3995f29eb33098c9394724cc53848529b8be40541a148c92a117"
+        "buildManifestSha256": "10715725be45d3ce0a6bed3b76df12df3fb9914f990084eb62cdbf517e5dd58c"
       },
       {
         "condition": "cohesive",
@@ -206,11 +207,21 @@
         "passed": true,
         "obligation": "E3-02",
         "assertion": "cancelled compensation",
-        "buildManifestSha256": "e86f4bc424f077140c8a3781c3cf215975410b1b3f939db36f23b6af899d5a8e"
+        "buildManifestSha256": "9755ca5448d97452bb66795964eb3c6f7849ba341fd9389ecbed6034c2948de8"
       }
     ]
   },
-  "sharedHarnessTests": 5,
+  "sharedHarnessTests": 6,
   "priorGenerationHarnessTests": 4,
-  "contractTests": 7
+  "contractTests": 7,
+  "reviewBaseCommit": "a14a9559f550e7e2644626f91c60877e940731df",
+  "profileSha256": {
+    "e1/profile.json": "83ebb1d7e943822683a68d1bd2e616dc715deeee1ca442a5def5c00be25fe78d",
+    "e2/profile.json": "7baa4297de901144a0afe87c14ec8329b79da565368481b10b909bdca7603e7a",
+    "e3/profile.json": "9b3eeb7c8c2bfe5b7eaa72ef16b36b4c22a1e2784136d6bd99d7020f70801934"
+  },
+  "qualificationNote": "Qualification ran before the final explicit missing-field guard for nullable profile defaults. Current profiles use non-null defaults, so their behavior is unchanged. The guard is unit-tested and the final E3 paired verification includes it.",
+  "inheritedCheckSha256": {
+    "../e2/cancellation_checks.py": "99f98c17afed5d1953303253882892d6d284f6b554988f40645c9c1e2f4002a7"
+  }
 }
