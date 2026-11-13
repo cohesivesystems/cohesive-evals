@@ -40,6 +40,11 @@ applications do not use the durable runtime.
 
 ## Checks and evidence
 
+The verifier and qualifier now delegate to the shared `../harness.py`; the old
+commands remain valid. `../verify.py --generation e1` and
+`../qualify.py --generation e1` select the same G1 profile. Generation-specific
+expectations and mutation definitions remain separate.
+
 `visible_checks.py` supplies five ordinary G1 examples. `checks.py` is an independent
 Python model of the published decision order, with read-only SQL observation of
 all business facts in each test world. Its 118 recorded commands include parsing,

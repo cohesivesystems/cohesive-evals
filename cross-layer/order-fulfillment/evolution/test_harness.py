@@ -1,0 +1,51 @@
+"""Shared profile selection and exact-parent snapshot regression checks."""
+import json
+from pathlib import Path
+import tempfile
+import unittest
+from harness import profile, selected_profiles, detected
+from snapshot import apply_delta
+
+
+class SharedHarnessTests(unittest.TestCase):
+    def test_cumulative_and_targeted_selection(self):
+        self.assertEqual([p['name'] for p in selected_profiles('e1')], ['e1'])
+        self.assertEqual([p['name'] for p in selected_profiles('e2')], ['e1', 'e2'])
+        self.assertEqual([p['name'] for p in selected_profiles('e2', True)], ['e2'])
+
+    def test_only_intended_behavioral_failure_earns_credit(self):
+        good = {'kind': 'behavioral', 'obligation': 'E2-02', 'assertion': 'cancelled fulfillment'}
+        self.assertTrue(detected(1, good, 'E2-02', 'cancelled fulfillment'))
+        for status, failure in [(0, good), (1, None), (1, {}),
+                                (1, {**good, 'kind': 'unqualified'}),
+                                (1, {**good, 'obligation': 'E1-02'}),
+                                (1, {**good, 'assertion': 'different failure'})]:
+            self.assertFalse(detected(status, failure, 'E2-02', 'cancelled fulfillment'))
+
+    def test_delta_rejects_parent_and_output_drift_without_writing_parent(self):
+        p = profile('e2')
+        root = Path(__file__).resolve().parent / 'e2/reference'
+        with tempfile.TemporaryDirectory() as directory:
+            directory = Path(directory)
+            refs = p['build'].previous.materialize(directory / 'g1')
+            folder = refs / 'conventional'
+            source = folder / 'src/Fulfillment.Application/Domain.cs'
+            original = source.read_bytes()
+            source.write_bytes(original + b'\n// drift\n')
+            with self.assertRaisesRegex(ValueError, 'Parent snapshot drift'):
+                apply_delta(folder, root / 'conventional.patch', root / 'conventional.json')
+            self.assertTrue(source.read_bytes().endswith(b'// drift\n'))
+            source.write_bytes(original)
+            hashes = json.loads((root / 'conventional.json').read_text())
+            hashes['src/Fulfillment.Application/Domain.cs']['after'] = 'wrong'
+            altered = directory / 'incorrect-output.json'
+            altered.write_text(json.dumps(hashes))
+            with self.assertRaisesRegex(ValueError, 'Delta output drift'):
+                apply_delta(folder, root / 'conventional.patch', altered)
+            self.assertEqual(source.read_bytes(), original)
+            apply_delta(folder, root / 'conventional.patch', root / 'conventional.json')
+            self.assertIn(b'OrderCancelled', source.read_bytes())
+
+
+if __name__ == '__main__':
+    unittest.main()

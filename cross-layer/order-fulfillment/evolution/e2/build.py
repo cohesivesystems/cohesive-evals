@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compose G2 from the preserved G1 references and complete E2 source overlays."""
+"""Compose G2 from the preserved G1 references and hash-checked E2 source deltas."""
 import argparse
 import importlib.util
 from pathlib import Path
@@ -15,15 +15,15 @@ def load(name, path):
     return module
 
 previous = load('e1_build', ROOT.parent / 'e1/build.py')
+snapshot = load('snapshot_delta', ROOT.parent / 'snapshot.py')
 build_tools = previous.build_tools
 
 def materialize(output):
     previous.materialize(output)
     for condition in ('conventional', 'cohesive'):
         folder = output / condition
-        for overlay in ('common', condition):
-            for path in (ROOT / 'reference' / overlay).glob('*.cs'):
-                shutil.copy2(path, folder / 'src/Fulfillment.Application' / path.name)
+        snapshot.apply_delta(folder, ROOT / 'reference' / f'{condition}.patch',
+                             ROOT / 'reference' / f'{condition}.json')
         shutil.copy2(ROOT / 'visible_checks.py', folder / 'tests/e2_checks.py')
         for name, text in previous.contracts.documents('G2').items():
             (folder / name).write_text(text)
