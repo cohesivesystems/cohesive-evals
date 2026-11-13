@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-13",
+  "revisions": {
+    "pinned": "b0af008d85871ad8866d7d4311707ecd926529de",
+    "mainInspected": "4d6d588357d701035c8a86715250dd897b00974d"
+  },
+  "runtimeTested": "pinned package only",
+  "packageSha256": "9fd5f2eb851d68188b960b990f1b87c74819c1b627487c8b83c551bd9a3094eb",
+  "sourceSha256": {
+    "pinned": {
+      "src/Cohesive/Model/ShapeConstraints.cs": "7035c4f5f00284b586a8cbac6f39c07e4c0225895211fef4238ecaf9367662a4",
+      "src/Cohesive/Model/FieldDefinition.cs": "28726d800bb9974fc4339a6f4474c3f193579a82cf9886ef4299d92721212da8",
+      "src/Cohesive/Model/Shape.cs": "0b9fb5e91b909d5645a1c17312ee7f77a78f31f540580011942f299da99b6866",
+      "src/Cohesive/Model/ObservationValidator.cs": "6159f4bc9dde9b5ff883cfd4964affa13c0b488472dc45041da1bd6ab40651b1",
+      "src/Cohesive/Model/ValueContract.cs": "8a1c8851416417004caca9d609cf89d27836179620274833ff64fe353ec73d49",
+      "src/Cohesive/Model/ClrShapeGraphBuilder.cs": "8208e114839be983d18f6a451fa07e3131ef199a9157931f34fb578f2e7e643c",
+      "src/Cohesive/Model/ClrShapeAttributeMetadataProvider.cs": "9e419c352eef80bffc5f62add1de4c48490383a05dc791ba46f4cf98ff415cdd",
+      "src/Cohesive/Model/ClrShapeMetadata.cs": "9a13c29d6a63be64b1ae7e3bb8771125d93e8a029ec15cef61f3e78fb224f2a1",
+      "src/Cohesive/Execution/PortableExecutionValidator.cs": "b9fa5da6009cbdfbfcb5560b449ecef7d404345a590d254197cdf60a823216d2",
+      "src/adapters/Cohesive.Adapters.AspNet/Processes/ProcessApiRequestSupport.cs": "6ad2a1a94fba08154cf1a026b4035ccb7a6fa77b965a2588d1317063a8eea5e7"
+    },
+    "mainInspected": {
+      "src/Cohesive/Model/ShapeConstraints.cs": "7035c4f5f00284b586a8cbac6f39c07e4c0225895211fef4238ecaf9367662a4",
+      "src/Cohesive/Model/FieldDefinition.cs": "28726d800bb9974fc4339a6f4474c3f193579a82cf9886ef4299d92721212da8",
+      "src/Cohesive/Model/Shape.cs": "0b9fb5e91b909d5645a1c17312ee7f77a78f31f540580011942f299da99b6866",
+      "src/Cohesive/Model/ObservationValidator.cs": "4daaa7d88b21ef084506d8b4cac62128d242a5f096b94bf7c35100a350a57c67",
+      "src/Cohesive/Model/ValueContract.cs": "8a1c8851416417004caca9d609cf89d27836179620274833ff64fe353ec73d49",
+      "src/Cohesive/Model/ClrShapeGraphBuilder.cs": "8208e114839be983d18f6a451fa07e3131ef199a9157931f34fb578f2e7e643c",
+      "src/Cohesive/Model/ClrShapeAttributeMetadataProvider.cs": "9e419c352eef80bffc5f62add1de4c48490383a05dc791ba46f4cf98ff415cdd",
+      "src/Cohesive/Model/ClrShapeMetadata.cs": "9a13c29d6a63be64b1ae7e3bb8771125d93e8a029ec15cef61f3e78fb224f2a1",
+      "src/Cohesive/Execution/PortableExecutionValidator.cs": "b9fa5da6009cbdfbfcb5560b449ecef7d404345a590d254197cdf60a823216d2",
+      "src/adapters/Cohesive.Adapters.AspNet/Processes/ProcessApiRequestSupport.cs": "6ad2a1a94fba08154cf1a026b4035ccb7a6fa77b965a2588d1317063a8eea5e7"
+    }
+  },
+  "witnessSha256": {
+    "Program.cs": "85eafad3c598e13a20018b5e26ecf4d91aa057f8418c0c947e2c201eef2709d5",
+    "ConstraintAudit.csproj": "f3de414af5ef55d82f965f4029061447ae2ca769fa04e3444d89395a4ef36b16",
+    "NuGet.config": "b84cbee3b2cd40608b27d5c39a2cd46fa203025f696ff78dd4fff30af75752a2",
+    "global.json": "30fdf1d1d5cfadd6447ab39d18cc5eec405cf1a5ec5b2e4b1d228a6fe757846d",
+    "packages.lock.json": "36bdd0394b00e1e8dc73b6580d301ae79b19cbd3a71170ba36b49f4f24e5580a",
+    "observed.json": "efe0c317e90f4d94e6d43b070b62a67f25ba4baed244e81c6b0b0b4dc5da4e58"
+  }
+}
