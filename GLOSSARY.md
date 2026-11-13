@@ -1,7 +1,6 @@
 # Evaluation glossary
 
-Quick reference aligned with the [Agent evaluation terminology wiki](https://app.notion.com/p/40c8cf7881f98098bc5de15b794ac26c)
-(reviewed 2026-11-12). Pilot-specific meanings are marked below; the
+Quick reference for this repository. Pilot-specific meanings are marked below; the
 [protocol](cross-layer/order-fulfillment/protocol.md) defines the actual rules.
 
 ## Shared terms
@@ -29,11 +28,11 @@ Quick reference aligned with the [Agent evaluation terminology wiki](https://app
 | Term | Meaning here |
 |---|---|
 | **Case / fixture** | The application scenario / its runnable code and setup. Order Fulfillment is our cross-layer case. |
-| **Baseline / G0** | **Starting application** before evolution. In the wiki, baseline means a reference condition; say “comparison baseline” when that is intended. Both conditions have a G0. |
+| **Baseline / G0** | **Starting application** before evolution. In experimental comparisons, baseline also means a reference condition; say “comparison baseline” when that is intended. Both conditions have a G0. |
 | **Evolution / E1–E3** | Successive changes: quantity limit, cancellation, quarantine. |
-| **Application checkpoint / G1–G3** | Saved application after an evolution step. E2 is the change; G2 is its resulting snapshot. Unlike the wiki's model checkpoint, this contains application code, not trained weights. |
+| **Application checkpoint / G1–G3** | Saved application after an evolution step. E2 is the change; G2 is its resulting snapshot. This contains application code, not trained weights as in a model checkpoint. |
 | **Age** | Scheduled evolution depth: fresh G0 versus aged G3. It does not imply that every earlier change succeeded. |
-| **Probe task / H or L** | A targeted coding task: H adds hold; L adds review marking. The wiki's probe is a narrower diagnostic test. Ours are complete tasks with multiple obligations, scored for full correctness. |
+| **Probe task / H or L** | A targeted coding task: H adds hold; L adds review marking. A diagnostic probe is a narrower test. Ours are complete tasks with multiple obligations, scored for full correctness. |
 | **Coupling** | Interaction with existing behavior. Hold affects lifecycle and fulfillment; review marking must remain informational. |
 | **Gold reference** | Maintainer-built, verified correct solution; used for controlled starting snapshots and test qualification, never supplied as the target answer. |
 | **Qualification** | Check that the evaluator accepts correct applications and detects deliberate defects for the intended reasons. |
