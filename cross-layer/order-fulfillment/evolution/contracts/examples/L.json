@@ -1,0 +1,142 @@
+[
+  {
+    "document": "schemas.json",
+    "schema": "Review",
+    "valid": [
+      {
+        "id": "o",
+        "marked": true
+      },
+      {
+        "id": "o",
+        "marked": false
+      }
+    ],
+    "invalid": [
+      {
+        "id": "o"
+      },
+      {
+        "id": "o",
+        "marked": null
+      },
+      {
+        "id": "o",
+        "marked": 0
+      }
+    ]
+  },
+  {
+    "document": "schemas.json",
+    "schema": "OrderSummary",
+    "valid": [
+      {
+        "id": "o",
+        "status": "Draft",
+        "reviewMarked": false
+      }
+    ],
+    "invalid": [
+      {
+        "id": "o",
+        "status": "Draft"
+      },
+      {
+        "id": "o",
+        "status": "Draft",
+        "reviewMarked": null
+      }
+    ]
+  },
+  {
+    "document": "schemas.json",
+    "schema": "OrderDetails",
+    "valid": [
+      {
+        "id": "o",
+        "status": "Draft",
+        "reservations": [],
+        "reviewMarked": true
+      }
+    ],
+    "invalid": [
+      {
+        "id": "o",
+        "status": "Draft",
+        "reservations": []
+      },
+      {
+        "id": "o",
+        "status": "Draft",
+        "reservations": [],
+        "reviewMarked": "true"
+      }
+    ]
+  },
+  {
+    "document": "seed.schema.json",
+    "schema": "",
+    "valid": [
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Draft"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10
+          }
+        ],
+        "reservations": [],
+        "reviews": [
+          {
+            "id": "o",
+            "marked": false
+          }
+        ]
+      }
+    ],
+    "invalid": [
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Draft"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10
+          }
+        ],
+        "reservations": [],
+        "reviews": null
+      },
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Draft"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10
+          }
+        ],
+        "reservations": [],
+        "reviews": [
+          {
+            "id": "o",
+            "marked": null
+          }
+        ]
+      }
+    ]
+  }
+]

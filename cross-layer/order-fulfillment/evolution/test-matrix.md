@@ -2,7 +2,7 @@
 
 Status: candidate maintainer plan, 2026-11-11. This matrix translates the
 [protocol v0.1](../protocol.md) into implementation and qualification work for
-[COH-130](https://linear.app/cohesive-ari/issue/COH-130). It does not freeze new
+[issue #8](https://github.com/cohesivesystems/cohesive-evals/issues/8). It does not freeze new
 requirements, claim unimplemented checks pass, or authorize agent runs.
 
 Keep this directory, reference implementations, hidden fixtures, mutation recipes,
@@ -92,7 +92,7 @@ from invariant worlds that require unique workflow-created reservations.
 
 | ID | Visible check | Hidden extension | Expected reference behavior | Deliberate defect / expected failure |
 |---|---|---|---|---|
-| H-01 | Draft→hold→hold→release→release; missing order; try both commands on Submitted. | At G3 test both commands on Cancelled; cancel OnHold; cycle holds repeatedly and inspect sentinels. | Hold/release are idempotent 200 summaries for their allowed states; missing 404; terminal states 409 unchanged. At G3 cancel OnHold is 409 `OrderNotCancellable`. Exact hold-command conflict codes await supplement freeze. | Release reopens Submitted/Cancelled; hold replaces terminal state → state-table assertion. |
+| H-01 | Draft→hold→hold→release→release; missing order; try both commands on Submitted. | At G3 test both commands on Cancelled; cancel OnHold; cycle holds repeatedly and inspect sentinels. | Hold/release are idempotent 200 summaries for their allowed states; missing 404; terminal states 409 unchanged. At G3 cancel OnHold is 409 `OrderNotCancellable`. Conflict codes: `OrderNotHoldable` / `OrderHoldNotReleasable` (shared supplement). | Release reopens Submitted/Cancelled; hold replaces terminal state → state-table assertion. |
 | H-02 | Direct submit OnHold returns 409 `OrderOnHold`; release then direct submit succeeds. | Repeated rejected submissions; compare inventory/reservations and both read views. | Held state and all business facts unchanged; released Draft uses existing submit behavior. | Guard only fulfillment, or generic direct-submit code → direct-entry assertion. |
 | H-03 | Valid fulfillment while held returns Rejected/`OrderOnHold`; held plus stock shortage returns `InsufficientStock`. | Missing SKU, invalid q, and at G3 Q/limit/shortage conflicts; compare fresh and aged lifecycle outcomes. | Hold is enforced at the lifecycle decision, never before earlier rules; Cancelled retains its distinct aged outcome. | Guard only direct submit; move hold ahead of stock rules → process-entry/precedence assertion. |
 | H-04 | Hold, fulfill with otherwise valid input, poll completion, compare stock and reservations. | Repeat with distinct request IDs and quantities; read physical rows; untouched order/SKU; then fulfill a different order using all stock. | No new reservation, no net stock change, order remains OnHold; no hidden leaks or duplicate rows. | Return `OrderOnHold` after decrement without release → outcome passes but preservation fails. |
@@ -169,25 +169,26 @@ checks can inspect such release behavior, but cannot count as a black-box pass
 for every participant or force a particular internal sequence. A new interleaving
 schedule or endpoint requires an openly revised contract and qualification.
 
-## Contract details to freeze before implementing scored assertions
+## Shared contracts before scored assertions
 
-The matrix is intentionally not a substitute for participant-visible supplements.
-Resolve these once, identically across conditions, and record them in the current
-contract/schema before exposing corresponding visible or hidden assertions.
+[Contract supplements and schema bundles](contracts/README.md) resolve the
+preparation gaps below. They specify target behavior; reference implementations
+and runtime checks still need to be written and qualified. Only active bundles
+enter participant workspaces. This is not the campaign release freeze.
 
-| Detail | Already specified | Remaining preparation |
-|---|---|---|
-| H command conflict bodies | Terminal states return 409 unchanged. | Freeze stable hold/release conflict-code spellings; do not silently invent codes in tests. |
-| New command parsing | E1 positive integer limit, nonpositive 400; missing SKU 404. | Exact required/null/type/extra-field schemas and priority when malformed configuration and unknown SKU coincide. Until resolved, use one failing precondition per test. |
-| E2 direct-submit body | 409 `OrderCancelled`; cancel conflicts use `OrderNotCancellable`. | Include exact success/read enums and all codes in both supplements/schemas. |
-| Seed compatibility | Common setup schema, no public setup route. | Version the seed schema per checkpoint/probe with defaults for M/Q/review; define allowed seeded states. Prefer public commands for reachable histories; do not introduce undisclosed migration requirements. |
-| Persistence | New facts are persistent; admission remains host-lifetime. | Specify any clean-restart fixture procedure separately from request-history assertions. No live schema-upgrade task is implied. |
-| Read limits after L | Existing endpoint row/byte limits remain applicable. | Generate exact boundaries from the current schema including `reviewMarked`, without changing the limits. |
+| Detail | Shared decision |
+|---|---|
+| H conflict codes | Hold: `OrderNotHoldable`; release: `OrderHoldNotReleasable`. |
+| New command parsing | Quantity-limit input is required positive int32; invalid body/value precedes missing SKU. Bodyless commands ignore bodies. |
+| E2 states/outcomes | Cancelled is terminal; direct submit `OrderCancelled`; cancel conflict `OrderNotCancellable`. |
+| Seed compatibility | Per-profile versioned schemas; neutral defaults for optional new facts; inactive fields excluded; no live migration. |
+| Persistence | Clean restart preserves settled business facts; host-lifetime request history need not survive. |
+| L read bounds | Rebuild exact byte fixtures with the current serializer/shape and both review-marker values; limits unchanged. |
 
 ## Qualification and delivery sequence
 
-1. Freeze the common participant-facing E1/E2/E3/H/L supplements and schemas,
-   resolving the details above. Only the current task and prior active material
+1. Review the common participant-facing E1/E2/E3/H/L supplements and schemas
+   in [contracts](contracts/README.md). Only the current task and prior active material
    enter a workspace; future supplements and sibling probes stay private.
 2. Build isolated gold G1, G2 and G3 in both conditions, retaining G0. Implement
    visible examples and hidden cumulative checks alongside each milestone.

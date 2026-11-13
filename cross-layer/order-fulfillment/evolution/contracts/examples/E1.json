@@ -1,0 +1,106 @@
+[
+  {
+    "document": "schemas.json",
+    "schema": "QuantityLimitRequest",
+    "valid": [
+      {
+        "maxPerOrder": 1
+      },
+      {
+        "maxPerOrder": 2147483647
+      },
+      {
+        "maxPerOrder": 1.0
+      },
+      {
+        "maxPerOrder": 2,
+        "ignored": null
+      }
+    ],
+    "invalid": [
+      {},
+      null,
+      [],
+      {
+        "maxPerOrder": null
+      },
+      {
+        "maxPerOrder": true
+      },
+      {
+        "maxPerOrder": "2"
+      },
+      {
+        "maxPerOrder": 0
+      },
+      {
+        "maxPerOrder": -1
+      },
+      {
+        "maxPerOrder": 1.5
+      },
+      {
+        "maxPerOrder": 2147483648
+      },
+      {
+        "MaxPerOrder": 2
+      }
+    ]
+  },
+  {
+    "document": "schemas.json",
+    "schema": "Completion",
+    "valid": [
+      {
+        "status": "Rejected",
+        "outcome": "QuantityLimitExceeded"
+      }
+    ],
+    "invalid": [
+      {
+        "status": "Submitted",
+        "outcome": "QuantityLimitExceeded"
+      }
+    ]
+  },
+  {
+    "document": "seed.schema.json",
+    "schema": "",
+    "valid": [
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Draft"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10,
+            "maxPerOrder": 2
+          }
+        ],
+        "reservations": []
+      }
+    ],
+    "invalid": [
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Draft"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10,
+            "maxPerOrder": null
+          }
+        ],
+        "reservations": []
+      }
+    ]
+  }
+]

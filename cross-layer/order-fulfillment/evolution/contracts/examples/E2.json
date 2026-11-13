@@ -1,0 +1,73 @@
+[
+  {
+    "document": "schemas.json",
+    "schema": "Completion",
+    "valid": [
+      {
+        "status": "Rejected",
+        "outcome": "OrderCancelled"
+      }
+    ],
+    "invalid": [
+      {
+        "status": "Cancelled",
+        "outcome": "OrderCancelled"
+      }
+    ]
+  },
+  {
+    "document": "schemas.json",
+    "schema": "Conflict",
+    "valid": [
+      {
+        "code": "OrderCancelled"
+      },
+      {
+        "code": "OrderNotCancellable"
+      }
+    ],
+    "invalid": [
+      {
+        "code": "Cancelled"
+      }
+    ]
+  },
+  {
+    "document": "seed.schema.json",
+    "schema": "",
+    "valid": [
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Cancelled"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10
+          }
+        ],
+        "reservations": []
+      }
+    ],
+    "invalid": [
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Canceled"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10
+          }
+        ],
+        "reservations": []
+      }
+    ]
+  }
+]

@@ -1,0 +1,76 @@
+[
+  {
+    "document": "schemas.json",
+    "schema": "Completion",
+    "valid": [
+      {
+        "status": "Rejected",
+        "outcome": "OrderOnHold"
+      }
+    ],
+    "invalid": [
+      {
+        "status": "OnHold",
+        "outcome": "OrderOnHold"
+      }
+    ]
+  },
+  {
+    "document": "schemas.json",
+    "schema": "Conflict",
+    "valid": [
+      {
+        "code": "OrderOnHold"
+      },
+      {
+        "code": "OrderNotHoldable"
+      },
+      {
+        "code": "OrderHoldNotReleasable"
+      }
+    ],
+    "invalid": [
+      {
+        "code": "OnHold"
+      }
+    ]
+  },
+  {
+    "document": "seed.schema.json",
+    "schema": "",
+    "valid": [
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "OnHold"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10
+          }
+        ],
+        "reservations": []
+      }
+    ],
+    "invalid": [
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Held"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10
+          }
+        ],
+        "reservations": []
+      }
+    ]
+  }
+]

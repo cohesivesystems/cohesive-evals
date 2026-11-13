@@ -1,0 +1,75 @@
+[
+  {
+    "document": "schemas.json",
+    "schema": "Completion",
+    "valid": [
+      {
+        "status": "Rejected",
+        "outcome": "InventoryQuarantined"
+      }
+    ],
+    "invalid": [
+      {
+        "status": "Submitted",
+        "outcome": "InventoryQuarantined"
+      }
+    ]
+  },
+  {
+    "document": "seed.schema.json",
+    "schema": "",
+    "valid": [
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Draft"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10,
+            "quarantined": true,
+            "maxPerOrder": 3
+          }
+        ],
+        "reservations": []
+      }
+    ],
+    "invalid": [
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Draft"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10,
+            "quarantined": null
+          }
+        ],
+        "reservations": []
+      },
+      {
+        "orders": [
+          {
+            "id": "o",
+            "status": "Draft"
+          }
+        ],
+        "inventory": [
+          {
+            "sku": "s",
+            "available": 10,
+            "quarantined": "false"
+          }
+        ],
+        "reservations": []
+      }
+    ]
+  }
+]

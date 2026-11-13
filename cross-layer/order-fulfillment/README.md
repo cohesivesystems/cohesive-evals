@@ -71,5 +71,7 @@ regression checks. All of this material remains outside participant G0 fixtures.
 The maintainer-only [milestone-to-test matrix](evolution/test-matrix.md) maps
 G0–G3 and the independent fresh/aged H/L probes to visible examples, hidden
 checks, reference behavior and deliberate defects. It also records contract
-freeze gaps and the implementation/qualification sequence. It is a preparation
+decisions and the implementation/qualification sequence. The shared
+[contract bundle generator](evolution/contracts/README.md) provides active-only
+public supplements, wire/seed schemas and examples for both conditions. It is a preparation
 plan; evolved references and cumulative oracle qualification remain outstanding.

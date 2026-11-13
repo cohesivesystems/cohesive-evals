@@ -1,0 +1,183 @@
+{
+  "checkpoints": {
+    "G0": [],
+    "G1": [
+      "E1"
+    ],
+    "G2": [
+      "E1",
+      "E2"
+    ],
+    "G3": [
+      "E1",
+      "E2",
+      "E3"
+    ]
+  },
+  "probes": {
+    "H": [
+      "G0",
+      "G3"
+    ],
+    "L": [
+      "G0",
+      "G3"
+    ]
+  },
+  "features": {
+    "E1": {
+      "properties": {
+        "Inventory": {
+          "maxPerOrder": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        }
+      },
+      "definitions": {
+        "QuantityLimitRequest": {
+          "type": "object",
+          "properties": {
+            "maxPerOrder": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          },
+          "required": [
+            "maxPerOrder"
+          ],
+          "additionalProperties": true
+        }
+      },
+      "outcomes": [
+        "QuantityLimitExceeded"
+      ],
+      "inventoryDefaults": {
+        "maxPerOrder": 2147483647
+      }
+    },
+    "E2": {
+      "statuses": [
+        "Cancelled"
+      ],
+      "outcomes": [
+        "OrderCancelled"
+      ],
+      "conflicts": [
+        "OrderCancelled",
+        "OrderNotCancellable"
+      ]
+    },
+    "E3": {
+      "properties": {
+        "Inventory": {
+          "quarantined": {
+            "type": "boolean"
+          }
+        }
+      },
+      "outcomes": [
+        "InventoryQuarantined"
+      ],
+      "inventoryDefaults": {
+        "quarantined": false
+      }
+    },
+    "H": {
+      "statuses": [
+        "OnHold"
+      ],
+      "outcomes": [
+        "OrderOnHold"
+      ],
+      "conflicts": [
+        "OrderOnHold",
+        "OrderNotHoldable",
+        "OrderHoldNotReleasable"
+      ]
+    },
+    "L": {
+      "properties": {
+        "OrderSummary": {
+          "reviewMarked": {
+            "type": "boolean"
+          }
+        },
+        "OrderDetails": {
+          "reviewMarked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "definitions": {
+        "Review": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "marked": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "id",
+            "marked"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "seedResources": {
+        "reviews": {
+          "definition": "Review",
+          "default": []
+        }
+      },
+      "setupText": "Optional `reviews` defaults to []; each entry is `{id,marked}` referencing\nan existing order, with at most one entry per order. Missing records mean\nfalse; explicit null is invalid.\n",
+      "persistenceText": " and review state"
+    }
+  },
+  "precedence": [
+    {
+      "rule": "OrderMissing"
+    },
+    {
+      "rule": "existing reservation match/conflict"
+    },
+    {
+      "rule": "InventoryMissing"
+    },
+    {
+      "rule": "InvalidQuantity"
+    },
+    {
+      "rule": "InventoryQuarantined",
+      "feature": "E3"
+    },
+    {
+      "rule": "QuantityLimitExceeded",
+      "feature": "E1"
+    },
+    {
+      "rule": "InsufficientStock"
+    },
+    {
+      "rule": "OrderOnHold",
+      "feature": "H"
+    },
+    {
+      "rule": "OrderCancelled",
+      "feature": "E2"
+    },
+    {
+      "rule": "OrderRejected for any other non-Draft state"
+    },
+    {
+      "rule": "ReservedAndSubmitted"
+    }
+  ]
+}
