@@ -1,0 +1,30 @@
+{
+  "src/Fulfillment.Application/Contracts.cs": {
+    "before": "4343aecd8e2da3d1e31c261bbeb8734fef8e18a20137bbcceeaada81fe97c47a",
+    "after": "67e1680d0d6605c6afbef441d8ab7a7cef28e5c295b1461828d367e3786b9781"
+  },
+  "src/Fulfillment.Application/Domain.cs": {
+    "before": "2d9e76f6f5f7ea02068a98a87b88cc5db0cb3995faa8b92feef7bc5f66487792",
+    "after": "bffb92b77caa0f3ba69cd0f60c61dec53863553738f1512fa46d078819863c2d"
+  },
+  "src/Fulfillment.Application/FulfillmentBackend.cs": {
+    "before": "4dfbfc1e0d59e7bac6a01ab450aff765ab1e40fd08d4733800e8110a1651b44f",
+    "after": "b8853cd39deb8a4e68f685e4266eed02526d3a9c69e196051869cffc0a409ee3"
+  },
+  "src/Fulfillment.Application/FulfillmentResults.cs": {
+    "before": "0b19fbd0dee645599c3f7c1132f1f1bd21b0518182958417a34fea83f7f8bf98",
+    "after": "3c5b2151c1b48c3c042aaf15b45906c26cf33302107c5a6e94a0904e44abf07e"
+  },
+  "src/Fulfillment.Application/OrderStore.cs": {
+    "before": "e285854e8d5e26dafaee54ea30be46306f3a81a8e660137c792c310ffe3acc73",
+    "after": "f74698ddede60c31919c4c5658fa29f9563806d68034975334dd5be9d4fb917e"
+  },
+  "src/Fulfillment.Application/Program.cs": {
+    "before": "7fe8a5afc39869148add2b9bbddf24e62e4867dd1febeff5cd68f2eeb589e0b6",
+    "after": "fc9d14a0ec29adadcd339df21be9b1e93ec86df222b66bb943eeef41f5012b42"
+  },
+  "src/Fulfillment.Application/Seeding.cs": {
+    "before": "9461a48159721cbedae6a76f44f8efba9118d85a1ea7595446dbd7591c9b8ed9",
+    "after": "cfdb86125dd96736d9ddaca361c66e64e0161a3b7d6f0d38370326bb57fd806d"
+  }
+}

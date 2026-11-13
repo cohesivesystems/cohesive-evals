@@ -1,0 +1,4 @@
+{
+  "checks": "cancellation_checks.py",
+  "inventoryFields": {}
+}

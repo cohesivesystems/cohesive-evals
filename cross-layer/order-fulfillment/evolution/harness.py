@@ -18,7 +18,8 @@ import uuid
 
 ROOT = Path(__file__).resolve().parent
 CASE = ROOT.parent
-GENERATIONS = ('e1', 'e2')
+GENERATIONS = ('e1', 'e2', 'e3')
+PROFILE_CONFIG = {name: json.loads((ROOT / name / 'profile.json').read_text()) for name in GENERATIONS}
 CONDITIONS = ('conventional', 'cohesive')
 IMAGE = 'postgres:17.10-alpine3.24'
 
@@ -32,7 +33,7 @@ def load(name, path):
 
 def profile(generation):
     folder = ROOT / generation
-    checks_file = 'checks.py' if generation == 'e1' else 'cancellation_checks.py'
+    checks_file = PROFILE_CONFIG[generation]['checks']
     return {
         'name': generation,
         'build': load(generation + '_build', folder / 'build.py'),
@@ -82,7 +83,7 @@ def start(executable, folder, env, log, ready_path):
         raise
 
 
-def observe(container, condition, generation):
+def observe(container, condition, generation, target_generation=None):
     # Identifiers and scope are selected from trusted profile constants, never request data.
     assert generation in GENERATIONS
     tables = {
@@ -91,11 +92,60 @@ def observe(container, condition, generation):
     }
     order, order_id, inventory, reservation, reservation_id = tables[condition]
     prefix = generation + '-%'
+    target_generation = target_generation or generation
+    additions = inventory_fields(target_generation)
+    columns = ''.join(f',"{field["column"]}" AS "{name}"' for name, field in additions.items())
     sql = f'''SELECT json_build_object(
       'orders',(SELECT coalesce(json_agg(x),'[]') FROM (SELECT {order_id} AS id,status FROM {order} WHERE {order_id} LIKE '{prefix}') x),
-      'inventory',(SELECT coalesce(json_agg(x),'[]') FROM (SELECT sku,available,max_per_order AS "maxPerOrder" FROM {inventory} WHERE sku LIKE '{prefix}') x),
+      'inventory',(SELECT coalesce(json_agg(x),'[]') FROM (SELECT sku,available{columns} FROM {inventory} WHERE sku LIKE '{prefix}') x),
       'reservations',(SELECT coalesce(json_agg(x),'[]') FROM (SELECT {reservation_id} AS id,order_id AS "orderId",sku,quantity FROM {reservation} WHERE order_id LIKE '{prefix}') x));'''
-    return json.loads(run('docker', 'exec', container, 'psql', '-U', 'postgres', '-d', condition, '-At', '-c', sql))
+    facts = json.loads(run('docker', 'exec', container, 'psql', '-U', 'postgres', '-d', condition, '-At', '-c', sql))
+    hidden = newer_inventory_fields(target_generation, generation)
+    facts['inventory'] = [adapt_inventory(item, hidden) for item in facts['inventory']]
+    return facts
+
+
+def inventory_fields(generation):
+    """Cumulative observation fields declared by independent verifier profiles."""
+    fields = {}
+    if generation is not None:
+        for name in GENERATIONS[:GENERATIONS.index(generation) + 1]:
+            additions = PROFILE_CONFIG[name]['inventoryFields']
+            if fields.keys() & additions.keys():
+                raise ValueError('An inventory field must have one introducing profile')
+            fields.update(additions)
+    return fields
+
+
+def newer_inventory_fields(target_generation, consumer_generation=None):
+    visible = inventory_fields(consumer_generation)
+    return {name: field for name, field in inventory_fields(target_generation).items() if name not in visible}
+
+
+def adapt_inventory(item, hidden):
+    # Older worlds never issue the newer commands. Validate their neutral values
+    # and exact JSON types before projecting to those worlds' unchanged expectations.
+    for name, field in hidden.items():
+        value = item.get(name)
+        neutral = field['neutral']
+        if name not in item or type(value) is not type(neutral) or value != neutral:
+            raise AssertionError(('new inventory field default/preservation', name, item))
+    return {name: value for name, value in item.items() if name not in hidden}
+
+
+def consumer_client(Client, target_generation, consumer_generation=None):
+    hidden = newer_inventory_fields(target_generation, consumer_generation)
+    if not hidden:
+        return Client
+
+    class ProfileClient(Client):
+        def request(self, method, path, body=None, raw=None):
+            status, value = super().request(method, path, body, raw)
+            if status == 200 and path.startswith('/inventory/') and isinstance(value, dict):
+                value = adapt_inventory(value, hidden)
+            return status, value
+
+    return ProfileClient
 
 
 def matching_artifacts(fixtures, profiles):
@@ -115,13 +165,8 @@ def verify(args):
     base = load('baseline_http', CASE / 'conditions/conventional/tests/contract_tests.py')
     Client = base.Client
 
-    class InventoryClient(Client):
-        def expect(self, label, method, path, status, body=None, expected=None, raw=None):
-            if path.startswith('/inventory/') and isinstance(expected, dict) and 'maxPerOrder' not in expected:
-                expected = {**expected, 'maxPerOrder': 2147483647}
-            return super().expect(label, method, path, status, body, expected, raw)
-
-    base.Client = InventoryClient
+    BaselineClient = consumer_client(Client, args.generation)
+    base.Client = BaselineClient
     invariants = load('baseline_invariants', CASE / 'verification/invariants.py')
     name = 'evolution-' + uuid.uuid4().hex[:12]
     started = False
@@ -169,14 +214,15 @@ def verify(args):
                 try:
                     if not args.only_generation:
                         observations['baseline'] = base.exercise(url)
-                        observations['invariants'] = invariants.exercise(Client, url,
+                        observations['invariants'] = invariants.exercise(BaselineClient, url,
                             lambda seed: invariants.observe(run, name, condition, seed), output)
                     for p in profiles:
                         generation = p['name']
+                        ProfileClient = consumer_client(Client, args.generation, generation)
                         if not args.only_generation:
-                            observations['visible' + generation.upper()] = p['visible'].exercise(Client, url)
-                        checker = p['checks'].Checks(Client, url,
-                            lambda g=generation: observe(name, condition, g), output)
+                            observations['visible' + generation.upper()] = p['visible'].exercise(ProfileClient, url)
+                        checker = p['checks'].Checks(ProfileClient, url,
+                            lambda g=generation: observe(name, condition, g, args.generation), output)
                         observations[generation] = checker.run()
                         checkers.append((generation, checker))
                 finally:
@@ -184,7 +230,8 @@ def verify(args):
                 process, url = start(executable, folder, env, log, ready_path)
                 try:
                     for generation, checker in checkers:
-                        checker.c = Client(url)
+                        ProfileClient = consumer_client(Client, args.generation, generation)
+                        checker.c = ProfileClient(url)
                         checker.after_restart()
                         observations[generation]['commands'] = len(checker.trace)
                         observations[generation]['cleanRestartVerified'] = True

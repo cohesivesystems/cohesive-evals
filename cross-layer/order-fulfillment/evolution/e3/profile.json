@@ -1,0 +1,9 @@
+{
+  "checks": "quarantine_checks.py",
+  "inventoryFields": {
+    "quarantined": {
+      "column": "quarantined",
+      "neutral": false
+    }
+  }
+}

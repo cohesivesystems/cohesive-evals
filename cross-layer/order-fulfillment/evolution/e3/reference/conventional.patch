@@ -1,0 +1,155 @@
+--- a/src/Fulfillment.Application/Contracts.cs
++++ b/src/Fulfillment.Application/Contracts.cs
+@@ -5,7 +5,7 @@
+ public sealed record ReservationView(string Id, string Sku, int Quantity, int AvailableStock);
+ public sealed record OrderDetailsView(string Id, string Status, IReadOnlyList<ReservationView> Reservations);
+ public sealed record AvailabilityView(string ReservationId, string Sku, int Quantity, int AvailableStock);
+-public sealed record InventoryView(string Sku, int Available, int MaxPerOrder);
++public sealed record InventoryView(string Sku, int Available, int MaxPerOrder, bool Quarantined);
+ public sealed record FulfillmentRequest(string RequestId, string OrderId, string Sku, int Quantity);
+ public sealed record Completion(string Status, string Outcome);
+ public sealed record Admission(string OperationId, string ResultUrl);
+@@ -23,10 +23,11 @@
+     void MapSubmit(WebApplication app);
+     void MapCancel(WebApplication app);
+     void MapInventoryLimits(WebApplication app);
++    void MapQuarantine(WebApplication app);
+ }
+ 
+ public sealed record SeedOrder(string Id, string Status);
+-public sealed record SeedInventory(string Sku, int Available, int MaxPerOrder = int.MaxValue);
++public sealed record SeedInventory(string Sku, int Available, int MaxPerOrder = int.MaxValue, bool Quarantined = false);
+ public sealed record SeedReservation(string Id, string OrderId, string Sku, int Quantity);
+ public sealed record SeedData(SeedOrder[] Orders, SeedInventory[] Inventory, SeedReservation[] Reservations)
+ {
+--- a/src/Fulfillment.Application/Domain.cs
++++ b/src/Fulfillment.Application/Domain.cs
+@@ -2,11 +2,11 @@
+ 
+ public enum OrderStatus { Draft, Submitted, Cancelled }
+ public sealed record Order(string Id, OrderStatus Status);
+-public sealed record InventoryItem(string Sku, int Available, int MaxPerOrder = int.MaxValue);
++public sealed record InventoryItem(string Sku, int Available, int MaxPerOrder = int.MaxValue, bool Quarantined = false);
+ public sealed record Reservation(string Id, string OrderId, string Sku, int Quantity);
+ public enum SubmissionOutcome { Submitted, NotDraft, OrderCancelled }
+ public enum CancellationOutcome { Cancelled, NotCancellable }
+-public enum StockOutcome { Reserved, Released, InvalidQuantity, QuantityLimitExceeded, InsufficientStock }
++public enum StockOutcome { Reserved, Released, InvalidQuantity, InventoryQuarantined, QuantityLimitExceeded, InsufficientStock }
+ 
+ public static class OrderRules
+ {
+@@ -25,6 +25,7 @@
+ {
+     public static (InventoryItem State, StockOutcome Outcome) Reserve(InventoryItem item, int quantity) =>
+         quantity <= 0 ? (item, StockOutcome.InvalidQuantity)
++        : item.Quarantined ? (item, StockOutcome.InventoryQuarantined)
+         : quantity > item.MaxPerOrder ? (item, StockOutcome.QuantityLimitExceeded)
+         : item.Available < quantity ? (item, StockOutcome.InsufficientStock)
+         : (item with { Available = item.Available - quantity }, StockOutcome.Reserved);
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -8,10 +8,17 @@
+     public Task Initialize() => store.Initialize();
+     public Task<OrderCreated> CreateOrder() => store.Create();
+     public async Task<OrderSummary?> GetOrder(string id) => await store.Order(id) is { } order ? new(order.Id, order.Status.ToString()) : null;
+-    public async Task<InventoryView?> GetInventory(string sku) => await store.Inventory(sku) is { } item ? new(item.Sku, item.Available, item.MaxPerOrder) : null;
++    public async Task<InventoryView?> GetInventory(string sku) => await store.Inventory(sku) is { } item ? new(item.Sku, item.Available, item.MaxPerOrder, item.Quarantined) : null;
+     public void MapInventoryLimits(WebApplication app) => app.MapPut("/inventory/{sku}/quantity-limit", async (string sku, HttpContext context) =>
+         await store.SetLimit(sku, QuantityLimitInput.Get(context).MaxPerOrder) is { } item
+             ? Results.Ok(item) : Results.NotFound()).AddEndpointFilter<QuantityLimitInput>();
++    public void MapQuarantine(WebApplication app)
++    {
++        app.MapPost("/inventory/{sku}/quarantine", async (string sku) =>
++            await store.SetQuarantine(sku, true) is { } item ? Results.Ok(item) : Results.NotFound());
++        app.MapPost("/inventory/{sku}/clear-quarantine", async (string sku) =>
++            await store.SetQuarantine(sku, false) is { } item ? Results.Ok(item) : Results.NotFound());
++    }
+     public Task<OrderDetailsView?> GetDetails(string id) => store.Details(id);
+     public void MapSubmit(WebApplication app) => app.MapPost("/orders/{id}/submit", async (string id) =>
+         await store.Submit(id) switch
+--- a/src/Fulfillment.Application/FulfillmentResults.cs
++++ b/src/Fulfillment.Application/FulfillmentResults.cs
+@@ -6,6 +6,7 @@
+     public static Completion FromStock(StockOutcome outcome) => new("Rejected", outcome switch
+     {
+         StockOutcome.InvalidQuantity => "InvalidQuantity",
++        StockOutcome.InventoryQuarantined => "InventoryQuarantined",
+         StockOutcome.QuantityLimitExceeded => "QuantityLimitExceeded",
+         StockOutcome.InsufficientStock => "InsufficientStock",
+         _ => throw new InvalidOperationException("Unexpected stock rejection.")
+--- a/src/Fulfillment.Application/OrderStore.cs
++++ b/src/Fulfillment.Application/OrderStore.cs
+@@ -9,7 +9,7 @@
+     {
+         await using var command = database.CreateCommand("""
+             CREATE TABLE IF NOT EXISTS orders(id text COLLATE "C" PRIMARY KEY, status text NOT NULL CHECK(status IN ('Draft','Submitted','Cancelled')));
+-            CREATE TABLE IF NOT EXISTS inventory(sku text COLLATE "C" PRIMARY KEY, available integer NOT NULL CHECK(available >= 0), max_per_order integer NOT NULL DEFAULT 2147483647 CHECK(max_per_order > 0));
++            CREATE TABLE IF NOT EXISTS inventory(sku text COLLATE "C" PRIMARY KEY, available integer NOT NULL CHECK(available >= 0), max_per_order integer NOT NULL DEFAULT 2147483647 CHECK(max_per_order > 0), quarantined boolean NOT NULL DEFAULT false);
+             CREATE TABLE IF NOT EXISTS reservations(id text COLLATE "C" PRIMARY KEY, order_id text COLLATE "C" NOT NULL REFERENCES orders(id),
+                 sku text COLLATE "C" NOT NULL REFERENCES inventory(sku), quantity integer NOT NULL CHECK(quantity > 0));
+             CREATE TABLE IF NOT EXISTS operation_receipts(operation_key text COLLATE "C" PRIMARY KEY, input text NOT NULL, result jsonb NOT NULL);
+@@ -31,17 +31,25 @@
+     }
+     public async Task<InventoryItem?> Inventory(string sku)
+     {
+-        await using var command = database.CreateCommand("SELECT sku,available,max_per_order FROM inventory WHERE sku=$1");
++        await using var command = database.CreateCommand("SELECT sku,available,max_per_order,quarantined FROM inventory WHERE sku=$1");
+         command.Parameters.AddWithValue(sku); await using var reader = await command.ExecuteReaderAsync();
+-        return await reader.ReadAsync() ? new(reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2)) : null;
++        return await reader.ReadAsync() ? new(reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), reader.GetBoolean(3)) : null;
+     }
+     public async Task<InventoryView?> SetLimit(string sku, int maxPerOrder)
+     {
+         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxPerOrder);
+-        await using var command = database.CreateCommand("UPDATE inventory SET max_per_order=$2 WHERE sku=$1 RETURNING sku,available,max_per_order");
++        await using var command = database.CreateCommand("UPDATE inventory SET max_per_order=$2 WHERE sku=$1 RETURNING sku,available,max_per_order,quarantined");
+         command.Parameters.AddWithValue(sku); command.Parameters.AddWithValue(maxPerOrder);
+         await using var reader = await command.ExecuteReaderAsync();
+-        return await reader.ReadAsync() ? new(reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2)) : null;
++        return await reader.ReadAsync() ? new(reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), reader.GetBoolean(3)) : null;
++    }
++    public async Task<InventoryView?> SetQuarantine(string sku, bool quarantined)
++    {
++        await using var command = database.CreateCommand("UPDATE inventory SET quarantined=$2 WHERE sku=$1 RETURNING sku,available,max_per_order,quarantined");
++        command.Parameters.AddWithValue(sku);
++        command.Parameters.AddWithValue(quarantined);
++        await using var reader = await command.ExecuteReaderAsync();
++        return await reader.ReadAsync() ? new(reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), reader.GetBoolean(3)) : null;
+     }
+     public async Task<Reservation?> Reservation(string id)
+     {
+@@ -130,11 +138,11 @@
+         Step(key, JsonSerializer.Serialize(new { sku, quantity, release }), async (connection, transaction) =>
+     {
+         InventoryItem item;
+-        await using (var command = new NpgsqlCommand("SELECT available,max_per_order FROM inventory WHERE sku=$1 FOR UPDATE", connection, transaction))
++        await using (var command = new NpgsqlCommand("SELECT available,max_per_order,quarantined FROM inventory WHERE sku=$1 FOR UPDATE", connection, transaction))
+         {
+             command.Parameters.AddWithValue(sku); await using var reader = await command.ExecuteReaderAsync();
+             if (!await reader.ReadAsync()) throw new InvalidOperationException("Inventory disappeared.");
+-            item = new(sku, reader.GetInt32(0), reader.GetInt32(1));
++            item = new(sku, reader.GetInt32(0), reader.GetInt32(1), reader.GetBoolean(2));
+         }
+         var (state, outcome) = release ? (InventoryRules.Release(item, quantity), StockOutcome.Released) : InventoryRules.Reserve(item, quantity);
+         if (state != item)
+--- a/src/Fulfillment.Application/Program.cs
++++ b/src/Fulfillment.Application/Program.cs
+@@ -52,4 +52,5 @@
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapSubmit(app);
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapInventoryLimits(app);
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapCancel(app);
++app.Services.GetRequiredService<IFulfillmentBackend>().MapQuarantine(app);
+ await app.RunAsync();
+--- a/src/Fulfillment.Application/Seeding.cs
++++ b/src/Fulfillment.Application/Seeding.cs
+@@ -14,8 +14,8 @@
+         }
+         foreach (var item in data.Inventory)
+         {
+-            await using var command = new NpgsqlCommand("INSERT INTO inventory(sku,available,max_per_order) VALUES($1,$2,$3)", connection, transaction);
+-            command.Parameters.AddWithValue(item.Sku); command.Parameters.AddWithValue(item.Available); command.Parameters.AddWithValue(item.MaxPerOrder); await command.ExecuteNonQueryAsync();
++            await using var command = new NpgsqlCommand("INSERT INTO inventory(sku,available,max_per_order,quarantined) VALUES($1,$2,$3,$4)", connection, transaction);
++            command.Parameters.AddWithValue(item.Sku); command.Parameters.AddWithValue(item.Available); command.Parameters.AddWithValue(item.MaxPerOrder); command.Parameters.AddWithValue(item.Quarantined); await command.ExecuteNonQueryAsync();
+         }
+         foreach (var reservation in data.Reservations)
+         {

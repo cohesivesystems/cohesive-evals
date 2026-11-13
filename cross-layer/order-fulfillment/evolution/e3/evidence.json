@@ -1,0 +1,245 @@
+{
+  "date": "2026-11-12",
+  "parentCommit": "8c37358b7ec204f2baa843f3a68f50418916a65b",
+  "scope": "Sequential settled G3 behavior; no live migration, concurrency, crash recovery or campaign admission",
+  "pythonVersion": "3.9.6",
+  "postgresImage": "postgres:17.10-alpine3.24",
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "verifierReportSha256": "5c78a88b1c45fe2c7c248942d401d5be19094d35a6be2c3004ff0aa3699b9aa1",
+  "qualificationReportSha256": "b1cb4242e2efb882ffa0554f9f9d4e95e6d8c029cd3c7f109bea5151a4e2728c",
+  "sourceSha256": {
+    "build.py": "0be4e56419dd1d0e33045743e17b82742058d177663ac3e8b46a9fc178f46e8e",
+    "mutations.py": "170ee281f73fe4bdf1e6bb3769e57b43972a9cf0561b7a768d4d0fec511e47ee",
+    "quarantine_checks.py": "b8003e36c390256f4097601c93f2c8df08029cbdac6cbdc37604803919a13498",
+    "reference/cohesive.json": "ab5a3564832f62dcd60f83fa223908607a9da3c9366b5e9592069af0025fd127",
+    "reference/cohesive.patch": "f9bb832b464b7fa228178b3b2bdf6f10acd1936c2f3ec5c246bf11db3c4cda04",
+    "reference/conventional.json": "20b289874377b31bcd452feb919ecfca3cec9c516f5ee1c9ed5ce19ad414b545",
+    "reference/conventional.patch": "cc5f2be7fb8293332cdd8f7c4500945d8bd68df3187e52f47ef1fba34ef5c331",
+    "visible_checks.py": "9a1c49fb3e86b6407adf022a69e0a96c1dc63d0434a78b5a08c0d747a0f49295",
+    "profile.json": "9b3eeb7c8c2bfe5b7eaa72ef16b36b4c22a1e2784136d6bd99d7020f70801934"
+  },
+  "sharedHarnessSha256": {
+    "harness.py": "265b252c6c6d8fd4c382b481c9ed9d7110b8dd275f846f0c7ed8135fd56200db",
+    "snapshot.py": "98fa02a2b2e42b523b32760dfab73fd75b4fe2bbf843e6753fc54e49d9f9a17d",
+    "verify.py": "75caf256c84af2ec358daad7dfb0679f6a0bab4c67d0911c51814f4f139a8b47",
+    "qualify.py": "c142454afc1962e8f94749fd1594731bdb10d6c6077cd2d0c6451b94e5b7d027",
+    "test_harness.py": "fcdf39d367b2407098b1339719f74c32ae28d5821ed7e66ce33f69e3c194e80e"
+  },
+  "conditions": {
+    "conventional": {
+      "passed": true,
+      "baselineHttpChecks": 52,
+      "baselineInvariantCommands": 180,
+      "modelCommands": {
+        "e1": 118,
+        "e2": 92,
+        "e3": 95
+      },
+      "visibleExamples": {
+        "e1": 5,
+        "e2": 5,
+        "e3": 5
+      },
+      "cleanRestartVerified": true,
+      "buildManifestSha256": "f9774d1194b415b0dc491f819b04d9784b964eb10c5c33a45a9c178d63e5b524"
+    },
+    "cohesive": {
+      "passed": true,
+      "baselineHttpChecks": 52,
+      "baselineInvariantCommands": 180,
+      "modelCommands": {
+        "e1": 118,
+        "e2": 92,
+        "e3": 95
+      },
+      "visibleExamples": {
+        "e1": 5,
+        "e2": 5,
+        "e3": 5
+      },
+      "cleanRestartVerified": true,
+      "buildManifestSha256": "f30517fc09ef924a46e94a96cd41921ec860d6f6420370807fd345f17cc0419b"
+    }
+  },
+  "qualification": {
+    "passed": true,
+    "generation": "e3",
+    "cases": [
+      {
+        "condition": "conventional",
+        "case": "known-good",
+        "passed": true,
+        "obligation": null,
+        "assertion": null,
+        "buildManifestSha256": "0ff163cd6f54c4974ff065b440883eaf4a2aa7f84b0cb9b69c0acd2a5e549cd3"
+      },
+      {
+        "condition": "conventional",
+        "case": "wrong-default",
+        "passed": true,
+        "obligation": "E3-01",
+        "assertion": "seed/default/read",
+        "buildManifestSha256": "a9708be2078fb49cbf396d9d90ea3e5d5f55e252ab6fba33519326617db988e9"
+      },
+      {
+        "condition": "conventional",
+        "case": "lost-replay",
+        "passed": true,
+        "obligation": "E3-03",
+        "assertion": "retained admission",
+        "buildManifestSha256": "d17dc4725ba229b3eeb446e1944993aa9685cd9b0c9140d49c588eaf4f7b5747"
+      },
+      {
+        "condition": "conventional",
+        "case": "missing-quarantine",
+        "passed": true,
+        "obligation": "E3-02",
+        "assertion": "quarantine enforcement",
+        "buildManifestSha256": "ce443d511de55b40fcc4f6433f27e65692feb383ed35ad46d7cba0601761be17"
+      },
+      {
+        "condition": "conventional",
+        "case": "quarantine-after-limit",
+        "passed": true,
+        "obligation": "E3-02",
+        "assertion": "quarantine before limit",
+        "buildManifestSha256": "301f98f4300a240d088875530135aa070f997fab0900848aa2cef976e9d560eb"
+      },
+      {
+        "condition": "conventional",
+        "case": "quarantine-before-invalid",
+        "passed": true,
+        "obligation": "E3-02",
+        "assertion": "invalid quantity before quarantine",
+        "buildManifestSha256": "b0ee7c1e589e4bdb24e2ad2da170ab6045ace68a1f3663bb71deca5b8e00498d"
+      },
+      {
+        "condition": "conventional",
+        "case": "quarantine-resets-limit",
+        "passed": true,
+        "obligation": "E3-01",
+        "assertion": "quarantine response",
+        "buildManifestSha256": "fd1dd8d56282fef7de1a511f4f74612c226f94f5731fd657aae878791ccf625a"
+      },
+      {
+        "condition": "conventional",
+        "case": "clear-does-not-clear",
+        "passed": true,
+        "obligation": "E3-01",
+        "assertion": "quarantine response",
+        "buildManifestSha256": "bcd1a822bd174e299a40a96266d8c3d8f62752270308efeef40dffadeaa45ca7"
+      },
+      {
+        "condition": "conventional",
+        "case": "skipped-compensation",
+        "passed": true,
+        "obligation": "E3-02",
+        "assertion": "cancelled compensation",
+        "buildManifestSha256": "8230c730050cbf1cc9d1a7eb2dd7e0eae2b55ee1fd557a00c387bcb513856153"
+      },
+      {
+        "condition": "cohesive",
+        "case": "known-good",
+        "passed": true,
+        "obligation": null,
+        "assertion": null,
+        "buildManifestSha256": "08faa97d022bfdfdb5e4fd7f2af4c2175050dee59dab0637fe21a605130ebc6c"
+      },
+      {
+        "condition": "cohesive",
+        "case": "wrong-default",
+        "passed": true,
+        "obligation": "E3-01",
+        "assertion": "seed/default/read",
+        "buildManifestSha256": "4b8e4ff7229a5bd90ccf25f1025974fa534263b36c8a1225aa0fbecc639ca7ae"
+      },
+      {
+        "condition": "cohesive",
+        "case": "lost-replay",
+        "passed": true,
+        "obligation": "E3-03",
+        "assertion": "retained admission",
+        "buildManifestSha256": "b32a2b968dd52e2ddaa8fdfb25ed83be29897f907f2cde3e628db3a365940eb6"
+      },
+      {
+        "condition": "cohesive",
+        "case": "missing-quarantine",
+        "passed": true,
+        "obligation": "E3-02",
+        "assertion": "quarantine enforcement",
+        "buildManifestSha256": "d387156bd3d42bd9673f31dc22b608c81fb82eed61d89241818c678733518822"
+      },
+      {
+        "condition": "cohesive",
+        "case": "quarantine-after-limit",
+        "passed": true,
+        "obligation": "E3-02",
+        "assertion": "quarantine before limit",
+        "buildManifestSha256": "284afebb71ef1dec040bae0c3b346159ce950ddfc64575298db82cf651b2c8b9"
+      },
+      {
+        "condition": "cohesive",
+        "case": "quarantine-before-invalid",
+        "passed": true,
+        "obligation": "E3-02",
+        "assertion": "invalid quantity before quarantine",
+        "buildManifestSha256": "63144a16575652d27c5bee0b9a0cb0ce53a54dbd9cef39aabdaf47a3d2f35f18"
+      },
+      {
+        "condition": "cohesive",
+        "case": "quarantine-resets-limit",
+        "passed": true,
+        "obligation": "E3-01",
+        "assertion": "quarantine response",
+        "buildManifestSha256": "3c7d24f1242ab4194110cb7462a77a81d7d299812354e30acb5935f67c9aeda4"
+      },
+      {
+        "condition": "cohesive",
+        "case": "clear-does-not-clear",
+        "passed": true,
+        "obligation": "E3-01",
+        "assertion": "quarantine response",
+        "buildManifestSha256": "10715725be45d3ce0a6bed3b76df12df3fb9914f990084eb62cdbf517e5dd58c"
+      },
+      {
+        "condition": "cohesive",
+        "case": "skipped-compensation",
+        "passed": true,
+        "obligation": "E3-02",
+        "assertion": "cancelled compensation",
+        "buildManifestSha256": "9755ca5448d97452bb66795964eb3c6f7849ba341fd9389ecbed6034c2948de8"
+      }
+    ]
+  },
+  "sharedHarnessTests": 6,
+  "priorGenerationHarnessTests": 4,
+  "contractTests": 7,
+  "reviewBaseCommit": "a14a9559f550e7e2644626f91c60877e940731df",
+  "profileSha256": {
+    "e1/profile.json": "83ebb1d7e943822683a68d1bd2e616dc715deeee1ca442a5def5c00be25fe78d",
+    "e2/profile.json": "7baa4297de901144a0afe87c14ec8329b79da565368481b10b909bdca7603e7a",
+    "e3/profile.json": "9b3eeb7c8c2bfe5b7eaa72ef16b36b4c22a1e2784136d6bd99d7020f70801934"
+  },
+  "qualificationNote": "Qualification ran before the final explicit missing-field guard for nullable profile defaults. Current profiles use non-null defaults, so their behavior is unchanged. The guard is unit-tested and the final E3 paired verification includes it.",
+  "inheritedCheckSha256": {
+    "../e2/cancellation_checks.py": "99f98c17afed5d1953303253882892d6d284f6b554988f40645c9c1e2f4002a7"
+  },
+  "profileDefaultsFollowup": {
+    "reviewBaseCommit": "f15780c4e7a6fc5184047e067ee421a1bd8b59c8",
+    "sourceSha256": {
+      "e2/cancellation_checks.py": "1fc91755813a22eceb1bc81edc5c9c908c7817fba1bee3f6cd378ee7a39432c4",
+      "e3/quarantine_checks.py": "894368f237382e0a6b5ad863c12469e6b873f44ea68432801bca5813b2bf3887",
+      "e1/profile.json": "83ebb1d7e943822683a68d1bd2e616dc715deeee1ca442a5def5c00be25fe78d",
+      "e2/profile.json": "7baa4297de901144a0afe87c14ec8329b79da565368481b10b909bdca7603e7a",
+      "e3/profile.json": "9b3eeb7c8c2bfe5b7eaa72ef16b36b4c22a1e2784136d6bd99d7020f70801934"
+    },
+    "verifierReportSha256": "5c78a88b1c45fe2c7c248942d401d5be19094d35a6be2c3004ff0aa3699b9aa1",
+    "passed": true,
+    "conditions": [
+      "conventional",
+      "cohesive"
+    ],
+    "sharedHarnessTests": 6,
+    "note": "Neutral defaults now load from verifier profiles. Cumulative G0/E1/E2/E3 verification and clean restart rerun for both conditions. Application binaries unchanged. Mutation qualification above belongs to the prior revision and was not rerun for this data-loading-only change."
+  }
+}

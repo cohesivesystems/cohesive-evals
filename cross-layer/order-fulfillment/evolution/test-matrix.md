@@ -1,6 +1,6 @@
 # Hold/control and evolution milestone-to-test matrix
 
-Status: maintainer plan with E1/E2 implementations, 2026-11-12. This matrix translates the
+Status: maintainer plan with E1/E2/E3 implementations, 2026-11-12. This matrix translates the
 [protocol v0.1](../protocol.md) into implementation and qualification work for
 [issue #8](https://github.com/cohesivesystems/cohesive-evals/issues/8). It does not freeze new
 requirements, claim unimplemented checks pass, or authorize agent runs.
@@ -21,7 +21,7 @@ another. The same activation rules apply to gold and agent-produced snapshots.
 | G0 | Existing baseline | B | Existing implementations and G0 qualification are available. |
 | E1 → G1 | G0 | B + E1 | [Matched references, checks and defect qualification](e1/README.md) available; campaign admission remains separate. |
 | E2 → G2 | G1 | B + E1 + E2 | [Matched references, cumulative checks and E2 defect qualification](e2/README.md) available. |
-| E3 → G3 | G2 | B + E1 + E2 + E3 | Both gold implementations and cumulative checks. |
+| E3 → G3 | G2 | B + E1 + E2 + E3 | [Matched references, cumulative checks and E3 defect qualification](e3/README.md) available. |
 | Fresh H | G0 | B + H | Both isolated hold references and checks. |
 | Fresh L | The same G0 snapshot as fresh H | B + L | Both isolated review-marker references and checks. |
 | Aged H | G3 | B + E1 + E2 + E3 + H | Both isolated aged hold references and interaction checks. |
@@ -172,9 +172,9 @@ schedule or endpoint requires an openly revised contract and qualification.
 ## Shared contracts before scored assertions
 
 [Contract supplements and schema bundles](contracts/README.md) resolve the
-preparation gaps below. They specify target behavior. [E1 references and runtime qualification](e1/README.md)
-and [E2 cancellation qualification](e2/README.md) are implemented; E3 and H/L remain
-to be written and qualified. Only active bundles
+preparation gaps below. They specify target behavior. [E1 references and runtime qualification](e1/README.md),
+[E2 cancellation qualification](e2/README.md), and [E3 quarantine qualification](e3/README.md)
+are implemented; H/L remain to be written and qualified. Only active bundles
 enter participant workspaces. This is not the campaign release freeze.
 
 | Detail | Shared decision |
