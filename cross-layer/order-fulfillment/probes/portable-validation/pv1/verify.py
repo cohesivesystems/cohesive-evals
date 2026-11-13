@@ -140,21 +140,39 @@ def verify(args):
                         checks.require(w.batch_status==200,'PV1-02','batch status',w.batch_status)
                 finally:w.close()
             checks.require(record['batch']==record['http'],'PV1-01','transport parity',record)
-            rows=checks.decoding();bindings=checks.binding_examples();binding_start=len(rows)
-            rows += [(raw,True) for raw,_ in bindings]
-            raw='['+','.join(x[0] for x in rows)+']'
-            expected_decode=[{'status':202,'outcome':'OrderMissing'} if valid else {'status':400} for _,valid in rows]
+            rows=checks.decoding();bindings=checks.binding_examples()
+            rows += [(raw,True,True) for raw,_ in bindings]
             for mode in ('batch','http'):
-                w=world('decode-'+mode,raw if mode=='batch' else None,True)
+                w=world('decode-'+mode)
                 try:
-                    result=w.batch()['items'] if mode=='batch' else [w.http(raw,i) for i,(raw,_) in enumerate(rows)]
-                    if mode=='batch':checks.require(w.batch_status==200,'PV1-02','batch status',w.batch_status)
-                    checks.check_items(result,expected_decode,'input decoding')
-                    for index,(_,intent) in enumerate(bindings,binding_start):
-                        replay=w.http(json.dumps(intent),index)
-                        checks.require(replay==result[index],'PV1-03','deserialized intent replay',(replay,result[index]))
+                    results=[]
+                    for index,(raw,valid,decodable) in enumerate(rows):
+                        expected={'status':202,'outcome':'OrderMissing'} if valid else {'status':400}
+                        if mode=='http':
+                            result=w.http(raw,0)
+                        elif decodable:
+                            reply=w.send_batch('['+raw+']')
+                            checks.require(w.batch_status==200,'PV1-01','input decoding',reply)
+                            result=reply['items'][0]
+                        else:
+                            # A valid first item must not execute or retain an identity
+                            # when a later item cannot bind to the typed array.
+                            prefix=checks.request('decode-prefix-'+str(index),'success')
+                            reply=w.send_batch('['+json.dumps(prefix)+','+raw+']')
+                            checks.require(w.batch_status==400,'PV1-01','input decoding',reply)
+                            checks.require(checks.canonical(w.facts())==checks.canonical(checks.fixture()),'PV1-04','input preservation',w.facts())
+                            retry=w.http(json.dumps({**prefix,'orderId':'pv1-missing'}),0)
+                            checks.check_items([retry],[{'status':202,'outcome':'OrderMissing'}],'input decoding')
+                            results.append({'status':400});continue
+                        checks.check_items([result],[expected],'input decoding')
+                        results.append(result)
+                    for raw,intent in bindings:
+                        reply=w.send_batch('['+raw+']')
+                        checks.require(w.batch_status==200,'PV1-01','input decoding',reply)
+                        replay=w.http(json.dumps(intent),0)
+                        checks.require(replay==reply['items'][0],'PV1-03','deserialized intent replay',(replay,reply))
                     checks.require(checks.canonical(w.facts())==checks.canonical(checks.fixture()),'PV1-04','input preservation',w.facts())
-                    trace.append({'mode':'decode-'+mode,'items':result})
+                    trace.append({'mode':'decode-'+mode,'items':results})
                 finally:w.close()
             envelopes={'empty':'[]','malformed':'['+json.dumps(items[1])+',','non-array':'{}',
                 'oversized':json.dumps([items[1]]*101),'boundary':json.dumps([None]*100)}
@@ -167,7 +185,7 @@ def verify(args):
                     if name=='boundary':
                         checks.require('items' in result,'PV1-02','envelope',result)
                         checks.check_items(result['items'],[{'status':400}]*100)
-                    elif name!='malformed':checks.require(result==wanted,'PV1-02','envelope',result)
+                    elif name not in ('malformed','non-array'):checks.require(result==wanted,'PV1-02','envelope',result)
                     checks.require(checks.canonical(w.facts())==checks.canonical(checks.fixture()),'PV1-04','envelope preservation',w.facts())
                     checks.require(w.send_batch('[]')=={'items':[]} and w.batch_status==200,'PV1-02','request recovery','next request failed')
                     trace.append({'envelope':name,'result':result})
@@ -180,7 +198,7 @@ def verify(args):
             finally:w.close()
             (out/'trace.json').write_text(json.dumps(trace,indent=2)+'\n')
             assert build.build_tools.verify_build(folder)==fingerprint
-            records[condition]={'passed':True,'businessItems':len(items),'decodingItemsPerTransport':len(rows),'envelopes':len(envelopes),'requestRecoveryCases':len(envelopes),'visibleChecks':visible_count,'buildManifestSha256':fingerprint}
+            records[condition]={'passed':True,'businessItems':len(items),'decodingItemsPerOperation':len(rows),'envelopes':len(envelopes),'requestRecoveryCases':len(envelopes),'visibleChecks':visible_count,'buildManifestSha256':fingerprint}
         (args.output/'report.json').write_text(json.dumps({'passed':True,'postgresImage':harness.IMAGE,'postgresImageId':image,'conditions':records},indent=2)+'\n')
         print('PV1 passed:',', '.join(records),flush=True)
     except checks.BehavioralFailure as error:

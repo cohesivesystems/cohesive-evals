@@ -55,12 +55,15 @@ def decoding():
     quantities=[('1',True),('1.0',False),('1e0',False),('2147483647',True),('-2147483648',True),
         ('0',True),('-1',True),('true',False),('"1"',True),('1.5',False),('2147483648',False),
         ('-2147483649',False),('1.00000000000000000000000000001',False),('1e999',False),('0e999',False),('null',False),('"1.0"',False),('"1e0"',False),('"2147483648"',False)]
-    rows=[(template%(i,q),valid) for i,(q,valid) in enumerate(quantities)]
+    rows=[(template%(i,q),valid,valid) for i,(q,valid) in enumerate(quantities)]
     normal=template%(99,'1')
-    rows += [(raw,False) for raw in ['null','[]','true','3','{}',
-        normal.replace('"pv1-decode-99"','null'),normal.replace('"pv1-decode-99"','"  "'),
-        normal.replace(',"quantity":1','')]]
-    rows += [(normal.replace('"pv1-decode-99"','"pv1-😀"')[:-1]+',"extra":42}',True)]
+    # (wire text, valid application input, decodable typed value).
+    rows += [(raw,False,decodable) for raw,decodable in [
+        ('null',True),('[]',False),('true',False),('3',False),('{}',False),
+        (normal.replace('"pv1-decode-99"','null'),True),
+        (normal.replace('"pv1-decode-99"','"  "'),True),
+        (normal.replace(',"quantity":1',''),False)]]
+    rows += [(normal.replace('"pv1-decode-99"','"pv1-😀"')[:-1]+',"extra":42}',True,True)]
     return rows
 
 def binding_examples():

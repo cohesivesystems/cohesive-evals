@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Batch envelope (item errors are per-item)",
+  "title": "Batch envelope (decoding failures reject the whole batch)",
   "type": "array",
   "maxItems": 100,
   "$defs": {
@@ -105,5 +105,6 @@
         }
       ]
     }
-  }
+  },
+  "description": "Envelope shape only; BATCH.md defines typed binding and per-item application/domain outcomes. Framework binding-failure response bodies are unspecified."
 }

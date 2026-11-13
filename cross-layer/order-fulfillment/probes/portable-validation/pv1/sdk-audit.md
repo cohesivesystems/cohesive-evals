@@ -10,8 +10,8 @@ vendored package version `0.1.0-eval.b0af008`. No SDK/package changes in PV1.
 | HTTP process input | [`ProcessApiRequestSupport`](https://github.com/cohesivesystems/cohesive/blob/b0af008d85871ad8866d7d4311707ecd926529de/src/adapters/Cohesive.Adapters.AspNet/Processes/ProcessApiRequestSupport.cs) delegates binding through an HTTP context/API operation. | The existing fulfillment route manually admits a DTO to `OperationQueue`; this helper does not declare batch semantics. |
 | State-dependent validation | The fixture's G3 `Requires` transitions enforce quantity, quarantine, stock and lifecycle guards; its compiled process composes the transitions. | Both API operations enter the same backend/process. Conventional enters the same domain services. |
 
-PV1 uses standard ASP.NET DTO binding and batch deserialization with the same
-HTTP JSON options. The batch endpoint passes typed items to `BatchService`, which
+PV1 uses standard ASP.NET DTO and typed array binding with the same HTTP JSON
+options. Any item decoding failure rejects the whole batch before admission. The batch endpoint passes typed items to `BatchService`, which
 executes through the existing queue. A shared `FulfillmentInput` predicate checks nonblank identifiers
 after deserialization; the same queue owns admission in both conditions. Portable shape/type validation is a real SDK
 capability, but this fixture does not demonstrate generated input-rule portability.

@@ -1,8 +1,8 @@
 """Buildable defects and their exact independent behavioral witnesses."""
 def mutations(condition):
     cases={
-        'batch-options-drift':('BatchEndpoint.cs','item.Deserialize<FulfillmentRequest>(jsonOptions.Value.SerializerOptions)',
-            'item.Deserialize<FulfillmentRequest>(new JsonSerializerOptions(jsonOptions.Value.SerializerOptions) { NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict })','PV1-01','input decoding'),
+        'serializer-options-drift':('Program.cs','RespectRequiredConstructorParameters = true;',
+            'RespectRequiredConstructorParameters = true; options.SerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict;','PV1-01','input decoding'),
         'missing-required-input':('Program.cs','RespectRequiredConstructorParameters = true','RespectRequiredConstructorParameters = false','PV1-01','input decoding'),
         'stop-after-invalid':('BatchService.cs','items.Add(new(items.Count, admission, completion));',
             'items.Add(new(items.Count, admission, completion));\n                        if (request is null) break;', 'PV1-02','ordered results'),

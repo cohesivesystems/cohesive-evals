@@ -10,7 +10,7 @@ public sealed record BatchReply(
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Error = null);
 
 // Typed application operation: no console, files, JSON parsing or host lifecycle.
-// A null item represents input the adapter could not deserialize.
+// A JSON null item is decoded successfully but rejected as application input.
 public sealed class BatchService(OperationQueue queue)
 {
     public async Task<BatchReply> ExecuteAsync(IReadOnlyList<FulfillmentRequest?> requests, CancellationToken cancellationToken)

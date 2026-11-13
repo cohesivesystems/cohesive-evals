@@ -2,16 +2,20 @@
 
 `POST /fulfillment/batch` accepts an `application/json` array of 0–100 fulfillment
 items. A valid envelope returns HTTP 200 with per-item results, including partial
-or all-item rejection. Malformed JSON, a non-array or excess items returns HTTP
-400 without admission or effects. Non-array/oversized input returns
-`{"error":"InvalidBatch"}`; malformed JSON uses the framework's unspecified 400
+or all-item rejection. Malformed JSON, a non-array, any item decoding failure or excess items returns
+HTTP 400 without any admission or effects. Oversized arrays return
+`{"error":"InvalidBatch"}`; binding failures use the framework's unspecified 400
 body. Empty arrays return `{"items":[]}`.
 
 Each item executes through the same queue as `POST /fulfillment`. Items settle in
-array order. An invalid item gets 400 while valid siblings continue. Successful
+array order. A decoded null item or an item with null/blank identifiers gets per-item 400
+while valid siblings continue. Successful
 siblings are not rolled back. There is no batch-level identity or automatic retry.
 
-Both endpoints use the same configured standard JSON deserialization. Canonical
+Both endpoints use standard ASP.NET Core typed binding with the same JSON
+options. The entire array must decode before the batch service runs. Missing
+required fields or incompatible field types reject all siblings, even valid
+items preceding the failure. Canonical
 fields are `requestId`, `orderId`, `sku`, `quantity`. Property matching is
 case-insensitive; unknown fields are ignored. Repeated properties whose values
 deserialize use the last value. Identifiers must be nonblank strings with

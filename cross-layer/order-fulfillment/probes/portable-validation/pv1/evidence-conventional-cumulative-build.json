@@ -3,8 +3,8 @@
     "Directory.Build.props": "367185d34eedc40df516835650552ad7c22e1cce937f93038a3ed675c582fe9c",
     "NuGet.config": "026760bf198d064aab475ee175033c6db3c732abb90672a652e5b36fe4fdefc7",
     "global.json": "30fdf1d1d5cfadd6447ab39d18cc5eec405cf1a5ec5b2e4b1d228a6fe757846d",
-    "src/Fulfillment.Application/BatchEndpoint.cs": "e4bb2d7947d89292696677a24d987fb2f9be1b225d8ea6fc7c5cec323428ae04",
-    "src/Fulfillment.Application/BatchService.cs": "ab7092162b1e4463ed6c0a7a5419d36bc0f8fa185675c8b29bd1372974d26b21",
+    "src/Fulfillment.Application/BatchEndpoint.cs": "1bb79885710f2fa06352458f86d8193506a3053c30ff5d8362ca9fdbfaa70cbd",
+    "src/Fulfillment.Application/BatchService.cs": "4dffc52f990470324538aafcaa3c6196001391527f8a96b377602cd40d28f628",
     "src/Fulfillment.Application/Contracts.cs": "67e1680d0d6605c6afbef441d8ab7a7cef28e5c295b1461828d367e3786b9781",
     "src/Fulfillment.Application/Domain.cs": "bffb92b77caa0f3ba69cd0f60c61dec53863553738f1512fa46d078819863c2d",
     "src/Fulfillment.Application/Fulfillment.Application.csproj": "9049b5bea55fa39198ca5b9adf89fecbde1e649c6c598ae5938934f50a6518e3",
@@ -22,8 +22,8 @@
   "artifacts": {
     "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application": "d6eb0a445ef0ee5d67ae457f70cc4b2c2ef9c348b448958bdef9200f0a6289b0",
     "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.deps.json": "af715182ec29f544acde313334556161b764326d4bb7a559e29c765c5887d64b",
-    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.dll": "a291ac23f36ed121e7269f89282b6e0b3f6ff5da39e70b3294c014360e65da4c",
-    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.pdb": "bde27b456a78143aa2b2379b54b2db1f0b72cdaab0c5bc13462624d2df84ce4e",
+    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.dll": "cad8acede32a1d35e58f9fb6116a42e96542cc96f524dbaa15babbf506cf8fd1",
+    "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.pdb": "0a5a921a27035dd22974aa1e35e4d1f33a0e6607e8853fbd0fb7dc75d5bd9935",
     "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.runtimeconfig.json": "2854c873c21edc9fa7c2056f9d4744054aeb11f009d271702daa7794b74e895f",
     "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.staticwebassets.endpoints.json": "eb6525c892afda953a2560f151f9c5e5bc6e79ef6741d886488ac450262c91e3",
     "src/Fulfillment.Application/bin/Debug/net10.0/Npgsql.dll": "e2bcafe1660fe4543fe9dfcabed972ec8d32259e5ea8009462ce1de23c7034c2"

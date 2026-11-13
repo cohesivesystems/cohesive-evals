@@ -4,7 +4,7 @@ Implementation of [#37](https://github.com/cohesivesystems/cohesive-evals/issues
 under the [single/batch API validation protocol](../protocol.md). Maintainer-only;
 do not include this directory, its history or successors in participant workspaces.
 
-Both references compose G3 with standard DTO deserialization, a thin HTTP endpoint, typed batch service and queue
+Both references compose G3 with standard typed array binding, a thin HTTP endpoint, typed batch service and queue
 refactor. Single-item and batch calls share admission identities, capacity, results and a
 single worker. Conventional still calls its domain services; Cohesive still calls
 its compiled process. No domain implementation is copied into the adapter.
@@ -36,7 +36,7 @@ python3 -B -m unittest discover -s cross-layer/order-fulfillment/probes/portable
 ```
 
 Known-good qualification runs the PV1 suite; the separate cumulative command
-checks all G0–G3 obligations. Each condition has nine buildable defects: mismatched batch serializer options,
+checks all G0–G3 obligations. Each condition has nine buildable defects: incorrect serializer options,
 missing required-constructor checks, stop
 on invalid input, oversized-envelope execution, lost cross-entry replay, changed
 quantity, rejection of valid domain input, bypassed quarantine and skipped
@@ -47,7 +47,7 @@ build/setup failures, timeouts, 5xx and unrelated failures earn no credit.
 
 [evidence.json](evidence.json) retains source/report hashes and compact results;
 the adjacent build manifests bind application inputs to outputs. Each condition
-runs 17 business items through each API operation, 32 decoding items per API operation,
+runs 17 business items through each API operation, 32 decoding cases per API operation (batch decoding failures reject all siblings),
 five envelope cases with subsequent-request recovery, and five public smoke
 checks.
 The capacity check fills all 1,000 host-local identities, checks batch admission

@@ -22,16 +22,17 @@ its original result. Pre-task failures and new regressions are recorded separate
 
 `POST /fulfillment/batch` accepts an `application/json` array containing 0–100
 fulfillment items. The existing `POST /fulfillment` remains the single-item API.
-A thin endpoint deserializes each item with the same configured JSON options
-and calls a typed batch application service. Each item uses the same queue,
+ASP.NET Core binds the whole request to a typed array using the configured JSON
+options; a thin endpoint calls a typed batch application service. Each item uses the same queue,
 request identities, capacity, host-provided caller identity and domain workflow
 as a single-item request. No CLI, file protocol or JSON-RPC layer is added.
 
-Malformed JSON, a non-array or more than 100 items returns HTTP 400 without
-admission or effects. Non-array/oversized envelopes return
-`{ "error": "InvalidBatch" }`; malformed JSON uses the framework's 400 response
-with unspecified body. Invalid items within a valid envelope receive per-item
-400 while valid siblings continue. Empty arrays succeed with an empty result.
+Malformed JSON, a non-array, any item decoding failure or more than 100 items
+returns HTTP 400 without admission or effects, including for valid preceding
+items. Oversized arrays return `{ "error": "InvalidBatch" }`; binding failures
+use the framework's 400 response with unspecified body. Successfully decoded
+null items or items with null/blank identifiers receive per-item 400 while valid
+siblings continue. Empty arrays succeed with an empty result.
 
 Valid envelopes return HTTP 200 with `{ "items": [...] }`, including partial or
 all-item rejection. Items execute in array order; each admitted item settles
@@ -59,7 +60,7 @@ facts, not timing or generated identifiers across hosts.
 
 | Layer | Required behavior |
 |---|---|
-| Transport | The matched references use ASP.NET Core DTO binding for HTTP and `JsonSerializer.Deserialize<FulfillmentRequest>` with the same configured HTTP JSON options for each batch item. Keep .NET web defaults and `RespectRequiredConstructorParameters = true`. Malformed JSON, incompatible types, missing constructor fields and out-of-range quantities fail before admission. No custom token parser is needed. |
+| Transport | The matched references use ASP.NET Core DTO binding for the single request and typed array binding for the batch, with the same configured HTTP JSON options. Keep .NET web defaults and `RespectRequiredConstructorParameters = true`. Malformed JSON, incompatible types, missing constructor fields and out-of-range quantities reject the entire request before any admission, including all siblings in a batch. JSON null array elements decode successfully and receive per-item input rejection. No custom token parser is needed. |
 | Input-only | Reject null/blank identifiers after deserialization. PV1 retains G3 application rules. PV2 adds `requestId.Length <= 64` in UTF-16 code units. Case and exact text remain significant; do not trim, normalize or truncate. HTTP returns 400 and batch item admission returns 400/null. Validate before identity lookup or capacity checks. Invalid input consumes no identity and has no business effects. |
 | State-dependent | Both paths execute the same G3 domain contract: order/reservation lookup, missing inventory, nonpositive quantity, quarantine, quantity limit, stock and lifecycle precedence. Nonpositive quantity remains admissible input with domain outcome `InvalidQuantity`. |
 
@@ -101,7 +102,7 @@ boundaries. All ordinary scenarios retain unrelated order/inventory sentinels.
 | ID | Visible example | Maintainer extension | Defect and required witness |
 |---|---|---|---|
 | PV1-01 | One valid HTTP intent and the same batch intent in identical fresh worlds produce the same outcome/facts. | Every G3 completion outcome, including reservation match/conflict and competing rejection conditions. | Batch bypasses quarantine or lifecycle guard → exact outcome and physical-state assertion. |
-| PV1-02 | Batch has malformed item, success and stock rejection; valid siblings finish in order. | Empty/100/101 elements, malformed requests followed by valid requests, non-object items, shared-stock ordering, invalid first/middle/last items. | Whole-batch rollback, stop on item rejection or partial execution before envelope validation → ordered results/preservation assertion. |
+| PV1-02 | Batch has a decoded invalid input, success and stock rejection; valid siblings finish in order. | Empty/100/101 elements, malformed requests followed by valid requests, incompatible item types reject the entire batch before effects or identity retention; shared-stock ordering and decoded invalid first/middle/last items. | Whole-batch rollback, stop on item rejection or partial execution before envelope validation → ordered results/preservation assertion. |
 | PV1-03 | Duplicate item admits once; conflicting payload returns 409. | Replay in both directions, retries after changed stock/configuration, rejection replay, single-item and batch capacity, and distinct request IDs for the same order. | Separate registries or replay bypass → admission identity/effect-count assertion. |
 | PV1-04 | Invalid input leaves stock and reservations unchanged. | Observe all physical rows, sentinels and retained outcomes after each settled scenario; run cumulative G0–G3 checks. | Validation after effects, extra reservation or unrelated update → preservation/retention assertion. |
 | PV2-01 | IDs of length 64 pass, 65 fail on HTTP and batch. | Length 1, empty/blank, 63/64/65, supplementary Unicode boundaries, case differences and long order/SKU IDs unaffected. | HTTP-only or batch-only stale validator, off-by-one or scalar-count length → entry-point boundary assertion. |
