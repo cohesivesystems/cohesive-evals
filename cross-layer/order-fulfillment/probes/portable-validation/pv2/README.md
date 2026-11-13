@@ -9,13 +9,16 @@ application predicate. The checked patch changes only `FulfillmentInput.cs`.
 Standard binding, queue ownership and domain implementations are unchanged.
 This is manual validation reuse in both conditions, not evidence of a generated
 Cohesive validation advantage. SDK packages remain pinned.
+[Follow-up #42](https://github.com/cohesivesystems/cohesive-evals/issues/42) tracks
+a separate probe using model-authored typed input constraints.
 
 [REQUEST-ID.md](REQUEST-ID.md) is the public contract. A new host starts each
 stage; this probe does not migrate retained identities from PV1.
 
 ## Checks
 
-The verifier reuses PV1's HTTP host and physical observer. Independent expectations
+Both verifiers share PostgreSQL startup/cleanup and failure reporting in
+`pv1/runtime.py`; PV2 also reuses PV1's HTTP host and physical observer. Independent expectations
 cover ASCII and supplementary Unicode boundaries, combining characters, exact
 identity text, long order/SKU IDs, domain precedence, mixed outcomes, replay after
 configuration changes and invalid input at the 1,000-identity capacity limit.
@@ -35,10 +38,14 @@ python3 -B cross-layer/order-fulfillment/probes/portable-validation/pv1/verify.p
 python3 -B cross-layer/order-fulfillment/evolution/verify.py --generation e3 --fixtures /tmp/pv2-build --output /tmp/pv2-retained-e3
 python3 -B cross-layer/order-fulfillment/probes/portable-validation/pv2/qualify.py --output /tmp/pv2-qualified
 python3 -B -m unittest discover -s cross-layer/order-fulfillment/probes/portable-validation/pv2 -p test_harness.py
+python3 -B -m unittest discover -s cross-layer/order-fulfillment/probes/portable-validation/pv1 -p 'test_*.py'
+python3 -B -m unittest discover -s cross-layer/order-fulfillment/evolution -p test_harness.py
 ```
 
 Both references pass PV2, retained PV1 and cumulative G0–G3 checks. All 18
-deliberate defects fail their named assertions; ten harness tests pass.
+deliberate defects fail their named assertions. Unit-test counts are **2 PV2**,
+**7 shared/PV1** (including 4 lifecycle tests), and **6 evolution**; the three
+`unittest` commands above run those suites separately.
 
 [evidence.json](evidence.json) records reports and source hashes; adjacent manifests
 bind tested application inputs to outputs. Counts describe checks, not independent

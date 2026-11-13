@@ -15,6 +15,7 @@ import urllib.request
 import build
 import checks
 import visible_checks
+from runtime import verification_run
 
 sys.path.insert(0,str(build.CASE / 'evolution'))
 import harness
@@ -90,17 +91,11 @@ class World:
         harness.stop(self.process);self.log.close()
 
 def verify(args):
-    args.output.mkdir(parents=True,exist_ok=False)
-    container='pv1-'+uuid.uuid4().hex[:12];started=False;condition=None;records={}
-    try:
-        image=harness.run('docker','image','inspect',harness.IMAGE,'--format','{{.Id}}')
-        harness.run('docker','run','-d','--name',container,'-e','POSTGRES_PASSWORD=fixture-only','-p','127.0.0.1::5432',harness.IMAGE);started=True
-        for _ in range(100):
-            if subprocess.run(['docker','exec',container,'pg_isready','-h','127.0.0.1','-U','postgres'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
-            time.sleep(.1)
-        else: raise RuntimeError('PostgreSQL readiness deadline')
-        port=harness.run('docker','port',container,'5432/tcp').rsplit(':',1)[1]
+    records = {}
+    with verification_run(args.output, 'pv1', checks.BehavioralFailure) as session:
+        container, port = session.container, session.port
         for condition in ([args.condition] if args.condition else harness.CONDITIONS):
+            session.condition = condition
             folder=args.fixtures/condition;fingerprint=build.build_tools.verify_build(folder)
             out=args.output/condition;record={};trace=[]
             def world(name,batch=None,raw=False):return World(folder,out/name,container,port,condition,checks.fixture(),batch,raw)
@@ -199,14 +194,8 @@ def verify(args):
             (out/'trace.json').write_text(json.dumps(trace,indent=2)+'\n')
             assert build.build_tools.verify_build(folder)==fingerprint
             records[condition]={'passed':True,'businessItems':len(items),'decodingItemsPerOperation':len(rows),'envelopes':len(envelopes),'requestRecoveryCases':len(envelopes),'visibleChecks':visible_count,'buildManifestSha256':fingerprint}
-        (args.output/'report.json').write_text(json.dumps({'passed':True,'postgresImage':harness.IMAGE,'postgresImageId':image,'conditions':records},indent=2)+'\n')
-        print('PV1 passed:',', '.join(records),flush=True)
-    except checks.BehavioralFailure as error:
-        (args.output/'failure.json').write_text(json.dumps({'kind':'behavioral','condition':condition,'obligation':error.obligation,'assertion':error.assertion,'detail':str(error)},indent=2)+'\n');raise
-    except Exception as error:
-        (args.output/'failure.json').write_text(json.dumps({'kind':'unqualified','condition':condition,'detail':str(error)},indent=2)+'\n');raise
-    finally:
-        if started:subprocess.run(['docker','rm','-f',container],stdout=subprocess.DEVNULL,check=True)
+        session.report(records)
+    print('PV1 passed:', ', '.join(records), flush=True)
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)

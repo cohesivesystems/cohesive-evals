@@ -1,27 +1,26 @@
 #!/usr/bin/env python3
 """Compose PV1 from G3 without changing any evolution checkpoint."""
 import argparse
-import importlib.util
+import sys
 from pathlib import Path
 import shutil
 
 ROOT = Path(__file__).resolve().parent
 CASE = ROOT.parents[2]
 
-def load(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+sys.path.insert(0, str(CASE / 'evolution'))
+import harness
+load = harness.load
 
 previous = load('pv1_parent_build', CASE / 'evolution/e3/build.py')
 build_tools = previous.build_tools
+apply_delta = previous.snapshot.apply_delta
 
 def materialize(output):
     previous.materialize(output)
-    for condition in ('conventional', 'cohesive'):
+    for condition in harness.CONDITIONS:
         folder = output / condition
-        previous.snapshot.apply_delta(folder, ROOT / 'reference/common.patch', ROOT / 'reference/common.json')
+        apply_delta(folder, ROOT / 'reference/common.patch', ROOT / 'reference/common.json')
         for path in (ROOT / 'reference/common').glob('*.cs'):
             target = folder / 'src/Fulfillment.Application' / path.name
             if target.exists():
@@ -37,7 +36,7 @@ if __name__ == '__main__':
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     refs = materialize(args.output.resolve())
-    for condition in ('conventional', 'cohesive'):
+    for condition in harness.CONDITIONS:
         with (refs / condition / 'build.log').open('w') as log:
             build_tools.build_candidate(refs / condition, log)
         print(condition, 'built', flush=True)

@@ -1,38 +1,23 @@
 #!/usr/bin/env python3
 """PV2 boundary, ordering, replay and physical-preservation checks."""
 import argparse
-import json
 from pathlib import Path
-import subprocess
 import sys
-import time
-import uuid
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT.parent / 'pv1'))
 import verify as pv1
+from runtime import verification_run
 checks = pv1.build.load('pv2_checks', ROOT / 'length_checks.py')
 visible = pv1.build.load('pv2_visible', ROOT / 'visible_checks.py')
 harness = pv1.harness
 
 def verify(args):
-    args.output.mkdir(parents=True, exist_ok=False)
-    container = 'pv2-'+uuid.uuid4().hex[:12]
-    started = False
-    condition = None
     records = {}
-    try:
-        image = harness.run('docker', 'image', 'inspect', harness.IMAGE, '--format', '{{.Id}}')
-        harness.run('docker', 'run', '-d', '--name', container, '-e', 'POSTGRES_PASSWORD=fixture-only', '-p', '127.0.0.1::5432', harness.IMAGE)
-        started = True
-        for _ in range(100):
-            if subprocess.run(['docker','exec',container,'pg_isready','-h','127.0.0.1','-U','postgres'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
-                break
-            time.sleep(.1)
-        else:
-            raise RuntimeError('PostgreSQL readiness deadline')
-        port = harness.run('docker', 'port', container, '5432/tcp').rsplit(':', 1)[1]
+    with verification_run(args.output, 'pv2', checks.BehavioralFailure) as session:
+        container, port = session.container, session.port
         for condition in ([args.condition] if args.condition else harness.CONDITIONS):
+            session.condition = condition
             folder = args.fixtures / condition
             fingerprint = pv1.build.build_tools.verify_build(folder)
             results = {}
@@ -51,18 +36,9 @@ def verify(args):
             records[condition] = {**results, 'buildManifestSha256': fingerprint}
         if not args.condition:
             for scenario in ('run', 'capacity', 'visibleChecks'):
-                checks.require(records['conventional'][scenario] == records['cohesive'][scenario], 'PV2-03', 'condition equivalence', scenario)
-        (args.output/'report.json').write_text(json.dumps({'passed':True, 'postgresImage':harness.IMAGE, 'postgresImageId':image, 'conditions':records}, indent=2)+'\n')
-        print('PV2 passed:', ', '.join(records), flush=True)
-    except checks.BehavioralFailure as error:
-        (args.output/'failure.json').write_text(json.dumps({'kind':'behavioral', 'condition':condition, 'obligation':error.obligation, 'assertion':error.assertion, 'detail':str(error)}, indent=2)+'\n')
-        raise
-    except Exception as error:
-        (args.output/'failure.json').write_text(json.dumps({'kind':'unqualified', 'condition':condition, 'detail':str(error)}, indent=2)+'\n')
-        raise
-    finally:
-        if started:
-            subprocess.run(['docker','rm','-f',container], stdout=subprocess.DEVNULL, check=True)
+                checks.require(all(records[c][scenario] == records[harness.CONDITIONS[0]][scenario] for c in harness.CONDITIONS), 'PV2-03', 'condition equivalence', scenario)
+        session.report(records)
+    print('PV2 passed:', ', '.join(records), flush=True)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)

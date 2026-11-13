@@ -1,5 +1,12 @@
 """Buildable PV2 defects with exact named behavioral witnesses."""
+from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from pv1 import build
+
 def mutations(condition):
+    if condition not in build.harness.CONDITIONS:
+        raise ValueError(f"Unknown condition: {condition}")
     limit = 'request.RequestId.Length <= 64'
     return {
         'stale-validator': ('FulfillmentInput.cs', limit, 'true', 'PV2-01', 'length boundary'),
