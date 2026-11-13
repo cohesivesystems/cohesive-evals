@@ -74,4 +74,6 @@ checks, reference behavior and deliberate defects. It also records contract
 decisions and the implementation/qualification sequence. The shared
 [contract bundle generator](evolution/contracts/README.md) provides active-only
 public supplements, wire/seed schemas and examples for both conditions. It is a preparation
-plan; evolved references and cumulative oracle qualification remain outstanding.
+plan. The [E1 quantity-limit references and qualification](evolution/e1/README.md)
+implement G1 in both conditions while retaining G0. E2/E3 and H/L references,
+full cumulative qualification and campaign admission remain outstanding.
