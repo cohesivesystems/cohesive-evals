@@ -1,0 +1,15 @@
+{
+  "orders": [
+    {
+      "id": "draft",
+      "status": "Draft"
+    }
+  ],
+  "inventory": [
+    {
+      "sku": "stock",
+      "available": 5
+    }
+  ],
+  "reservations": []
+}

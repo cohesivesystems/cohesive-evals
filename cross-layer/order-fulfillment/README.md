@@ -85,4 +85,6 @@ campaign admission remain outstanding.
 
 The separate [portable-validation specification](probes/portable-validation/protocol.md)
 defines a non-HTTP batch entry point followed by a shared input-rule change.
-It is a protocol candidate, not an implemented extension of the pilot matrix.
+The [PV1 batch references](probes/portable-validation/pv1/README.md) implement its
+first step with independent qualification. This separate probe does not extend
+the existing pilot matrix; PV2 remains unimplemented.

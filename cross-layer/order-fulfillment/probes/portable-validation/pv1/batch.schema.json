@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Batch envelope (item errors are per-item)",
+  "type": "array",
+  "maxItems": 100,
+  "$defs": {
+    "request": {
+      "type": "object",
+      "required": [
+        "requestId",
+        "orderId",
+        "sku",
+        "quantity"
+      ],
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "orderId": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "sku": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        }
+      }
+    },
+    "reply": {
+      "type": "object",
+      "required": [
+        "status",
+        "body"
+      ],
+      "properties": {
+        "status": {
+          "type": "integer",
+          "enum": [
+            200,
+            202,
+            400,
+            409,
+            500,
+            503
+          ]
+        },
+        "body": {}
+      },
+      "additionalProperties": false
+    },
+    "output": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "error"
+          ],
+          "properties": {
+            "error": {
+              "const": "InvalidBatch"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "items"
+          ],
+          "properties": {
+            "items": {
+              "type": "array",
+              "maxItems": 100,
+              "items": {
+                "type": "object",
+                "required": [
+                  "index",
+                  "admission"
+                ],
+                "properties": {
+                  "index": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 99
+                  },
+                  "admission": {
+                    "$ref": "#/$defs/reply"
+                  },
+                  "completion": {
+                    "$ref": "#/$defs/reply"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

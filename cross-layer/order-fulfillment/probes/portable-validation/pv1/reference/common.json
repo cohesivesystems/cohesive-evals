@@ -1,0 +1,10 @@
+{
+  "src/Fulfillment.Application/Program.cs": {
+    "before": "fc9d14a0ec29adadcd339df21be9b1e93ec86df222b66bb943eeef41f5012b42",
+    "after": "8abe536b618e4eaed8c513b231b97a68707b0cef3d35d942c13302cd2a047028"
+  },
+  "src/Fulfillment.Application/OperationQueue.cs": {
+    "before": "2900fd73d40df61bf4bd458c66b21fa72fef37dddb3227df18b8873bcc712d13",
+    "after": "28cf563219e69ab79b61ba156a5f6e738b6b453e0efff33dc134b696a17222b4"
+  }
+}
