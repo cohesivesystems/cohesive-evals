@@ -1,0 +1,184 @@
+{
+  "date": "2026-11-12",
+  "parentCommit": "02aa0a46a138492792e1802d17924685f933ebd4",
+  "scope": "Sequential settled G2 behavior; no concurrency, crash recovery or live migration",
+  "postgresImage": "postgres:17.10-alpine3.24",
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "verifierReportSha256": "396b63ddbc63d19924c9012d132768bd3081f1aa7117c6b3926475b7b69083e5",
+  "priorVerifierReportSha256": "5f65fcbe2970497ffd6a92a395b24fdfc1081de60daf78e3c868203cd0b86c0c",
+  "qualificationReportSha256": "8d7d7c7ed93511e983c7e6a2033709f92fdaa76f8a65b8f9958ce772173e60a7",
+  "sourceSha256": {
+    "build.py": "df06facf9605c467dcff0fcfe5e4a695c517f903f0444b5d1d422a9a85a8d056",
+    "cancellation_checks.py": "c19deda30ca5a26d71eeb51e773701abb11e6cd072059860c9b695ee50264232",
+    "qualify.py": "5233536fe439c7ceca65cad67c465b994a1c2f321b68040f86161462546d389e",
+    "reference/cohesive/FulfillmentBackend.cs": "afe4f24e5bd14000e68fc9db584efdf59404fd40c514ca277befb2daf359e8ad",
+    "reference/cohesive/FulfillmentDomain.cs": "942ce018bba1580ca537db6a2b6179996dea93f3c7f02a0fccf77c4eea97887e",
+    "reference/common/Contracts.cs": "4343aecd8e2da3d1e31c261bbeb8734fef8e18a20137bbcceeaada81fe97c47a",
+    "reference/common/Program.cs": "7fe8a5afc39869148add2b9bbddf24e62e4867dd1febeff5cd68f2eeb589e0b6",
+    "reference/conventional/Domain.cs": "2d9e76f6f5f7ea02068a98a87b88cc5db0cb3995faa8b92feef7bc5f66487792",
+    "reference/conventional/FulfillmentBackend.cs": "89762cdf5c766c52256d876dfb242a0df7c1b55e3861c85d418d6fa510ff74ec",
+    "reference/conventional/OrderStore.cs": "e285854e8d5e26dafaee54ea30be46306f3a81a8e660137c792c310ffe3acc73",
+    "test_harness.py": "d4b5ba29a2ca2aa9a5ba54f70cf817c8ef95e21eaeb374ace2f9161a39d159dc",
+    "verify.py": "4696421506e088847357e714efd4d9eb6caaa7807c774ab2c52db25dceddd5bb",
+    "visible_checks.py": "5d399e742c47e1a913ed84e60cf0f1bf9c570089054f8f6be182663e93678afc"
+  },
+  "conditions": {
+    "conventional": {
+      "passed": true,
+      "baselineHttpChecks": 52,
+      "baselineInvariantCommands": 180,
+      "visibleE1Checks": 5,
+      "e1Commands": 118,
+      "visibleE2Checks": 5,
+      "e2Commands": 92,
+      "cleanRestartVerified": true,
+      "buildManifestSha256": "b30788a3caaf0e5b25c0402ecf6f7d3693428bfaca65ddd9b3725546198e73c0"
+    },
+    "cohesive": {
+      "passed": true,
+      "baselineHttpChecks": 52,
+      "baselineInvariantCommands": 180,
+      "visibleE1Checks": 5,
+      "e1Commands": 118,
+      "visibleE2Checks": 5,
+      "e2Commands": 92,
+      "cleanRestartVerified": true,
+      "buildManifestSha256": "9a375f43600efc5222d1ac2b5a06bda21988a2eb37c02aba2abc13f0a621ec96"
+    }
+  },
+  "qualification": {
+    "passed": true,
+    "cases": [
+      {
+        "condition": "conventional",
+        "case": "known-good",
+        "passed": true,
+        "obligation": null,
+        "assertion": null,
+        "buildManifestSha256": "b1f0bdb1b72f5efb601c2876f29086460ce352dfc62978c16cd6805bb5216869"
+      },
+      {
+        "condition": "conventional",
+        "case": "lost-replay",
+        "passed": true,
+        "obligation": "E2-03",
+        "assertion": "retained admission",
+        "buildManifestSha256": "f3d96ac038d6387d5bb4e52a88d789b082ba621d03497b3a901bd2c419b82391"
+      },
+      {
+        "condition": "conventional",
+        "case": "cancel-submitted",
+        "passed": true,
+        "obligation": "E2-01",
+        "assertion": "cancellation state table",
+        "buildManifestSha256": "20545a7fb9cd4ca1b10f1fc6c1b8c1c1a26148054b62eb879d2e3116aad5aa3e"
+      },
+      {
+        "condition": "conventional",
+        "case": "non-idempotent-cancel",
+        "passed": true,
+        "obligation": "E2-01",
+        "assertion": "idempotent cancellation",
+        "buildManifestSha256": "00a6a9802ebc5798a0e021cf2815fd6332f3cca6af72be1e92b136e87e62c5a1"
+      },
+      {
+        "condition": "conventional",
+        "case": "direct-submit-code",
+        "passed": true,
+        "obligation": "E2-02",
+        "assertion": "direct submit outcome",
+        "buildManifestSha256": "c74dfa4d29d3113f4a54ffd02a93316e2f9798417f96e6aee3d3419ac5b7cc4d"
+      },
+      {
+        "condition": "conventional",
+        "case": "fulfillment-code",
+        "passed": true,
+        "obligation": "E2-02",
+        "assertion": "cancelled fulfillment",
+        "buildManifestSha256": "94f4f81f2918f1a33f1dc491c172c78221e3b41ad2130d0084ca16f574a7b079"
+      },
+      {
+        "condition": "conventional",
+        "case": "early-cancellation",
+        "passed": true,
+        "obligation": "E2-02",
+        "assertion": "missing inventory before cancellation",
+        "buildManifestSha256": "f5fc83a40112a064f167e5430621830d901485bdd843176aef4568d7c7d3e30b"
+      },
+      {
+        "condition": "conventional",
+        "case": "skipped-compensation",
+        "passed": true,
+        "obligation": "E2-02",
+        "assertion": "cancelled fulfillment",
+        "buildManifestSha256": "f469e354767236cbe54a9435dc980109a0242fe85a5a2b18f530338092f3703b"
+      },
+      {
+        "condition": "cohesive",
+        "case": "known-good",
+        "passed": true,
+        "obligation": null,
+        "assertion": null,
+        "buildManifestSha256": "09c49da3b16438fa69871338ee70c4ec4d858e1551ce72e33f24227e56829055"
+      },
+      {
+        "condition": "cohesive",
+        "case": "lost-replay",
+        "passed": true,
+        "obligation": "E2-03",
+        "assertion": "retained admission",
+        "buildManifestSha256": "a538f985e6c52eb7c56ce57284d372864ba495db8a0de056c89bf009e37f5b21"
+      },
+      {
+        "condition": "cohesive",
+        "case": "cancel-submitted",
+        "passed": true,
+        "obligation": "E2-01",
+        "assertion": "cancellation state table",
+        "buildManifestSha256": "3aae4807a90b12c499a2acaa45b5a5f60d4000ab7d2f0731e78372e96e496934"
+      },
+      {
+        "condition": "cohesive",
+        "case": "non-idempotent-cancel",
+        "passed": true,
+        "obligation": "E2-01",
+        "assertion": "idempotent cancellation",
+        "buildManifestSha256": "65602f6d938f39d6139dcd9a24c2f87acecaed45f4d75c6bf4d2b46418f10e7b"
+      },
+      {
+        "condition": "cohesive",
+        "case": "direct-submit-code",
+        "passed": true,
+        "obligation": "E2-02",
+        "assertion": "direct submit outcome",
+        "buildManifestSha256": "c7a03519dabaf5707a87e740444f7e21b4512ca685b56f27741b84a57b1a1ec9"
+      },
+      {
+        "condition": "cohesive",
+        "case": "fulfillment-code",
+        "passed": true,
+        "obligation": "E2-02",
+        "assertion": "cancelled fulfillment",
+        "buildManifestSha256": "afc7d98bc3a5092243b4e8b7ae6db8cd97ab12d9be91ec9f8d2c3a68c7823714"
+      },
+      {
+        "condition": "cohesive",
+        "case": "early-cancellation",
+        "passed": true,
+        "obligation": "E2-02",
+        "assertion": "missing inventory before cancellation",
+        "buildManifestSha256": "54f0a4879e04bb162e781327fe653bf8382f431c7a91a1a5cca5641353c5dc30"
+      },
+      {
+        "condition": "cohesive",
+        "case": "skipped-compensation",
+        "passed": true,
+        "obligation": "E2-02",
+        "assertion": "cancelled fulfillment",
+        "buildManifestSha256": "f2bbf7afd0323dc6e3f5f7330f58efb9f4443a1dbc8fe364789e8c2d291c7fab"
+      }
+    ]
+  },
+  "harnessTests": 2,
+  "contractTests": 7
+}
