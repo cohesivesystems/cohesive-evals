@@ -1,0 +1,280 @@
+{
+  "passed": true,
+  "complete": true,
+  "cases": [
+    {
+      "condition": "conventional",
+      "case": "known-good",
+      "passed": true,
+      "failure": null,
+      "buildManifestSha256": "b9e7e6ba3d8285ad4639c7dd27b7c21b0dd34b25665b7cb176b2085397c9902e"
+    },
+    {
+      "condition": "conventional",
+      "case": "stale-validator",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "(0, {'index': 0, 'admission': {'status': 202, 'body': {'operationId': '0db3e37482c94da7a2cb2aa572cf2e36', 'resultUrl': '/fulfillment/results/0db3e37482c94da7a2cb2aa572cf2e36'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderMissing'}}}, {'status': 400})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "38c79f99cecf483b3b94df6d5c78825bc24bfc6f6ab276dd0fe98f98d718c68a"
+    },
+    {
+      "condition": "conventional",
+      "case": "reject-64",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "(0, {'index': 0, 'admission': {'status': 400, 'body': None}}, {'status': 202, 'outcome': 'OrderMissing'})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "43676d992f4264a535be68bf32376a6808621698b50cb10b403a10400a0e0b4e"
+    },
+    {
+      "condition": "conventional",
+      "case": "accept-65",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "(0, {'index': 0, 'admission': {'status': 202, 'body': {'operationId': '1d06c88fb34f4dd1b2bbc89578af212a', 'resultUrl': '/fulfillment/results/1d06c88fb34f4dd1b2bbc89578af212a'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderMissing'}}}, {'status': 400})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "01fb368b30537f1e60afa460bc94f0c16079186c6897ed0668d119833ac9dfe3"
+    },
+    {
+      "condition": "conventional",
+      "case": "grapheme-counting",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "(0, {'index': 0, 'admission': {'status': 202, 'body': {'operationId': '87c8fcc9e7eb4abeb5dd1e6c1c9bc3bd', 'resultUrl': '/fulfillment/results/87c8fcc9e7eb4abeb5dd1e6c1c9bc3bd'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderMissing'}}}, {'status': 400})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "0a1b5ca949869843c382047ce042d750eea7f9b5484c94eaed2a07ca15df2d9f"
+    },
+    {
+      "condition": "conventional",
+      "case": "single-truncates",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "(0, {'index': 0, 'admission': {'status': 202, 'body': {'operationId': '74f1426ce1c84d739fc321b9160693e3', 'resultUrl': '/fulfillment/results/74f1426ce1c84d739fc321b9160693e3'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderMissing'}}}, {'status': 400})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "09743c04fd9db822bab7ea7097c8f2c77cd3fd7e3a5d18f539f9435ab7607e77"
+    },
+    {
+      "condition": "conventional",
+      "case": "batch-truncates",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "(0, {'index': 0, 'admission': {'status': 202, 'body': {'operationId': '45ec07bdad9942068227b354dacfbeb6', 'resultUrl': '/fulfillment/results/45ec07bdad9942068227b354dacfbeb6'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderMissing'}}}, {'status': 400})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "2752f340b4a75bd9b31f79be596f6275625e0c4511f39a1feb21ecfd9e616dd4"
+    },
+    {
+      "condition": "conventional",
+      "case": "capacity-before-validation",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "(0, {'index': 0, 'admission': {'status': 503, 'body': None}}, {'status': 400})",
+        "obligation": "PV2-02",
+        "assertion": "capacity precedence"
+      },
+      "buildManifestSha256": "60a9fb659ef6e6035e3fb68c58ae9d79cf2b1c8f732136ba04483d0557f4d1a8"
+    },
+    {
+      "condition": "conventional",
+      "case": "trim-identity",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "9",
+        "obligation": "PV2-03",
+        "assertion": "identity preservation"
+      },
+      "buildManifestSha256": "0f45f96f2b61681e42367a6038a510e06f7830cff971a87ef9e59a873d6b6a49"
+    },
+    {
+      "condition": "conventional",
+      "case": "reset-identities",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "16",
+        "obligation": "PV2-03",
+        "assertion": "identity preservation"
+      },
+      "buildManifestSha256": "b1a798242184fbecf42eacf69dc27a177c981c36a5bbfe75ace81a840485ef4a"
+    },
+    {
+      "condition": "cohesive",
+      "case": "known-good",
+      "passed": true,
+      "failure": null,
+      "buildManifestSha256": "02ac2ce2911d1d4d82f34c69ab38d60ac5ee45a419aa4db19f4ab2fe7090cb27"
+    },
+    {
+      "condition": "cohesive",
+      "case": "single-truncates",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "(0, {'index': 0, 'admission': {'status': 202, 'body': {'operationId': '3db6ad9abb184db79d8633cd9e49cba6', 'resultUrl': '/fulfillment/results/3db6ad9abb184db79d8633cd9e49cba6'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderMissing'}}}, {'status': 400})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "ecf27fab059fe61cd09cc1f6f705d6f7918136e950cc881ca3778e926f2826a4"
+    },
+    {
+      "condition": "cohesive",
+      "case": "batch-truncates",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "(0, {'index': 0, 'admission': {'status': 202, 'body': {'operationId': 'e7ea853c2ee7477b8aef0415d6bab88d', 'resultUrl': '/fulfillment/results/e7ea853c2ee7477b8aef0415d6bab88d'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderMissing'}}}, {'status': 400})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "68a38f6a29387925a6113f37b2a4739fe65e24fde6fef2baeb169ce8211b5fda"
+    },
+    {
+      "condition": "cohesive",
+      "case": "capacity-before-validation",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "(0, {'index': 0, 'admission': {'status': 503, 'body': None}}, {'status': 400})",
+        "obligation": "PV2-02",
+        "assertion": "capacity precedence"
+      },
+      "buildManifestSha256": "846ea6c12b82be8507471fe7e811b765c2799f001cfb6fe0edfdbd3fd0088049"
+    },
+    {
+      "condition": "cohesive",
+      "case": "trim-identity",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "9",
+        "obligation": "PV2-03",
+        "assertion": "identity preservation"
+      },
+      "buildManifestSha256": "a9d56adfbab4179f98dd3cf067256602bcf0fe5df94a4d88062f1762b1e3783f"
+    },
+    {
+      "condition": "cohesive",
+      "case": "reset-identities",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "16",
+        "obligation": "PV2-03",
+        "assertion": "identity preservation"
+      },
+      "buildManifestSha256": "5d77599e64c2fecd177175cec1c79e1181af161212a3df658bb3dd7b96fed635"
+    },
+    {
+      "condition": "cohesive",
+      "case": "declaration-removed",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "(0, {'index': 0, 'admission': {'status': 202, 'body': {'operationId': 'c563284dc3044482b2819f759820e2ac', 'resultUrl': '/fulfillment/results/c563284dc3044482b2819f759820e2ac'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderMissing'}}}, {'status': 400})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "fed0089507fb33bf78dd30e862b135438f905f57955f2886d93d7dde1ce158a1"
+    },
+    {
+      "condition": "cohesive",
+      "case": "declaration-63",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "(0, {'index': 0, 'admission': {'status': 400, 'body': None}}, {'status': 202, 'outcome': 'OrderMissing'})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "08dd18cf731de20c5fdd3161c1695b8cd37e1e190e1d635f80ebea9ff2da5d8e"
+    },
+    {
+      "condition": "cohesive",
+      "case": "declaration-65",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "(0, {'index': 0, 'admission': {'status': 202, 'body': {'operationId': 'ded34483346e4e4193f8e73c43f8e866', 'resultUrl': '/fulfillment/results/ded34483346e4e4193f8e73c43f8e866'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderMissing'}}}, {'status': 400})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "14fefcca419511975c5e70f649886a273b2a4e5871f118edf90a01c8840b3806"
+    },
+    {
+      "condition": "cohesive",
+      "case": "projection-disabled",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "(0, {'index': 0, 'admission': {'status': 202, 'body': {'operationId': '0937debc67ca47ffbff3b1b3c390320d', 'resultUrl': '/fulfillment/results/0937debc67ca47ffbff3b1b3c390320d'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderMissing'}}}, {'status': 400})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "1f9cd3b7bec20e23d36e7bb8911bd71e3d4595b6564425a8f434543d721564fb"
+    },
+    {
+      "condition": "cohesive",
+      "case": "stale-validation-input",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "(0, {'index': 0, 'admission': {'status': 202, 'body': {'operationId': 'b52034dc3f34481488559bdcda527090', 'resultUrl': '/fulfillment/results/b52034dc3f34481488559bdcda527090'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderMissing'}}}, {'status': 400})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "2b1e69ca2c91470d83a40799ef1114d4721c4d313d7e6d70521e442ffff6f20b"
+    },
+    {
+      "condition": "cohesive",
+      "case": "validation-bypassed",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "(0, {'index': 0, 'admission': {'status': 202, 'body': {'operationId': 'ea744d7f79674a0cb0bdf29b0d83f4c2', 'resultUrl': '/fulfillment/results/ea744d7f79674a0cb0bdf29b0d83f4c2'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderMissing'}}}, {'status': 400})",
+        "obligation": "PV2-01",
+        "assertion": "length boundary"
+      },
+      "buildManifestSha256": "79bf481c8264421ea5676d46602192e0da74eff9df7eb447b4a6302d1c67765d"
+    }
+  ]
+}
