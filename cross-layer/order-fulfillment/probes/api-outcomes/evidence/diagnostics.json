@@ -1,0 +1,75 @@
+{
+  "passed": true,
+  "complete": true,
+  "cases": [
+    {
+      "condition": "conventional",
+      "case": "wrong-identity-type",
+      "stage": "compile",
+      "passed": true,
+      "diagnostic": "error CS1503:",
+      "diagnosticLines": [
+        "/private/tmp/ao1-diagnostics/references/conventional/src/Fulfillment.Application/FulfillmentBackend.cs(24,28): error CS1503: Argument 1: cannot convert from 'int' to 'string' [/private/tmp/ao1-diagnostics/references/conventional/src/Fulfillment.Application/Fulfillment.Application.csproj]",
+        "/private/tmp/ao1-diagnostics/references/conventional/src/Fulfillment.Application/FulfillmentBackend.cs(24,28): error CS1503: Argument 1: cannot convert from 'int' to 'string' [/private/tmp/ao1-diagnostics/references/conventional/src/Fulfillment.Application/Fulfillment.Application.csproj]"
+      ],
+      "inputsSha256": "a482fc2241cdd8fdae06aadba30e01d49ce19fb393a554c02ac7ec189f77a06c"
+    },
+    {
+      "condition": "conventional",
+      "case": "wrong-input-type",
+      "stage": "compile",
+      "passed": true,
+      "diagnostic": "error CS1503:",
+      "diagnosticLines": [
+        "/private/tmp/ao1-diagnostics/references/conventional/src/Fulfillment.Application/FulfillmentBackend.cs(13,35): error CS1503: Argument 2: cannot convert from 'string' to 'int' [/private/tmp/ao1-diagnostics/references/conventional/src/Fulfillment.Application/Fulfillment.Application.csproj]",
+        "/private/tmp/ao1-diagnostics/references/conventional/src/Fulfillment.Application/FulfillmentBackend.cs(13,35): error CS1503: Argument 2: cannot convert from 'string' to 'int' [/private/tmp/ao1-diagnostics/references/conventional/src/Fulfillment.Application/Fulfillment.Application.csproj]"
+      ],
+      "inputsSha256": "720ea171bdb9450ba02778e1294ee526c37f90c63166ac14ed722b41874bbe4a"
+    },
+    {
+      "condition": "cohesive",
+      "case": "wrong-input-type",
+      "stage": "compile",
+      "passed": true,
+      "diagnostic": "error CS0029:",
+      "diagnosticLines": [
+        "/private/tmp/ao1-diagnostics/references/cohesive/src/Fulfillment.Application/FulfillmentBackend.cs(91,35): error CS0029: Cannot implicitly convert type 'Fulfillment.Application.StockQuantity' to 'Fulfillment.Application.QuantityLimit' [/private/tmp/ao1-diagnostics/references/cohesive/src/Fulfillment.Application/Fulfillment.Application.csproj]",
+        "/private/tmp/ao1-diagnostics/references/cohesive/src/Fulfillment.Application/FulfillmentBackend.cs(91,35): error CS0029: Cannot implicitly convert type 'Fulfillment.Application.StockQuantity' to 'Fulfillment.Application.QuantityLimit' [/private/tmp/ao1-diagnostics/references/cohesive/src/Fulfillment.Application/Fulfillment.Application.csproj]"
+      ],
+      "inputsSha256": "f847dd717700d45bb6e397cfb06e330e52c435bdca34363fde4aabad84132f7e"
+    },
+    {
+      "condition": "cohesive",
+      "case": "wrong-transition-reference",
+      "stage": "registration",
+      "passed": true,
+      "diagnostic": "System.ArgumentException: Endpoint must reference the exact authored transition.",
+      "diagnosticLines": [
+        "Unhandled exception. System.ArgumentException: Endpoint must reference the exact authored transition."
+      ],
+      "inputsSha256": "042a8ef72c8a4fa3efdbb03cc11fb3e69191c28ebe492344d770bbc11a662f3f"
+    },
+    {
+      "condition": "cohesive",
+      "case": "wrong-response-contract",
+      "stage": "registration",
+      "passed": true,
+      "diagnostic": "System.ArgumentException: Endpoint entity, kind, primary result, response type or body contract does not match the typed binding.",
+      "diagnosticLines": [
+        "Unhandled exception. System.ArgumentException: Endpoint entity, kind, primary result, response type or body contract does not match the typed binding. These overloads accept bodyless endpoints. (Parameter 'endpoint')"
+      ],
+      "inputsSha256": "71d60ff36431536bfa56180b21191b4fab65fb0bdeac09940968b9226d37350c"
+    },
+    {
+      "condition": "cohesive",
+      "case": "missing-input-binding",
+      "stage": "registration",
+      "passed": true,
+      "diagnostic": "System.InvalidOperationException: Configure Input before completing the binding.",
+      "diagnosticLines": [
+        "Unhandled exception. System.InvalidOperationException: Configure Input before completing the binding."
+      ],
+      "inputsSha256": "da2841e275df58d3eddcc9866ead4e3e66c4e0e0a319c4ea3a4652ff70c57042"
+    }
+  ]
+}

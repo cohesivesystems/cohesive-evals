@@ -31,3 +31,24 @@ existing reservations, each inventory precedence case and clean restart. Snapsho
 physical order/inventory/reservation facts before and after; include unrelated
 sentinels. Keep known-good controls for both conditions, even when a mutant is
 caught before the runtime verifier can execute.
+
+## Implemented coverage
+
+See [results and reproduction](README.md) and [evidence](evidence.json). AO1-01–06
+run in `verify.py`; AO1-07 runs the unchanged retained suites separately. Physical
+snapshots cover the full fixture, including unrelated sentinels. Clean restart
+uses the same database without reseeding; admission identities are only replayed
+within the original host lifetime.
+
+`mutations.py` qualifies 29 running defects across guard/mapping, compensation,
+precedence, identity/input binding, replay, batch continuation and read projection.
+`diagnostics.py` separately records wrong-type compiler errors and declaration
+reference/response/input registration failures. `alias_witness.py` supplies the
+paired enum-alias comparison witness. All have known-good controls.
+
+The planned defect list is a design space, not a claim that every example was
+seeded. No stale schema/seed-validator mutant, distinct revision-only mismatch,
+separate per-endpoint registry mutant or compatibility export is qualified here.
+Correct schema/seeding/restart behavior is exercised by both references. The
+conventional reference has no standalone API declaration to mismatch; its typed
+argument controls and behavioral binding defects are exercised instead.

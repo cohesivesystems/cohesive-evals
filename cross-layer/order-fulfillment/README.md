@@ -94,4 +94,5 @@ probes do not extend the existing pilot matrix.
 
 The next [API outcome/binding probe specification](probes/api-outcomes/protocol.md)
 defines AO1 and its [planned test matrix](probes/api-outcomes/test-matrix.md).
-It is not yet implemented or qualified.
+Its [AO1 implementation and qualification](probes/api-outcomes/README.md) add
+a seeded archived-order rejection in both conditions.
