@@ -10,7 +10,7 @@
       "envelopes": 5,
       "requestRecoveryCases": 5,
       "visibleChecks": 5,
-      "buildManifestSha256": "02968e28eec835134f5bf7c16dd0692afb1bcf69f41209b0e60c88e8be2501ea"
+      "buildManifestSha256": "025307f439d68f89f9e505d39ecd3ec3819cfdf206c79afe85936fa5c794ff48"
     },
     "cohesive": {
       "passed": true,
@@ -19,7 +19,7 @@
       "envelopes": 5,
       "requestRecoveryCases": 5,
       "visibleChecks": 5,
-      "buildManifestSha256": "1538edc2e4072f69239dd05177da4d28e5b10b3c4628dbe8fcf8784e96f50aac"
+      "buildManifestSha256": "a5764aad10e61cbe46ccabeec5b58cb94659d9e0ce4090076ed7611920f21b6d"
     }
   }
 }

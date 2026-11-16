@@ -89,5 +89,5 @@ The [PV1 batch references](probes/portable-validation/pv1/README.md) implement i
 first step with independent qualification. The [PV2 request ID limit](probes/portable-validation/pv2/README.md)
 adds the shared 64-UTF-16-unit input rule and its qualification. The
 [typed-input SDK stage](probes/portable-validation/typed-input/README.md) replaces
-the Cohesive length predicate with a declared constraint while preserving PV2. These separate
+the Cohesive input predicates with declared constraints and a shared validator while preserving PV2. These separate
 probes do not extend the existing pilot matrix.

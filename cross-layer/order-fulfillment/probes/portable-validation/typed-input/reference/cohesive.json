@@ -1,18 +1,26 @@
 {
   "src/Fulfillment.Application/Contracts.cs": {
     "before": "67e1680d0d6605c6afbef441d8ab7a7cef28e5c295b1461828d367e3786b9781",
-    "after": "d8bd09910678cbb2ebcd97512dec157a628e04b7caf47d4f0a1e8dfe83a4bcb0"
+    "after": "39792b8b5b40d823ea48778a879d7cd7b7221f4cbc46883699696dbd4ad990ab"
   },
   "src/Fulfillment.Application/FulfillmentInput.cs": {
     "before": "7b01de01c48a30ff2de43d73239b018c117ae1c666fe13075bb4a53642465b34",
-    "after": "fff83f9d8f6cfeba7c2dfd6d542df07d07d0307b1893fafa5954484ceaac4734"
+    "after": null
+  },
+  "src/Fulfillment.Application/Program.cs": {
+    "before": "d4b6698bb72df2d8fb35108d510824f1e3f9178d61e05a7969682dc19d6e79dd",
+    "after": "d6ca2e11084e63042a74535b66322454aa156833e8fdb4870b3a5805431e0379"
+  },
+  "src/Fulfillment.Application/OperationQueue.cs": {
+    "before": "28cf563219e69ab79b61ba156a5f6e738b6b453e0efff33dc134b696a17222b4",
+    "after": "2a23a6e61254bfeb1d7b1ffa4e696a9f4accf8bdedd25cb09a070ac872cb308d"
   },
   "src/Fulfillment.Application/Fulfillment.Application.csproj": {
     "before": "b68cc3d67e5c9bf3f31243fea00425f3c7afbfb207d266bf32159a0095e01411",
-    "after": "168afe3c3dfce0bc19f5b54d04dded4a2108eeb89bd623fa02e8da6df8e3ce52"
+    "after": "5313a504d838d6b7b341b686d93bc21bad90a5d2679190ef0d0303b0b4f4a9f1"
   },
   "src/Fulfillment.Application/packages.lock.json": {
     "before": "7762b5e19fc99dea1533b7f7af5e0149c1c48566ee21fb7bcf6a70781afb7313",
-    "after": "eb1609a485771f0e387034e6d3c7e9fcff7c1118dca6c4322307e1e65f9bf7ec"
+    "after": "ce8e70b0e3068c3510b8e68522d420b5d5f8a6ea0ca7fd3afe2c152d9cca8023"
   }
 }

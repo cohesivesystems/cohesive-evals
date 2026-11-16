@@ -1048,7 +1048,7 @@
         },
         "cleanRestartVerified": true
       },
-      "buildManifestSha256": "02968e28eec835134f5bf7c16dd0692afb1bcf69f41209b0e60c88e8be2501ea"
+      "buildManifestSha256": "025307f439d68f89f9e505d39ecd3ec3819cfdf206c79afe85936fa5c794ff48"
     },
     "cohesive": {
       "baseline": [
@@ -2093,11 +2093,21 @@
         },
         "cleanRestartVerified": true
       },
-      "buildManifestSha256": "1538edc2e4072f69239dd05177da4d28e5b10b3c4628dbe8fcf8784e96f50aac"
+      "buildManifestSha256": "a5764aad10e61cbe46ccabeec5b58cb94659d9e0ce4090076ed7611920f21b6d"
     }
   },
-  "contractSources": {
-    "conventional": "67e1680d0d6605c6afbef441d8ab7a7cef28e5c295b1461828d367e3786b9781",
-    "cohesive": "d8bd09910678cbb2ebcd97512dec157a628e04b7caf47d4f0a1e8dfe83a4bcb0"
+  "sharedSourcePins": {
+    "src/Fulfillment.Application/Contracts.cs": {
+      "conventional": "67e1680d0d6605c6afbef441d8ab7a7cef28e5c295b1461828d367e3786b9781",
+      "cohesive": "39792b8b5b40d823ea48778a879d7cd7b7221f4cbc46883699696dbd4ad990ab"
+    },
+    "src/Fulfillment.Application/Program.cs": {
+      "conventional": "d4b6698bb72df2d8fb35108d510824f1e3f9178d61e05a7969682dc19d6e79dd",
+      "cohesive": "d6ca2e11084e63042a74535b66322454aa156833e8fdb4870b3a5805431e0379"
+    },
+    "src/Fulfillment.Application/OperationQueue.cs": {
+      "conventional": "28cf563219e69ab79b61ba156a5f6e738b6b453e0efff33dc134b696a17222b4",
+      "cohesive": "2a23a6e61254bfeb1d7b1ffa4e696a9f4accf8bdedd25cb09a070ac872cb308d"
+    }
   }
 }

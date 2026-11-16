@@ -9,13 +9,19 @@ def mutations(condition):
     if condition == 'cohesive':
         for name in ('stale-validator', 'reject-64', 'accept-65', 'grapheme-counting'):
             del cases[name]
-        declaration = '[property: System.ComponentModel.DataAnnotations.MaxLength(64)] '
+        for name, mutation in list(cases.items()):
+            file, before, after, obligation, assertion = mutation
+            cases[name] = (file, before.replace('FulfillmentInput.IsValid(request)', 'inputs.Validate(request).IsValid'),
+                           after.replace('FulfillmentInput.IsValid(request)', 'inputs.Validate(request).IsValid'), obligation, assertion)
         cases.update({
-            'declaration-removed': ('Contracts.cs', declaration, '', 'PV2-01', 'length boundary'),
+            'declaration-removed': ('Contracts.cs', 'Required, MaxLength(64)', 'Required', 'PV2-01', 'length boundary'),
             'declaration-63': ('Contracts.cs', 'MaxLength(64)', 'MaxLength(63)', 'PV2-01', 'length boundary'),
             'declaration-65': ('Contracts.cs', 'MaxLength(64)', 'MaxLength(65)', 'PV2-01', 'length boundary'),
-            'projection-disabled': ('FulfillmentInput.cs', '.UseDataAnnotations()', '', 'PV2-01', 'length boundary'),
-            'stale-validation-input': ('FulfillmentInput.cs', 'ValidateInput(request, Inputs)', 'ValidateInput(request with { RequestId = "cached-valid" }, Inputs)', 'PV2-01', 'length boundary'),
-            'validation-bypassed': ('FulfillmentInput.cs', 'ObservationValidator.ValidateInput(request, Inputs).IsValid', 'true', 'PV2-01', 'length boundary'),
+            'projection-disabled': ('Program.cs', '.UseDataAnnotations()', '', 'PV2-01', 'length boundary'),
+            'stale-validation-input': ('OperationQueue.cs', 'inputs.Validate(request)', 'inputs.Validate(request with { RequestId = "cached-valid" })', 'PV2-01', 'length boundary'),
+            'validation-bypassed': ('OperationQueue.cs', 'inputs.Validate(request).IsValid', '(inputs is not null)', 'PV2-01', 'length boundary'),
+            'required-request-removed': ('Contracts.cs', 'Required, MaxLength(64)', 'MaxLength(64)', 'PV2-01', 'length boundary'),
+            'required-order-removed': ('Contracts.cs', '[property: Required] string OrderId', 'string OrderId', 'TI-01', 'required input'),
+            'required-sku-removed': ('Contracts.cs', '[property: Required] string Sku', 'string Sku', 'TI-01', 'required input'),
         })
     return cases
