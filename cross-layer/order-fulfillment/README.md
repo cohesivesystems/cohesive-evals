@@ -96,3 +96,7 @@ The next [API outcome/binding probe specification](probes/api-outcomes/protocol.
 defines AO1 and its [planned test matrix](probes/api-outcomes/test-matrix.md).
 Its [AO1 implementation and qualification](probes/api-outcomes/README.md) add
 a seeded archived-order rejection in both conditions.
+
+The next [model-assisted verification probe (MV1)](probes/model-verification/README.md)
+audits reuse of the production reservation model offline and specifies a matched
+test-authoring experiment. Its capability witness is not a generated test suite.

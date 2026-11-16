@@ -1,0 +1,14 @@
+{
+  "sdkRevision": "b0c442ab5645907968d6b605edeb1dd54550130d",
+  "packageVersion": "0.1.0-eval.b0c442a",
+  "packages": {
+    "Cohesive.Transitions.Assurance.0.1.0-eval.b0c442a.nupkg": "53d32858ab4e010b6a57dd4d79a7f5071db4ca8be5a07159d87081764cdbc1ed",
+    "Cohesive.Assurance.0.1.0-eval.b0c442a.nupkg": "655880f9e2ca85e268b1885cbcffc47370cb7c1f3de58fd97d4f347d2cc70379"
+  },
+  "sourceArchiveSha256": "54d28d10d37021b1fd3b51db8111d1e5c3cc43fcad79a13e4b7dd62a8fca6d43",
+  "buildProjects": [
+    "src/Cohesive.Transitions.Assurance/Cohesive.Transitions.Assurance.csproj",
+    "src/Cohesive.Assurance/Cohesive.Assurance.csproj"
+  ],
+  "note": "Only these verification-only packages were added. Existing AO1 packages and production source are not replaced."
+}
