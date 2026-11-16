@@ -86,3 +86,6 @@ nunit-*.xml
 !cross-layer/order-fulfillment/conditions/cohesive/packages/*.nupkg
 
 !cross-layer/order-fulfillment/durability/packages/*.nupkg
+
+# Separately versioned typed-input SDK qualification stage.
+!cross-layer/order-fulfillment/probes/portable-validation/typed-input/packages/*.nupkg

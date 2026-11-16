@@ -148,12 +148,20 @@ def consumer_client(Client, target_generation, consumer_generation=None):
     return ProfileClient
 
 
-def matching_artifacts(fixtures, profiles):
+def matching_artifacts(fixtures, profiles, shared_source_pins=None):
     paths = ['src/Fulfillment.Application/' + name for name in
              ['Program.cs', 'Contracts.cs', 'QuantityLimitInput.cs', 'OperationQueue.cs', 'ReadResults.cs']]
+    source_paths = set(paths)
     paths += ['CONTRACT.md', 'schemas.json', 'seed.schema.json', 'contract-examples.json']
     paths += [f"tests/{p['name']}_checks.py" for p in profiles]
+    if shared_source_pins is not None:
+        assert set(shared_source_pins) <= source_paths, 'Source pins must name guarded shared files'
+        assert all(set(pins) == set(CONDITIONS) for pins in shared_source_pins.values()), 'Source pins must name both conditions'
     for path in paths:
+        if shared_source_pins is not None and path in shared_source_pins:
+            for condition in CONDITIONS:
+                assert hashlib.sha256((fixtures / condition / path).read_bytes()).hexdigest() == shared_source_pins[path][condition], ('shared source drift', condition, path)
+            continue
         assert (fixtures / 'conventional' / path).read_bytes() == (fixtures / 'cohesive' / path).read_bytes(), path
 
 
@@ -174,7 +182,8 @@ def verify(args):
     condition = None
     try:
         if not args.condition:
-            matching_artifacts(args.fixtures, profiles)
+            pins = getattr(args, 'shared_source_pins', None)
+            matching_artifacts(args.fixtures, profiles, json.loads(pins.read_text()) if pins else None)
         image_id = run('docker', 'image', 'inspect', IMAGE, '--format', '{{.Id}}')
         run('docker', 'run', '-d', '--name', name, '-e', 'POSTGRES_PASSWORD=fixture-only',
             '-p', '127.0.0.1::5432', IMAGE)
@@ -245,6 +254,8 @@ def verify(args):
         report = {'passed': True, 'generation': args.generation,
                   'priorCheckpointsVerified': not args.only_generation,
                   'postgresImage': IMAGE, 'postgresImageId': image_id, 'conditions': records}
+        pins = getattr(args, 'shared_source_pins', None)
+        if pins: report['sharedSourcePins'] = json.loads(pins.read_text())
         (args.output / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
         print(args.generation, 'verification passed:', ', '.join(records), flush=True)
     except failure_types as error:
@@ -323,6 +334,7 @@ def main_verify(generation=None):
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--condition', choices=CONDITIONS)
     parser.add_argument('--only-generation', '--e1-only', '--e2-only', action='store_true')
+    parser.add_argument('--shared-source-pins', type=Path, help='Reviewed exact hashes for intentionally different shared sources; all other equality checks remain')
     args = parser.parse_args()
     args.fixtures = args.fixtures.resolve()
     args.output = args.output.resolve()
