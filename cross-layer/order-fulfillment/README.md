@@ -91,3 +91,7 @@ adds the shared 64-UTF-16-unit input rule and its qualification. The
 [typed-input SDK stage](probes/portable-validation/typed-input/README.md) replaces
 the Cohesive input predicates with declared constraints and a shared validator while preserving PV2. These separate
 probes do not extend the existing pilot matrix.
+
+The next [API outcome/binding probe specification](probes/api-outcomes/protocol.md)
+defines AO1 and its [planned test matrix](probes/api-outcomes/test-matrix.md).
+It is not yet implemented or qualified.
