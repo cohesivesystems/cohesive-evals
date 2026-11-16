@@ -1,0 +1,140 @@
+--- a/CONTRACT.md
++++ b/CONTRACT.md
+@@ -196,3 +196,12 @@
+ survive. Check new commands with fresh request IDs afterward. Admission
+ and result history remain host-lifetime only; recovery of pending work, durable
+ request replay and live schema migration are not required.
++
++## AO1: archived order outcome
++
++Seeded Archived orders remain readable but cannot be submitted or cancelled.
++Direct submit returns 409 `{"code":"OrderArchived"}`. Fulfillment returns
++200 `{"status":"Rejected","outcome":"OrderArchived"}` after compensating
++reserved stock, with no reservation. Existing inventory and reservation rejection
++precedence, replay, batch behavior and other lifecycle outcomes are unchanged.
++Cancellation returns 409 OrderNotCancellable. No archive endpoint or migration.
+--- a/schemas.json
++++ b/schemas.json
+@@ -27,7 +27,8 @@
+           "enum": [
+             "Draft",
+             "Submitted",
+-            "Cancelled"
++            "Cancelled",
++            "Archived"
+           ]
+         }
+       },
+@@ -210,7 +211,8 @@
+                 "OrderRejected",
+                 "QuantityLimitExceeded",
+                 "OrderCancelled",
+-                "InventoryQuarantined"
++                "InventoryQuarantined",
++                "OrderArchived"
+               ]
+             }
+           },
+@@ -246,7 +248,8 @@
+           "enum": [
+             "Draft",
+             "Submitted",
+-            "Cancelled"
++            "Cancelled",
++            "Archived"
+           ]
+         },
+         "reservations": {
+@@ -304,7 +307,8 @@
+             "OrderNotDraft",
+             "RequestIdentityConflict",
+             "OrderCancelled",
+-            "OrderNotCancellable"
++            "OrderNotCancellable",
++            "OrderArchived"
+           ]
+         }
+       },
+--- a/seed.schema.json
++++ b/seed.schema.json
+@@ -42,7 +42,8 @@
+           "enum": [
+             "Draft",
+             "Submitted",
+-            "Cancelled"
++            "Cancelled",
++            "Archived"
+           ]
+         }
+       },
+--- a/src/Fulfillment.Application/Contracts.cs
++++ b/src/Fulfillment.Application/Contracts.cs
+@@ -34,7 +34,7 @@
+     public void Validate()
+     {
+         if (Orders is null || Inventory is null || Reservations is null
+-            || Orders.Any(x => string.IsNullOrWhiteSpace(x.Id) || x.Status is not ("Draft" or "Submitted" or "Cancelled"))
++            || Orders.Any(x => string.IsNullOrWhiteSpace(x.Id) || x.Status is not ("Draft" or "Submitted" or "Cancelled" or "Archived"))
+             || Inventory.Any(x => string.IsNullOrWhiteSpace(x.Sku) || x.Available < 0 || x.MaxPerOrder <= 0)
+             || Reservations.Any(x => string.IsNullOrWhiteSpace(x.Id) || string.IsNullOrWhiteSpace(x.OrderId) || string.IsNullOrWhiteSpace(x.Sku) || x.Quantity <= 0))
+             throw new ArgumentException("Invalid seed data.");
+--- a/src/Fulfillment.Application/Domain.cs
++++ b/src/Fulfillment.Application/Domain.cs
+@@ -1,10 +1,10 @@
+ namespace Fulfillment.Application;
+
+-public enum OrderStatus { Draft, Submitted, Cancelled }
++public enum OrderStatus { Draft, Submitted, Cancelled, Archived }
+ public sealed record Order(string Id, OrderStatus Status);
+ public sealed record InventoryItem(string Sku, int Available, int MaxPerOrder = int.MaxValue, bool Quarantined = false);
+ public sealed record Reservation(string Id, string OrderId, string Sku, int Quantity);
+-public enum SubmissionOutcome { Submitted, NotDraft, OrderCancelled }
++public enum SubmissionOutcome { Submitted, NotDraft, OrderCancelled, OrderArchived }
+ public enum CancellationOutcome { Cancelled, NotCancellable }
+ public enum StockOutcome { Reserved, Released, InvalidQuantity, InventoryQuarantined, QuantityLimitExceeded, InsufficientStock }
+
+@@ -13,7 +13,12 @@
+     public static (Order State, SubmissionOutcome Outcome) Submit(Order order) =>
+         order.Status == OrderStatus.Draft
+             ? (order with { Status = OrderStatus.Submitted }, SubmissionOutcome.Submitted)
+-            : (order, order.Status == OrderStatus.Cancelled ? SubmissionOutcome.OrderCancelled : SubmissionOutcome.NotDraft);
++            : (order, order.Status switch
++            {
++                OrderStatus.Cancelled => SubmissionOutcome.OrderCancelled,
++                OrderStatus.Archived => SubmissionOutcome.OrderArchived,
++                _ => SubmissionOutcome.NotDraft
++            });
+
+     public static (Order State, CancellationOutcome Outcome) Cancel(Order order) =>
+         order.Status is OrderStatus.Draft or OrderStatus.Cancelled
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -26,6 +26,7 @@
+             null => Results.NotFound(),
+             SubmissionOutcome.Submitted => Results.Ok(new OrderSummary(id, "Submitted")),
+             SubmissionOutcome.OrderCancelled => Results.Conflict(new ErrorResponse("OrderCancelled")),
++            SubmissionOutcome.OrderArchived => Results.Conflict(new ErrorResponse("OrderArchived")),
+             SubmissionOutcome.NotDraft => Results.Conflict(new ErrorResponse("OrderNotDraft")),
+             _ => throw new InvalidOperationException("Unknown submission outcome.")
+         });
+--- a/src/Fulfillment.Application/FulfillmentResults.cs
++++ b/src/Fulfillment.Application/FulfillmentResults.cs
+@@ -15,6 +15,7 @@
+     public static Completion FromSubmission(SubmissionOutcome? outcome) => new("Rejected", outcome switch
+     {
+         SubmissionOutcome.OrderCancelled => "OrderCancelled",
++        SubmissionOutcome.OrderArchived => "OrderArchived",
+         SubmissionOutcome.NotDraft => "OrderRejected",
+         _ => throw new InvalidOperationException("Unexpected submission rejection.")
+     });
+--- a/src/Fulfillment.Application/OrderStore.cs
++++ b/src/Fulfillment.Application/OrderStore.cs
+@@ -8,7 +8,7 @@
+     public async Task Initialize()
+     {
+         await using var command = database.CreateCommand("""
+-            CREATE TABLE IF NOT EXISTS orders(id text COLLATE "C" PRIMARY KEY, status text NOT NULL CHECK(status IN ('Draft','Submitted','Cancelled')));
++            CREATE TABLE IF NOT EXISTS orders(id text COLLATE "C" PRIMARY KEY, status text NOT NULL CHECK(status IN ('Draft','Submitted','Cancelled','Archived')));
+             CREATE TABLE IF NOT EXISTS inventory(sku text COLLATE "C" PRIMARY KEY, available integer NOT NULL CHECK(available >= 0), max_per_order integer NOT NULL DEFAULT 2147483647 CHECK(max_per_order > 0), quarantined boolean NOT NULL DEFAULT false);
+             CREATE TABLE IF NOT EXISTS reservations(id text COLLATE "C" PRIMARY KEY, order_id text COLLATE "C" NOT NULL REFERENCES orders(id),
+                 sku text COLLATE "C" NOT NULL REFERENCES inventory(sku), quantity integer NOT NULL CHECK(quantity > 0));

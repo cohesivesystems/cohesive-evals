@@ -1,0 +1,152 @@
+--- a/CONTRACT.md
++++ b/CONTRACT.md
+@@ -196,3 +196,12 @@
+ survive. Check new commands with fresh request IDs afterward. Admission
+ and result history remain host-lifetime only; recovery of pending work, durable
+ request replay and live schema migration are not required.
++
++## AO1: archived order outcome
++
++Seeded Archived orders remain readable but cannot be submitted or cancelled.
++Direct submit returns 409 `{"code":"OrderArchived"}`. Fulfillment returns
++200 `{"status":"Rejected","outcome":"OrderArchived"}` after compensating
++reserved stock, with no reservation. Existing inventory and reservation rejection
++precedence, replay, batch behavior and other lifecycle outcomes are unchanged.
++Cancellation returns 409 OrderNotCancellable. No archive endpoint or migration.
+--- a/schemas.json
++++ b/schemas.json
+@@ -27,7 +27,8 @@
+           "enum": [
+             "Draft",
+             "Submitted",
+-            "Cancelled"
++            "Cancelled",
++            "Archived"
+           ]
+         }
+       },
+@@ -210,7 +211,8 @@
+                 "OrderRejected",
+                 "QuantityLimitExceeded",
+                 "OrderCancelled",
+-                "InventoryQuarantined"
++                "InventoryQuarantined",
++                "OrderArchived"
+               ]
+             }
+           },
+@@ -246,7 +248,8 @@
+           "enum": [
+             "Draft",
+             "Submitted",
+-            "Cancelled"
++            "Cancelled",
++            "Archived"
+           ]
+         },
+         "reservations": {
+@@ -304,7 +307,8 @@
+             "OrderNotDraft",
+             "RequestIdentityConflict",
+             "OrderCancelled",
+-            "OrderNotCancellable"
++            "OrderNotCancellable",
++            "OrderArchived"
+           ]
+         }
+       },
+--- a/seed.schema.json
++++ b/seed.schema.json
+@@ -42,7 +42,8 @@
+           "enum": [
+             "Draft",
+             "Submitted",
+-            "Cancelled"
++            "Cancelled",
++            "Archived"
+           ]
+         }
+       },
+--- a/src/Fulfillment.Application/Contracts.cs
++++ b/src/Fulfillment.Application/Contracts.cs
+@@ -40,7 +40,7 @@
+     public void Validate()
+     {
+         if (Orders is null || Inventory is null || Reservations is null
+-            || Orders.Any(x => string.IsNullOrWhiteSpace(x.Id) || x.Status is not ("Draft" or "Submitted" or "Cancelled"))
++            || Orders.Any(x => string.IsNullOrWhiteSpace(x.Id) || x.Status is not ("Draft" or "Submitted" or "Cancelled" or "Archived"))
+             || Inventory.Any(x => string.IsNullOrWhiteSpace(x.Sku) || x.Available < 0 || x.MaxPerOrder <= 0)
+             || Reservations.Any(x => string.IsNullOrWhiteSpace(x.Id) || string.IsNullOrWhiteSpace(x.OrderId) || string.IsNullOrWhiteSpace(x.Sku) || x.Quantity <= 0))
+             throw new ArgumentException("Invalid seed data.");
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -126,6 +126,7 @@
+             .OnRejected(result => TypedResults.Conflict(new ErrorResponse(result.Outcome switch
+             {
+                 SubmissionOutcome.OrderCancelled => "OrderCancelled",
++                SubmissionOutcome.OrderArchived => "OrderArchived",
+                 SubmissionOutcome.NotDraft => "OrderNotDraft",
+                 _ => throw new InvalidOperationException("Unexpected submission rejection.")
+             }))));
+--- a/src/Fulfillment.Application/FulfillmentDomain.cs
++++ b/src/Fulfillment.Application/FulfillmentDomain.cs
+@@ -19,7 +19,7 @@
+     /// <summary>Canonical partition field shared by the example entities.</summary>
+     public const string PartitionField = "partition";
+     /// <summary>Declares the shared entities and their canonical references.</summary>
+-    public FulfillmentDomain() : base(revision: "7")
++    public FulfillmentDomain() : base(revision: "8")
+     {
+         (Orders, Inventory, Reservations) = Discover(DomainDiscovery.For<FulfillmentDomain>(),
+             entities => (entities.Entity<Order>(), entities.Entity<InventoryItem>(), entities.Entity<Reservation>()));
+@@ -95,7 +95,9 @@
+     /// <summary>Order has been submitted.</summary>
+     [JsonStringEnumMemberName("Submitted")] Submitted,
+     /// <summary>Terminal cancelled order.</summary>
+-    [JsonStringEnumMemberName("Cancelled")] Cancelled
++    [JsonStringEnumMemberName("Cancelled")] Cancelled,
++    /// <summary>Seeded terminal archived order.</summary>
++    [JsonStringEnumMemberName("Archived")] Archived
+ }
+
+ /// <summary>Closed submission outcomes, independent of transport messages and status codes.</summary>
+@@ -107,7 +109,9 @@
+     /// <summary>The current lifecycle does not permit submission.</summary>
+     [JsonStringEnumMemberName("OrderNotDraft")] NotDraft,
+     /// <summary>Cancelled orders cannot be submitted.</summary>
+-    [JsonStringEnumMemberName("OrderCancelled")] OrderCancelled
++    [JsonStringEnumMemberName("OrderCancelled")] OrderCancelled,
++    /// <summary>Archived orders cannot be submitted.</summary>
++    [JsonStringEnumMemberName("OrderArchived")] OrderArchived
+ }
+
+ /// <summary>Closed cancellation outcomes.</summary>
+@@ -138,9 +142,10 @@
+                 .Set(order => order.Status, OrderStatus.Cancelled)
+                 .Return(CancellationOutcome.Cancelled));
+         Submit = orders.Transition<SubmitOrderResult>(
+-            id: new("example/order/submit"), revision: new("6"),
++            id: new("example/order/submit"), revision: new("7"),
+             transition => transition
+                 .Requires(order => order.Status != OrderStatus.Cancelled, order => new SubmitOrderResult(order.Status, SubmissionOutcome.OrderCancelled, FulfillmentOutcome.OrderCancelled))
++                .Requires(order => order.Status != OrderStatus.Archived, order => new SubmitOrderResult(order.Status, SubmissionOutcome.OrderArchived, FulfillmentOutcome.OrderArchived))
+                 .Requires(order => order.Status == OrderStatus.Draft, order => new SubmitOrderResult(order.Status, SubmissionOutcome.NotDraft, FulfillmentOutcome.OrderRejected))
+                 .Set(order => order.Status, OrderStatus.Submitted)
+                 .Return(new SubmitOrderResult(OrderStatus.Submitted, SubmissionOutcome.Submitted, FulfillmentOutcome.ReservedAndSubmitted))
+@@ -182,6 +187,7 @@
+     /// <summary>Order submission rejected; reserved stock was released.</summary>
+     OrderRejected,
+     OrderCancelled,
++    OrderArchived,
+     /// <summary>An existing reservation conflicts with this fulfillment intent.</summary>
+     ReservationConflict
+ }
+@@ -285,7 +291,7 @@
+
+ /// <summary>Canonical multi-entity sequence. This syntax is compiled into Process IR, never executed as C#.</summary>
+ /// <param name="domain">Entity and transition authority used by the process.</param>
+-[Process(id: "fulfillment/submit", revision: "11")]
++[Process(id: "fulfillment/submit", revision: "12")]
+ public sealed partial class FulfillmentProcess(FulfillmentDomain domain) : ProcessModel<FulfillOrder, FulfillmentResult>
+ {
+     /// <inheritdoc />

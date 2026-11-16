@@ -1,0 +1,26 @@
+{
+  "CONTRACT.md": {
+    "before": "2590cb167022ad1b6791b5d173f8101bfaf0a075ca496daf5a9f41a9fc69e2cd",
+    "after": "250dc723695fa02355f32aa3282396edeab3a32de3930d9178809e7ac06ffe67"
+  },
+  "schemas.json": {
+    "before": "729daa1fc1b54af0f7cb45956153fd8cbf76f4d156563d75a7d91aa2efda9e3b",
+    "after": "7a1a9e78ee0f2c737519a505289b52673adc4eb984e9aadcebed611bc8e86286"
+  },
+  "seed.schema.json": {
+    "before": "620f0545e299a5a818bd8db0d65e8db92b0fc9b6170f2e6930a40d884948635a",
+    "after": "0a73872e9b8cdf22db112067543453aa03f85c79bcb04c5e0c958a114e421c06"
+  },
+  "src/Fulfillment.Application/Contracts.cs": {
+    "before": "39792b8b5b40d823ea48778a879d7cd7b7221f4cbc46883699696dbd4ad990ab",
+    "after": "f96f85fa283fe7bff45b1adf1a983a964e7338b0039bf571d66e8ab396aac85b"
+  },
+  "src/Fulfillment.Application/FulfillmentBackend.cs": {
+    "before": "2306feba647f7fe994afd6ba6960beee4322104eb6c679e2e2cdf7ad0ffcc86e",
+    "after": "50158982a86b68400f5c42a5473870fd896850a0d5f7c2aa47459ab1c13d5aef"
+  },
+  "src/Fulfillment.Application/FulfillmentDomain.cs": {
+    "before": "0799e0e3279acb84aaade7182eeb322859d6e67b56db8355e9bd03b1d2981f54",
+    "after": "3b2b41e2c08b7736cb6653998c092e8cba2caa4b5fedae9fa96135aad7e6ed3b"
+  }
+}

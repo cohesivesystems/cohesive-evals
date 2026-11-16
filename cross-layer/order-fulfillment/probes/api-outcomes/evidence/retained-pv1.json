@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "postgresImage": "postgres:17.10-alpine3.24",
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "conditions": {
+    "conventional": {
+      "passed": true,
+      "businessItems": 17,
+      "decodingItemsPerOperation": 32,
+      "envelopes": 5,
+      "requestRecoveryCases": 5,
+      "visibleChecks": 5,
+      "buildManifestSha256": "4b610c5d72eabd49d3eb7121b445c9b356875105951a7527ff176635c1e5fa33"
+    },
+    "cohesive": {
+      "passed": true,
+      "businessItems": 17,
+      "decodingItemsPerOperation": 32,
+      "envelopes": 5,
+      "requestRecoveryCases": 5,
+      "visibleChecks": 5,
+      "buildManifestSha256": "a2d846b931cdb7aa08d9433d2a4ae361dad9728a76f275d69457aa81e9d22ba8"
+    }
+  }
+}

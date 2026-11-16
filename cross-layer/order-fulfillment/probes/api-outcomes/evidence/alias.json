@@ -1,0 +1,44 @@
+{
+  "passed": true,
+  "complete": true,
+  "cases": [
+    {
+      "condition": "conventional",
+      "variant": "declared-name-control",
+      "passed": true,
+      "expectedBehavioralFailure": false,
+      "failure": null,
+      "buildManifestSha256": "d0989a16f440195f46394b8f1221f5a3b425d844ec15e35bac55326a845f7596"
+    },
+    {
+      "condition": "cohesive",
+      "variant": "declared-name-control",
+      "passed": true,
+      "expectedBehavioralFailure": false,
+      "failure": null,
+      "buildManifestSha256": "cb7da3a111798682d680af0f9b1013eed8f6ccbc67003eb4a2e67d2c905995f1"
+    },
+    {
+      "condition": "conventional",
+      "variant": "alias",
+      "passed": true,
+      "expectedBehavioralFailure": false,
+      "failure": null,
+      "buildManifestSha256": "c220e69881e7690dea13e595464212ded42da5e7e970d023763a385ce8a0cfe2"
+    },
+    {
+      "condition": "cohesive",
+      "variant": "alias",
+      "passed": true,
+      "expectedBehavioralFailure": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "{'index': 0, 'admission': {'status': 202, 'body': {'operationId': '886a064a01a74df980fa7ffcb72277d6', 'resultUrl': '/fulfillment/results/886a064a01a74df980fa7ffcb72277d6'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderRejected'}}}",
+        "obligation": "AO1-02",
+        "assertion": "archived fulfillment outcome"
+      },
+      "buildManifestSha256": "f04ca5b84b11d1286df095a577f55b4e38efadd2995b901b24399fc22decf45c"
+    }
+  ]
+}

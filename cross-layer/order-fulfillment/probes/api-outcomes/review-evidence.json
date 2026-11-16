@@ -1,0 +1,28 @@
+{
+  "reviewedTip": "f0142002738efd5efc8bd1fe1cda397be83f360f",
+  "change": "Exclude batch item admission/completion 5xx before behavioral assertions, including replay/conflict checks.",
+  "applicationChanges": false,
+  "runtimeQualification": {
+    "knownGood": 2,
+    "behavioralDefects": 29,
+    "matchesOriginalCaseResults": true
+  },
+  "harnessTests": 28,
+  "sourceSha256": {
+    "checks.py": "2021996779f2ae39f338f674e858a02393ce94ff875b4ad88263caa370acf533",
+    "test_harness.py": "b19a2170c1dd8a51186e9cc2edefc03e975974dcd55903958abb8948436e13df",
+    "verify.py": "a5791ac070d4c871b4886f013b7f47739fabc7f311a2e5a7de5163a9019fa09b",
+    "qualify.py": "f12dc2be52d3676f32c97cd3bc9197c353defffab65e26da280ee74f229cc723",
+    "mutations.py": "2ff2992ee7eb81b07a46a33a9154f1e73be58ab098f59f478db0be8b42ded374",
+    "diagnostics.py": "592d9fd705d70659d173636b54d2a649b98aee5abd9b9f6047bbac01323f29a6",
+    "reference/conventional.patch": "a36af22898d4c9c0946237796f4fdb7db87cc5f7cd20f5b8bde50232ba51a867",
+    "reference/cohesive.patch": "cf8f271b9741b6b081ae20c4ca2340178c58e0a248088ed77cf95a83e01b5d4e"
+  },
+  "evidenceSha256": {
+    "review-ao1.json": "279dbfbbf22ff7c7d76ae7e4dbd7bdd5c0ffee6d07eddc2433d22c78452acf90",
+    "review-qualification.json": "d11ce72e2d8cc66f8aa0b59a3ef33185a08c13ea1aec157cf22534bf0c23fc63",
+    "review-raw.tar.gz": "938df62391532c3b72d64faab854fc4da621c4e61fe8b2260df9f1704fdcd7b0"
+  },
+  "rawArtifacts": 225,
+  "retainedEvidence": "Original static negatives, alias witness and PV2/Required, PV1, G0-G3 results remain pinned in evidence.json; application inputs unchanged."
+}

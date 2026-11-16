@@ -1,0 +1,14 @@
+{
+  "src/Fulfillment.Application/Contracts.cs": {
+    "conventional": "efd6dd2dea1e7dd9be13f7b6be3543933d7c721c20aaa7a88e9e837ddbf8ccd8",
+    "cohesive": "f96f85fa283fe7bff45b1adf1a983a964e7338b0039bf571d66e8ab396aac85b"
+  },
+  "src/Fulfillment.Application/Program.cs": {
+    "conventional": "d4b6698bb72df2d8fb35108d510824f1e3f9178d61e05a7969682dc19d6e79dd",
+    "cohesive": "d6ca2e11084e63042a74535b66322454aa156833e8fdb4870b3a5805431e0379"
+  },
+  "src/Fulfillment.Application/OperationQueue.cs": {
+    "conventional": "28cf563219e69ab79b61ba156a5f6e738b6b453e0efff33dc134b696a17222b4",
+    "cohesive": "2a23a6e61254bfeb1d7b1ffa4e696a9f4accf8bdedd25cb09a070ac872cb308d"
+  }
+}
