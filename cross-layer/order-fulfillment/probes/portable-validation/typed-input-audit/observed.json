@@ -1,0 +1,43 @@
+{
+  "package": "0.1.0-eval.b0af008",
+  "rows": [
+    {
+      "name": "ascii64",
+      "utf16Length": 64,
+      "pv2LengthAccepted": true,
+      "fieldAccepted": true,
+      "shapeAccepted": true,
+      "objectAccepted": true,
+      "contractAccepted": true
+    },
+    {
+      "name": "ascii65",
+      "utf16Length": 65,
+      "pv2LengthAccepted": false,
+      "fieldAccepted": true,
+      "shapeAccepted": true,
+      "objectAccepted": true,
+      "contractAccepted": true
+    },
+    {
+      "name": "emoji32",
+      "utf16Length": 64,
+      "pv2LengthAccepted": true,
+      "fieldAccepted": true,
+      "shapeAccepted": true,
+      "objectAccepted": true,
+      "contractAccepted": true
+    },
+    {
+      "name": "emoji32-plus-ascii",
+      "utf16Length": 65,
+      "pv2LengthAccepted": false,
+      "fieldAccepted": true,
+      "shapeAccepted": true,
+      "objectAccepted": true,
+      "contractAccepted": true
+    }
+  ],
+  "structuralRejectionControls": 3,
+  "dataAnnotationsConstraintsProjected": 0
+}
