@@ -18,6 +18,9 @@ explicit SQL in conventional and inferred from the enum mapping in Cohesive.
 Exact parent/output hashes protect the small source patches. Shared source pins
 cover reviewed DTO differences; schema equality remains mandatory.
 
+[AO1 measurements](MEASUREMENTS.md) compare application change counts, semantic
+edit sites and paired fault detection stages; development effort remains unmeasured.
+
 ## Results
 
 - Both references pass AO1, retained PV2 + Required, PV1 and G0–G3.
@@ -27,7 +30,8 @@ cover reviewed DTO differences; schema equality remains mandatory.
   one Cohesive) and three Cohesive registration errors. Known-good startup controls
   pass. These are capability witnesses, not equal-sized treatment samples.
 - Four enum-name/alias runs reproduce a pinned SDK limitation, described below.
-- 25 harness tests pass: 6 AO1 and 19 retained tests.
+- Original qualification: 25 harness tests pass (6 AO1 and 19 retained tests).
+  The measurement follow-up adds 3 passing tests for evidence integrity and pairing.
 
 [Evidence index](evidence.json) hashes reports, build/source inputs and the compressed
 raw logs/traces. Counts are checks, not independent samples. This is maintainer

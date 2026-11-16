@@ -1,0 +1,295 @@
+{
+  "applicationRevision": "7db195a2b0c6fbc1da1f0d284708f46c21922320",
+  "inputsSha256": {
+    "evidence.json": "09189e2943831b9e2953989c234fc671e5e2babc9a8f8b2b9a38fa17df9e09eb",
+    "evidence/qualification.json": "0d275c362784ad11ebfd1c1d0211a528f730134a98a151b042d71bc9577ae00e",
+    "evidence/diagnostics.json": "46017932f7067ff1f6246a00e68d4058f931c1bc87b21e6b923685829dbe9941",
+    "evidence/ao1.json": "279dbfbbf22ff7c7d76ae7e4dbd7bdd5c0ffee6d07eddc2433d22c78452acf90",
+    "evidence/alias.json": "f72a1b4c4bf911e885a0776f4d46ecb69d0ad19cb16da13da6dd946b40177a36",
+    "evidence/retained-typed.json": "ecae57f1793f053d4c43291a4bb85b61449e1bd4c110ab2ac41c54c87c48bf9b",
+    "evidence/retained-pv1.json": "55f6d9ede07811b1a682ffdad32cdfa85fb541776e8b455cd73cd8baf3d210ae",
+    "evidence/retained-g0-g3.json": "41692888fe97d16f21a79389a32db8ac356798622a82d99419f64286211a465a",
+    "reference/conventional.patch": "a36af22898d4c9c0946237796f4fdb7db87cc5f7cd20f5b8bde50232ba51a867",
+    "reference/conventional.json": "b4a18fb377701325f2db7470dc4b59279c2ae17a0f9b9d6b48ce289057ff1ebe",
+    "reference/cohesive.patch": "cf8f271b9741b6b081ae20c4ca2340178c58e0a248088ed77cf95a83e01b5d4e",
+    "reference/cohesive.json": "59818a3bc72d4908077f5563d536069b124b182c7d90dc8793336499a41db0c2"
+  },
+  "changes": {
+    "conventional": {
+      "categories": {
+        "application": {
+          "files": 5,
+          "added": 12,
+          "removed": 5
+        },
+        "schemas": {
+          "files": 2,
+          "added": 10,
+          "removed": 5
+        },
+        "contractDocumentation": {
+          "files": 1,
+          "added": 9,
+          "removed": 0
+        }
+      },
+      "perFile": {
+        "CONTRACT.md": {
+          "added": 9,
+          "removed": 0
+        },
+        "schemas.json": {
+          "added": 8,
+          "removed": 4
+        },
+        "seed.schema.json": {
+          "added": 2,
+          "removed": 1
+        },
+        "src/Fulfillment.Application/Contracts.cs": {
+          "added": 1,
+          "removed": 1
+        },
+        "src/Fulfillment.Application/Domain.cs": {
+          "added": 8,
+          "removed": 3
+        },
+        "src/Fulfillment.Application/FulfillmentBackend.cs": {
+          "added": 1,
+          "removed": 0
+        },
+        "src/Fulfillment.Application/FulfillmentResults.cs": {
+          "added": 1,
+          "removed": 0
+        },
+        "src/Fulfillment.Application/OrderStore.cs": {
+          "added": 1,
+          "removed": 1
+        }
+      }
+    },
+    "cohesive": {
+      "categories": {
+        "application": {
+          "files": 3,
+          "added": 13,
+          "removed": 6
+        },
+        "schemas": {
+          "files": 2,
+          "added": 10,
+          "removed": 5
+        },
+        "contractDocumentation": {
+          "files": 1,
+          "added": 9,
+          "removed": 0
+        }
+      },
+      "perFile": {
+        "CONTRACT.md": {
+          "added": 9,
+          "removed": 0
+        },
+        "schemas.json": {
+          "added": 8,
+          "removed": 4
+        },
+        "seed.schema.json": {
+          "added": 2,
+          "removed": 1
+        },
+        "src/Fulfillment.Application/Contracts.cs": {
+          "added": 1,
+          "removed": 1
+        },
+        "src/Fulfillment.Application/FulfillmentBackend.cs": {
+          "added": 1,
+          "removed": 0
+        },
+        "src/Fulfillment.Application/FulfillmentDomain.cs": {
+          "added": 11,
+          "removed": 5
+        }
+      }
+    }
+  },
+  "pairedBehavioralFaults": [
+    {
+      "fault": "archived-before-inventory",
+      "obligation": "AO1-03",
+      "assertion": "rejection precedence",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    },
+    {
+      "fault": "batch-stops-at-rejection",
+      "obligation": "AO1-05",
+      "assertion": "mixed batch preservation",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    },
+    {
+      "fault": "conflicting-intent-replayed",
+      "obligation": "AO1-05",
+      "assertion": "shared replay and identity",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    },
+    {
+      "fault": "constant-input",
+      "obligation": "AO1-04",
+      "assertion": "bound input meaning",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    },
+    {
+      "fault": "double-release",
+      "obligation": "AO1-02",
+      "assertion": "archived compensation",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    },
+    {
+      "fault": "existing-outcome-drift",
+      "obligation": "AO1-01",
+      "assertion": "existing direct outcomes",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    },
+    {
+      "fault": "missing-archived-guard",
+      "obligation": "AO1-01",
+      "assertion": "archived direct submission",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    },
+    {
+      "fault": "read-status-erased",
+      "obligation": "AO1-06",
+      "assertion": "archived read and restart",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    },
+    {
+      "fault": "replay-evicted",
+      "obligation": "AO1-05",
+      "assertion": "shared replay and identity",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    },
+    {
+      "fault": "reservation-on-rejection",
+      "obligation": "AO1-02",
+      "assertion": "archived compensation",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    },
+    {
+      "fault": "skip-release",
+      "obligation": "AO1-02",
+      "assertion": "archived compensation",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    },
+    {
+      "fault": "stale-direct-code",
+      "obligation": "AO1-01",
+      "assertion": "archived direct submission",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    },
+    {
+      "fault": "stale-terminal-code",
+      "obligation": "AO1-02",
+      "assertion": "archived fulfillment outcome",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    },
+    {
+      "fault": "wrong-entity-id",
+      "obligation": "AO1-04",
+      "assertion": "bound entity identity",
+      "observedEnforcedDetection": {
+        "conventional": "independent verifier",
+        "cohesive": "independent verifier"
+      }
+    }
+  ],
+  "unpairedBehavioralFaults": {
+    "conventional": [
+      "wrong-http-category"
+    ],
+    "cohesive": []
+  },
+  "pairedTypeFault": {
+    "conventional": {
+      "case": "wrong-input-type",
+      "stage": "compile",
+      "diagnostic": "error CS1503:"
+    },
+    "cohesive": {
+      "case": "wrong-input-type",
+      "stage": "compile",
+      "diagnostic": "error CS0029:"
+    }
+  },
+  "unpairedStaticFixtures": [
+    {
+      "condition": "conventional",
+      "case": "wrong-identity-type",
+      "stage": "compile",
+      "diagnostic": "error CS1503:"
+    },
+    {
+      "condition": "cohesive",
+      "case": "wrong-transition-reference",
+      "stage": "registration",
+      "diagnostic": "System.ArgumentException: Endpoint must reference the exact authored transition."
+    },
+    {
+      "condition": "cohesive",
+      "case": "wrong-response-contract",
+      "stage": "registration",
+      "diagnostic": "System.ArgumentException: Endpoint entity, kind, primary result, response type or body contract does not match the typed binding."
+    },
+    {
+      "condition": "cohesive",
+      "case": "missing-input-binding",
+      "stage": "registration",
+      "diagnostic": "System.InvalidOperationException: Configure Input before completing the binding."
+    }
+  ],
+  "effort": {
+    "developmentTime": null,
+    "repairTime": null,
+    "repairIterations": null,
+    "repairRegressions": null
+  }
+}
