@@ -53,8 +53,12 @@ class HarnessTests(unittest.TestCase):
         with self.assertRaises(checks.BehavioralFailure):
             test=checks.Checks(world)
             test.check(test.call('POST','/submit')==(409,{'code':'OrderArchived'}),'01','archived direct submission','wrong code')
-        world.client.request=lambda *args:(200,{'items':[{'index':0,'admission':{'status':202},'completion':{'status':500}}]})
-        with self.assertRaises(RuntimeError):checks.Checks(world).items('batch',[{}],['OrderArchived'],'02','archived fulfillment outcome')
+        for item in ({'index':0,'admission':{'status':202},'completion':{'status':500}},
+                     {'index':0,'admission':{'status':500}}):
+            world.client.request=lambda *args:(200,{'items':[item]})
+            with self.assertRaises(RuntimeError):checks.Checks(world).items('batch',[{}],['OrderArchived'],'02','archived fulfillment outcome')
+            # Conflict/replay checks also use call directly, so classification belongs there.
+            with self.assertRaises(RuntimeError):checks.Checks(world).call('POST','/fulfillment/batch',[{}])
 
     def test_static_diagnostic_requires_matching_stage_and_error(self):
         line='FulfillmentBackend.cs(4,5): error CS1503: wrong type'

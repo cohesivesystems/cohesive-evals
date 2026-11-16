@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "postgresImage": "postgres:17.10-alpine3.24",
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "conditions": {
+    "conventional": {
+      "assertions": {
+        "archived direct submission": 2,
+        "existing direct outcomes": 6,
+        "archived fulfillment outcome": 8,
+        "archived compensation": 2,
+        "shared replay and identity": 14,
+        "rejection precedence": 80,
+        "bound entity identity": 4,
+        "bound input meaning": 7,
+        "mixed batch preservation": 9,
+        "archived read and restart": 6
+      },
+      "buildManifestSha256": "4b610c5d72eabd49d3eb7121b445c9b356875105951a7527ff176635c1e5fa33"
+    },
+    "cohesive": {
+      "assertions": {
+        "archived direct submission": 2,
+        "existing direct outcomes": 6,
+        "archived fulfillment outcome": 8,
+        "archived compensation": 2,
+        "shared replay and identity": 14,
+        "rejection precedence": 80,
+        "bound entity identity": 4,
+        "bound input meaning": 7,
+        "mixed batch preservation": 9,
+        "archived read and restart": 6
+      },
+      "buildManifestSha256": "a2d846b931cdb7aa08d9433d2a4ae361dad9728a76f275d69457aa81e9d22ba8"
+    }
+  }
+}

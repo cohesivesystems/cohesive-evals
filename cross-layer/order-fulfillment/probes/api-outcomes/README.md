@@ -85,3 +85,13 @@ The verifier reuses the existing PostgreSQL/host lifecycle and read-only physica
 observer. AO1 expectations are independently authored and do not import application
 schemas or SDK declarations. Qualification reuses the existing named-assertion
 runner. Static negatives and alias comparisons have separate reports.
+
+## Merge review
+
+The review tightened failure classification: HTTP 200 batch envelopes containing
+an admission or completion 5xx are unqualified infrastructure/application failures,
+including replay/conflict paths. They cannot earn named behavioral-detection credit.
+Both correct references and all 29 behavioral defects were rerun; 28 harness tests
+pass. Application patches, SDK packages and retained-suite inputs are unchanged.
+The original evidence and measurement snapshot remain immutable; the
+[review supplement](review-evidence.json) pins the revised checker and fresh runs.

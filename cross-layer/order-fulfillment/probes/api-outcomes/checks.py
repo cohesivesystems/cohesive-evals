@@ -40,6 +40,13 @@ class Checks:
         status, value = self.world.client.request(method, path, body, raw)
         self.trace.append(dict(method=method, path=path, status=status, body=value))
         if status >= 500: raise RuntimeError(('application failure', status, value))
+        if path == '/fulfillment/batch' and isinstance(value, dict):
+            for item in value.get('items', []):
+                if not isinstance(item, dict): continue
+                for phase in ('admission', 'completion'):
+                    reply = item.get(phase)
+                    if isinstance(reply, dict) and reply.get('status', 0) >= 500:
+                        raise RuntimeError(('batch '+phase+' failure', item))
         return status, value
 
     def unchanged(self, number, name):
@@ -65,8 +72,6 @@ class Checks:
                                   completion=dict(status=status, body=result)))
         self.check(len(items) == len(requests), number, name, items)
         for i, (item, expected) in enumerate(zip(items, outcome)):
-            if item.get('completion', {}).get('status', 0) >= 500:
-                raise RuntimeError(('execution failure', item))
             self.check(item.get('index') == i and item.get('admission', {}).get('status') == 202, number, name, item)
             status = 'Submitted' if expected == 'ReservedAndSubmitted' else 'Rejected'
             self.check(item.get('completion') == dict(status=200, body=dict(status=status, outcome=expected)), number, name, item)

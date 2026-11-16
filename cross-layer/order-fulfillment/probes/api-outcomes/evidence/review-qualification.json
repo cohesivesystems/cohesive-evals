@@ -1,0 +1,397 @@
+{
+  "passed": true,
+  "complete": true,
+  "cases": [
+    {
+      "condition": "conventional",
+      "case": "known-good",
+      "passed": true,
+      "failure": null,
+      "buildManifestSha256": "9404b4c2f3be269ceb00a4f116fb23ced849de4ae1b45c1c844e0f3051777586"
+    },
+    {
+      "condition": "conventional",
+      "case": "replay-evicted",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "([{'index': 0, 'admission': {'status': 202, 'body': {'operationId': '0ff4f472921543dbba3350e22d71b962', 'resultUrl': '/fulfillment/results/0ff4f472921543dbba3350e22d71b962'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderArchived'}}}], [{'index': 0, 'admission': {'status': 202, 'body': {'operationId': 'e3b249b89552447292cf7160f7f7cb37', 'resultUrl': '/fulfillment/results/e3b249b89552447292cf7160f7f7cb37'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderArchived'}}}])",
+        "obligation": "AO1-05",
+        "assertion": "shared replay and identity"
+      },
+      "buildManifestSha256": "e0e08bb8739247765ce02e169e220e70cb47b2efddd06a2c2ada35e34c6193d1"
+    },
+    {
+      "condition": "conventional",
+      "case": "conflicting-intent-replayed",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "{'items': [{'index': 0, 'admission': {'status': 202, 'body': {'operationId': 'c4eef882d0774e0186d366e7f5aa65e4', 'resultUrl': '/fulfillment/results/c4eef882d0774e0186d366e7f5aa65e4'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderArchived'}}}]}",
+        "obligation": "AO1-05",
+        "assertion": "shared replay and identity"
+      },
+      "buildManifestSha256": "4283986df2d3df2c34244c3d54f1689cad26f635bfad8f69812a48a2f43078ac"
+    },
+    {
+      "condition": "conventional",
+      "case": "batch-stops-at-rejection",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "[{'index': 0, 'admission': {'status': 202, 'body': {'operationId': '85bd0299abdb4d7ab105b364669c710e', 'resultUrl': '/fulfillment/results/85bd0299abdb4d7ab105b364669c710e'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderArchived'}}}]",
+        "obligation": "AO1-05",
+        "assertion": "mixed batch preservation"
+      },
+      "buildManifestSha256": "c0f630d4d06076061d2cf6374e73b04f9d149ec123535cc215f35c158679dd5e"
+    },
+    {
+      "condition": "conventional",
+      "case": "missing-archived-guard",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "[{'method': 'POST', 'path': '/orders/ao1-archived/submit', 'status': 409, 'body': {'code': 'OrderNotDraft'}}]",
+        "obligation": "AO1-01",
+        "assertion": "archived direct submission"
+      },
+      "buildManifestSha256": "217aabc25dd95f936e093cfbafb0b33480ee41c296a7701027dd47540d2392fd"
+    },
+    {
+      "condition": "conventional",
+      "case": "stale-direct-code",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "[{'method': 'POST', 'path': '/orders/ao1-archived/submit', 'status': 409, 'body': {'code': 'OrderNotDraft'}}]",
+        "obligation": "AO1-01",
+        "assertion": "archived direct submission"
+      },
+      "buildManifestSha256": "7949e3d7ff3e017deb0b8fb4fa72504b70842d7c09877ac23ddc7cc87ea2c6f8"
+    },
+    {
+      "condition": "conventional",
+      "case": "wrong-http-category",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "[{'method': 'POST', 'path': '/orders/ao1-archived/submit', 'status': 200, 'body': {'code': 'OrderArchived'}}]",
+        "obligation": "AO1-01",
+        "assertion": "archived direct submission"
+      },
+      "buildManifestSha256": "82579e9292561ab233d9b919a8557e3b6d474e0167503a8dfb6fa2d41a97bdac"
+    },
+    {
+      "condition": "conventional",
+      "case": "existing-outcome-drift",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "[{'method': 'POST', 'path': '/orders/ao1-submitted/submit', 'status': 409, 'body': {'code': 'OrderArchived'}}]",
+        "obligation": "AO1-01",
+        "assertion": "existing direct outcomes"
+      },
+      "buildManifestSha256": "7db36d6970b13c700df1716d92d52bd55069a3e0483c8f1b6e7d310e0f768877"
+    },
+    {
+      "condition": "conventional",
+      "case": "stale-terminal-code",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "{'index': 0, 'admission': {'status': 202, 'body': {'operationId': 'ab1a37829ec2412a9cc8ae9056a7ea0d', 'resultUrl': '/fulfillment/results/ab1a37829ec2412a9cc8ae9056a7ea0d'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderRejected'}}}",
+        "obligation": "AO1-02",
+        "assertion": "archived fulfillment outcome"
+      },
+      "buildManifestSha256": "83561fdc1e70b78215a18105bcac5635df103ad34d10c7076a7c512353696453"
+    },
+    {
+      "condition": "conventional",
+      "case": "skip-release",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "{'orders': [{'id': 'ao1-archived', 'status': 'Archived'}, {'id': 'ao1-reserved', 'status': 'Archived'}, {'id': 'ao1-submitted', 'status': 'Submitted'}, {'id': 'ao1-cancelled', 'status': 'Cancelled'}, {'id': 'ao1-batch', 'status': 'Draft'}, {'id': 'ao1-Case', 'status': 'Draft'}, {'id': 'ao1-case', 'status': 'Archived'}, {'id': 'ao1-sentinel', 'status': 'Draft'}, {'id': 'ao1-draft', 'status': 'Submitted'}], 'inventory': [{'sku': 'ao1-quarantined', 'available': 0, 'maxPerOrder': 1, 'quarantined': True}, {'sku': 'ao1-limited', 'available': 0, 'maxPerOrder': 1, 'quarantined': False}, {'sku': 'ao1-empty', 'available': 0, 'maxPerOrder': 8, 'quarantined': False}, {'sku': 'ao1-sentinel', 'available': 37, 'maxPerOrder': 4, 'quarantined': False}, {'sku': 'ao1-stock', 'available': 17, 'maxPerOrder': 8, 'quarantined': False}], 'reservations': [{'id': 'ao1-reserved', 'orderId': 'ao1-reserved', 'sku': 'ao1-stock', 'quantity': 2}]}",
+        "obligation": "AO1-02",
+        "assertion": "archived compensation"
+      },
+      "buildManifestSha256": "6a898e0478666e56c6997521e5a346bfebffcc54e46f297d0ccefa5d7ee02563"
+    },
+    {
+      "condition": "conventional",
+      "case": "double-release",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "{'orders': [{'id': 'ao1-archived', 'status': 'Archived'}, {'id': 'ao1-reserved', 'status': 'Archived'}, {'id': 'ao1-submitted', 'status': 'Submitted'}, {'id': 'ao1-cancelled', 'status': 'Cancelled'}, {'id': 'ao1-batch', 'status': 'Draft'}, {'id': 'ao1-Case', 'status': 'Draft'}, {'id': 'ao1-case', 'status': 'Archived'}, {'id': 'ao1-sentinel', 'status': 'Draft'}, {'id': 'ao1-draft', 'status': 'Submitted'}], 'inventory': [{'sku': 'ao1-quarantined', 'available': 0, 'maxPerOrder': 1, 'quarantined': True}, {'sku': 'ao1-limited', 'available': 0, 'maxPerOrder': 1, 'quarantined': False}, {'sku': 'ao1-empty', 'available': 0, 'maxPerOrder': 8, 'quarantined': False}, {'sku': 'ao1-sentinel', 'available': 37, 'maxPerOrder': 4, 'quarantined': False}, {'sku': 'ao1-stock', 'available': 21, 'maxPerOrder': 8, 'quarantined': False}], 'reservations': [{'id': 'ao1-reserved', 'orderId': 'ao1-reserved', 'sku': 'ao1-stock', 'quantity': 2}]}",
+        "obligation": "AO1-02",
+        "assertion": "archived compensation"
+      },
+      "buildManifestSha256": "4aefd621ff7419ef479e5efd371007ddd8774bcd2abe0e43f5b561fe92d17c6d"
+    },
+    {
+      "condition": "conventional",
+      "case": "reservation-on-rejection",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "{'orders': [{'id': 'ao1-archived', 'status': 'Archived'}, {'id': 'ao1-reserved', 'status': 'Archived'}, {'id': 'ao1-submitted', 'status': 'Submitted'}, {'id': 'ao1-cancelled', 'status': 'Cancelled'}, {'id': 'ao1-batch', 'status': 'Draft'}, {'id': 'ao1-Case', 'status': 'Draft'}, {'id': 'ao1-case', 'status': 'Archived'}, {'id': 'ao1-sentinel', 'status': 'Draft'}, {'id': 'ao1-draft', 'status': 'Submitted'}], 'inventory': [{'sku': 'ao1-quarantined', 'available': 0, 'maxPerOrder': 1, 'quarantined': True}, {'sku': 'ao1-limited', 'available': 0, 'maxPerOrder': 1, 'quarantined': False}, {'sku': 'ao1-empty', 'available': 0, 'maxPerOrder': 8, 'quarantined': False}, {'sku': 'ao1-sentinel', 'available': 37, 'maxPerOrder': 4, 'quarantined': False}, {'sku': 'ao1-stock', 'available': 19, 'maxPerOrder': 8, 'quarantined': False}], 'reservations': [{'id': 'ao1-reserved', 'orderId': 'ao1-reserved', 'sku': 'ao1-stock', 'quantity': 2}, {'id': 'ao1-archived', 'orderId': 'ao1-archived', 'sku': 'ao1-stock', 'quantity': 2}]}",
+        "obligation": "AO1-02",
+        "assertion": "archived compensation"
+      },
+      "buildManifestSha256": "75ef559f625ab906f9e99f5788375ef9688033bd116f5bc2bb8fc840ca4d2490"
+    },
+    {
+      "condition": "conventional",
+      "case": "archived-before-inventory",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "{'index': 0, 'admission': {'status': 202, 'body': {'operationId': '7b3177592ba244a2bf99ce93dfefff5e', 'resultUrl': '/fulfillment/results/7b3177592ba244a2bf99ce93dfefff5e'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderArchived'}}}",
+        "obligation": "AO1-03",
+        "assertion": "rejection precedence"
+      },
+      "buildManifestSha256": "d73ca414eda1b2078ac2dea7f0a0ff7c0b00622473c5077587211b45cd4bbe2a"
+    },
+    {
+      "condition": "conventional",
+      "case": "wrong-entity-id",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "[{'method': 'POST', 'path': '/orders/ao1-case/submit', 'status': 200, 'body': {'id': 'ao1-case', 'status': 'Submitted'}}]",
+        "obligation": "AO1-04",
+        "assertion": "bound entity identity"
+      },
+      "buildManifestSha256": "187ae4da119b8d8307f308ef19e8df15679391557f6c8fbb1f431d9309605b64"
+    },
+    {
+      "condition": "conventional",
+      "case": "constant-input",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "[{'method': 'PUT', 'path': '/inventory/ao1-sentinel/quantity-limit', 'status': 200, 'body': {'sku': 'ao1-sentinel', 'available': 37, 'maxPerOrder': 1, 'quarantined': False}}]",
+        "obligation": "AO1-04",
+        "assertion": "bound input meaning"
+      },
+      "buildManifestSha256": "06d9328eeef8f99e1c799a2363ceaf80371aba09513b3e2c5a3deffbc9da4c87"
+    },
+    {
+      "condition": "conventional",
+      "case": "read-status-erased",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "conventional",
+        "detail": "[{'method': 'GET', 'path': '/orders/ao1-archived', 'status': 200, 'body': {'id': 'ao1-archived', 'status': 'Draft'}}]",
+        "obligation": "AO1-06",
+        "assertion": "archived read and restart"
+      },
+      "buildManifestSha256": "091ed8a63f12482daea795a554d0f460963f333991d1b5fbd3c27623ca321a10"
+    },
+    {
+      "condition": "cohesive",
+      "case": "known-good",
+      "passed": true,
+      "failure": null,
+      "buildManifestSha256": "8d8b5d9b72ba4c721847fd225c527d9f52ade2605ddee4a5f10ff5d2e89b2eda"
+    },
+    {
+      "condition": "cohesive",
+      "case": "replay-evicted",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "([{'index': 0, 'admission': {'status': 202, 'body': {'operationId': 'ab9cbac18acd43a6a0b197e07a536a15', 'resultUrl': '/fulfillment/results/ab9cbac18acd43a6a0b197e07a536a15'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderArchived'}}}], [{'index': 0, 'admission': {'status': 202, 'body': {'operationId': 'ec05ce6051214fe3afc01694c79c8c49', 'resultUrl': '/fulfillment/results/ec05ce6051214fe3afc01694c79c8c49'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderArchived'}}}])",
+        "obligation": "AO1-05",
+        "assertion": "shared replay and identity"
+      },
+      "buildManifestSha256": "e820e02b30ffd6e6f8f7eaab1e25a074534af3ad3f092eb2091bb82416b10df0"
+    },
+    {
+      "condition": "cohesive",
+      "case": "conflicting-intent-replayed",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "{'items': [{'index': 0, 'admission': {'status': 202, 'body': {'operationId': '89c12dc8e7474601894971d8c4bad062', 'resultUrl': '/fulfillment/results/89c12dc8e7474601894971d8c4bad062'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderArchived'}}}]}",
+        "obligation": "AO1-05",
+        "assertion": "shared replay and identity"
+      },
+      "buildManifestSha256": "492ab373420acdde2377a92c2ce1270fe2898719f26560aebd26ae93765d202d"
+    },
+    {
+      "condition": "cohesive",
+      "case": "batch-stops-at-rejection",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "[{'index': 0, 'admission': {'status': 202, 'body': {'operationId': '24cd2f464739424292a5e8edb0dc3c73', 'resultUrl': '/fulfillment/results/24cd2f464739424292a5e8edb0dc3c73'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderArchived'}}}]",
+        "obligation": "AO1-05",
+        "assertion": "mixed batch preservation"
+      },
+      "buildManifestSha256": "fd10f7134353586327ddb3f62668690d3850b83e8935d87e3946805c0d3d014c"
+    },
+    {
+      "condition": "cohesive",
+      "case": "missing-archived-guard",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "[{'method': 'POST', 'path': '/orders/ao1-archived/submit', 'status': 409, 'body': {'code': 'OrderNotDraft'}}]",
+        "obligation": "AO1-01",
+        "assertion": "archived direct submission"
+      },
+      "buildManifestSha256": "cdb96424c05523058dac8c00eb70f9319fa20a26f45637548e0b5627f9e8b6b7"
+    },
+    {
+      "condition": "cohesive",
+      "case": "stale-direct-code",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "[{'method': 'POST', 'path': '/orders/ao1-archived/submit', 'status': 409, 'body': {'code': 'OrderNotDraft'}}]",
+        "obligation": "AO1-01",
+        "assertion": "archived direct submission"
+      },
+      "buildManifestSha256": "c9f68c808dabf5f57af80409223a218408b5e380c84fee7353fc6657fc131407"
+    },
+    {
+      "condition": "cohesive",
+      "case": "existing-outcome-drift",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "[{'method': 'POST', 'path': '/orders/ao1-submitted/submit', 'status': 409, 'body': {'code': 'OrderArchived'}}]",
+        "obligation": "AO1-01",
+        "assertion": "existing direct outcomes"
+      },
+      "buildManifestSha256": "824d8235d5932adc32ebc22cdf5bfa69e3b77410a9adec8574f6df36d60ed37c"
+    },
+    {
+      "condition": "cohesive",
+      "case": "stale-terminal-code",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "{'index': 0, 'admission': {'status': 202, 'body': {'operationId': 'ceef38a02c3b4a5da011bf147cf0a5c2', 'resultUrl': '/fulfillment/results/ceef38a02c3b4a5da011bf147cf0a5c2'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderRejected'}}}",
+        "obligation": "AO1-02",
+        "assertion": "archived fulfillment outcome"
+      },
+      "buildManifestSha256": "155ceb601ce805845267727bab6ea3a3c53656e677e1473969ba3ccd18393869"
+    },
+    {
+      "condition": "cohesive",
+      "case": "skip-release",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "{'orders': [{'id': 'ao1-archived', 'status': 'Archived'}, {'id': 'ao1-reserved', 'status': 'Archived'}, {'id': 'ao1-submitted', 'status': 'Submitted'}, {'id': 'ao1-cancelled', 'status': 'Cancelled'}, {'id': 'ao1-batch', 'status': 'Draft'}, {'id': 'ao1-Case', 'status': 'Draft'}, {'id': 'ao1-case', 'status': 'Archived'}, {'id': 'ao1-sentinel', 'status': 'Draft'}, {'id': 'ao1-draft', 'status': 'Submitted'}], 'inventory': [{'sku': 'ao1-quarantined', 'available': 0, 'maxPerOrder': 1, 'quarantined': True}, {'sku': 'ao1-limited', 'available': 0, 'maxPerOrder': 1, 'quarantined': False}, {'sku': 'ao1-empty', 'available': 0, 'maxPerOrder': 8, 'quarantined': False}, {'sku': 'ao1-sentinel', 'available': 37, 'maxPerOrder': 4, 'quarantined': False}, {'sku': 'ao1-stock', 'available': 17, 'maxPerOrder': 8, 'quarantined': False}], 'reservations': [{'id': 'ao1-reserved', 'orderId': 'ao1-reserved', 'sku': 'ao1-stock', 'quantity': 2}]}",
+        "obligation": "AO1-02",
+        "assertion": "archived compensation"
+      },
+      "buildManifestSha256": "41e3f5694aad13006b857e3a09f51f270e2a04b087cf13b8643c0c460d177024"
+    },
+    {
+      "condition": "cohesive",
+      "case": "double-release",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "{'orders': [{'id': 'ao1-archived', 'status': 'Archived'}, {'id': 'ao1-reserved', 'status': 'Archived'}, {'id': 'ao1-submitted', 'status': 'Submitted'}, {'id': 'ao1-cancelled', 'status': 'Cancelled'}, {'id': 'ao1-batch', 'status': 'Draft'}, {'id': 'ao1-Case', 'status': 'Draft'}, {'id': 'ao1-case', 'status': 'Archived'}, {'id': 'ao1-sentinel', 'status': 'Draft'}, {'id': 'ao1-draft', 'status': 'Submitted'}], 'inventory': [{'sku': 'ao1-quarantined', 'available': 0, 'maxPerOrder': 1, 'quarantined': True}, {'sku': 'ao1-limited', 'available': 0, 'maxPerOrder': 1, 'quarantined': False}, {'sku': 'ao1-empty', 'available': 0, 'maxPerOrder': 8, 'quarantined': False}, {'sku': 'ao1-sentinel', 'available': 37, 'maxPerOrder': 4, 'quarantined': False}, {'sku': 'ao1-stock', 'available': 21, 'maxPerOrder': 8, 'quarantined': False}], 'reservations': [{'id': 'ao1-reserved', 'orderId': 'ao1-reserved', 'sku': 'ao1-stock', 'quantity': 2}]}",
+        "obligation": "AO1-02",
+        "assertion": "archived compensation"
+      },
+      "buildManifestSha256": "91abd29d7f1f9aa2f2615e7736cb31219119c6c7f019c7bca0011871d190f4a2"
+    },
+    {
+      "condition": "cohesive",
+      "case": "reservation-on-rejection",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "{'orders': [{'id': 'ao1-archived', 'status': 'Archived'}, {'id': 'ao1-reserved', 'status': 'Archived'}, {'id': 'ao1-submitted', 'status': 'Submitted'}, {'id': 'ao1-cancelled', 'status': 'Cancelled'}, {'id': 'ao1-batch', 'status': 'Draft'}, {'id': 'ao1-Case', 'status': 'Draft'}, {'id': 'ao1-case', 'status': 'Archived'}, {'id': 'ao1-sentinel', 'status': 'Draft'}, {'id': 'ao1-draft', 'status': 'Submitted'}], 'inventory': [{'sku': 'ao1-quarantined', 'available': 0, 'maxPerOrder': 1, 'quarantined': True}, {'sku': 'ao1-limited', 'available': 0, 'maxPerOrder': 1, 'quarantined': False}, {'sku': 'ao1-empty', 'available': 0, 'maxPerOrder': 8, 'quarantined': False}, {'sku': 'ao1-sentinel', 'available': 37, 'maxPerOrder': 4, 'quarantined': False}, {'sku': 'ao1-stock', 'available': 19, 'maxPerOrder': 8, 'quarantined': False}], 'reservations': [{'id': 'ao1-reserved', 'orderId': 'ao1-reserved', 'sku': 'ao1-stock', 'quantity': 2}, {'id': 'ao1-archived', 'orderId': 'ao1-archived', 'sku': 'ao1-stock', 'quantity': 2}]}",
+        "obligation": "AO1-02",
+        "assertion": "archived compensation"
+      },
+      "buildManifestSha256": "746c68a055ca7d528cd06d15973e298983dafcaeedb64e65a71c37a53f007939"
+    },
+    {
+      "condition": "cohesive",
+      "case": "archived-before-inventory",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "{'index': 0, 'admission': {'status': 202, 'body': {'operationId': '8152ffd8fcd14321a2fb9366927d1d53', 'resultUrl': '/fulfillment/results/8152ffd8fcd14321a2fb9366927d1d53'}}, 'completion': {'status': 200, 'body': {'status': 'Rejected', 'outcome': 'OrderArchived'}}}",
+        "obligation": "AO1-03",
+        "assertion": "rejection precedence"
+      },
+      "buildManifestSha256": "9edb0d384cc70fd8f991745a9100d0ceb370af59cdf5c52528ab97cabc853a21"
+    },
+    {
+      "condition": "cohesive",
+      "case": "constant-input",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "[{'method': 'PUT', 'path': '/inventory/ao1-sentinel/quantity-limit', 'status': 200, 'body': {'sku': 'ao1-sentinel', 'available': 37, 'maxPerOrder': 1, 'quarantined': False}}]",
+        "obligation": "AO1-04",
+        "assertion": "bound input meaning"
+      },
+      "buildManifestSha256": "5f84e55bc905270fe181b82f3887ee33f87b90f46d592ec3204eec8fcad14660"
+    },
+    {
+      "condition": "cohesive",
+      "case": "read-status-erased",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "[{'method': 'GET', 'path': '/orders/ao1-archived', 'status': 200, 'body': {'id': 'ao1-archived', 'status': 'Draft'}}]",
+        "obligation": "AO1-06",
+        "assertion": "archived read and restart"
+      },
+      "buildManifestSha256": "ab047536bd4142fa64300483c5c8d5ce88664e4782d2ed9fbb2d7ad6a511fc44"
+    },
+    {
+      "condition": "cohesive",
+      "case": "wrong-entity-id",
+      "passed": true,
+      "failure": {
+        "kind": "behavioral",
+        "condition": "cohesive",
+        "detail": "[{'method': 'POST', 'path': '/orders/ao1-case/submit', 'status': 200, 'body': {'id': 'ao1-Case', 'status': 'Submitted'}}]",
+        "obligation": "AO1-04",
+        "assertion": "bound entity identity"
+      },
+      "buildManifestSha256": "02c1e60919441e250b9bb5be8c910b30eefcd93fc1855590b921caafc1588b88"
+    }
+  ]
+}
