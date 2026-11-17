@@ -1,7 +1,13 @@
 # MV1: model-assisted verification
 
-Specification for [#28](https://github.com/cohesivesystems/cohesive-evals/issues/28).
-This PR supplies a capability audit and protocol, not a generated test suite,
+Specification approved in [#28](https://github.com/cohesivesystems/cohesive-evals/issues/28).
+
+Development update: the [current implementation](implementation.md) upgrades the Cohesive
+SDK through [Cohesive #584](https://github.com/cohesivesystems/cohesive/pull/584) and uses
+its typed generation/execution APIs. The original capability audit remains pinned; the
+implementation prototype is superseded, not a separate scored condition.
+
+The original #49 supplied a capability audit and protocol, not a generated test suite,
 held-out defect qualification, development trial or scored campaign.
 
 ## Question and starting point
@@ -9,11 +15,12 @@ held-out defect qualification, development trial or scored campaign.
 Can an executable, inspectable model reduce the work of authoring and maintaining
 useful tests without sacrificing independent defect detection?
 
-Start from merged AO1 (`2e51498992ac1ac3cdd87a38d0e930e61932a77a`), SDK source
-`b0c442ab5645907968d6b605edeb1dd54550130d`, package version `0.1.0-eval.b0c442a`.
-Keep production source and package hashes unchanged. Verification-only Assurance
-packages are pinned separately in [the audit manifest](audit/package-manifest.json).
-Any subsequent SDK/guidance change creates another version; do not pool results.
+The preserved audit starts from merged AO1 (`2e51498992ac1ac3cdd87a38d0e930e61932a77a`),
+SDK source `b0c442ab5645907968d6b605edeb1dd54550130d`, package `0.1.0-eval.b0c442a`;
+its [manifest](audit/package-manifest.json) remains unchanged. The current implementation
+uses published SDK `0.1.0-eval.90eefde`, pinned in [sdk](sdk/dependency-manifest.json).
+The original business source is preserved; package/lockfile changes are separately checked.
+Each SDK/guidance change creates a development version; do not pool scored trial results.
 
 The task is to build an offline reservation test suite, then maintain it through
 one supplied policy evolution. Both conditions reuse the actual production model:
@@ -65,8 +72,10 @@ Use the reference interpreter for input-dependent reservation decisions. Assuran
 may evaluate independently authored claims over explicitly labeled model observations.
 Do not present these observations as production commits. The finite admission bridge
 supports only state-dependent predicates; it rejects command-dependent reservation
-guards. No general automatic boundary generator was identified in the audited APIs.
-Any added generator/adapter is authored work, measured and qualified separately.
+guards. The original audit found no general automatic boundary generator. The current SDK
+adds bounded Int32/Boolean proposals with caller-supplied states and per-input provenance;
+this does not imply arbitrary predicate solving or exhaustive coverage.
+Added generator/adapter work is recorded and qualified separately.
 The audited typed Int32 subtraction claim is unsupported; do not silently replace
 its arithmetic semantics. Use independent exact-delta assertions and report the
 Assurance coverage limit.

@@ -1,0 +1,12 @@
+--- a/src/Fulfillment.Application/Domain.cs
++++ b/src/Fulfillment.Application/Domain.cs
+@@ -30,8 +30,8 @@
+ {
+     public static (InventoryItem State, StockOutcome Outcome) Reserve(InventoryItem item, int quantity) =>
+         quantity <= 0 ? (item, StockOutcome.InvalidQuantity)
++        : quantity > item.MaxPerOrder ? (item, StockOutcome.QuantityLimitExceeded)
+         : item.Quarantined ? (item, StockOutcome.InventoryQuarantined)
+-        : quantity > item.MaxPerOrder ? (item, StockOutcome.QuantityLimitExceeded)
+         : item.Available < quantity ? (item, StockOutcome.InsufficientStock)
+         : (item with { Available = item.Available - quantity }, StockOutcome.Reserved);
+     public static InventoryItem Release(InventoryItem item, int quantity) => quantity > 0

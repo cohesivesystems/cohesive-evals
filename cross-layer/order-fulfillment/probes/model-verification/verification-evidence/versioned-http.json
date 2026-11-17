@@ -1,0 +1,903 @@
+{
+  "passed": true,
+  "postgresImage": "postgres:17.10-alpine3.24",
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "conditions": {
+    "original": {
+      "conventional": {
+        "buildManifestSha256": "f568f011a8002a430323ad152c10b90087dd0497a24f224e870e505e14385f8e",
+        "observations": [
+          {
+            "mode": "http",
+            "assertions": {
+              "versioned precedence": 25,
+              "versioned physical state": 1,
+              "versioned replay": 19,
+              "versioned replay preservation": 1
+            },
+            "facts": {
+              "orders": [
+                {
+                  "id": "negative",
+                  "status": "Draft"
+                },
+                {
+                  "id": "zero",
+                  "status": "Draft"
+                },
+                {
+                  "id": "overlap",
+                  "status": "Draft"
+                },
+                {
+                  "id": "quarantine",
+                  "status": "Draft"
+                },
+                {
+                  "id": "limit",
+                  "status": "Draft"
+                },
+                {
+                  "id": "short",
+                  "status": "Draft"
+                },
+                {
+                  "id": "exact",
+                  "status": "Submitted"
+                },
+                {
+                  "id": "below",
+                  "status": "Submitted"
+                }
+              ],
+              "inventory": [
+                {
+                  "sku": "negative",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "zero",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "overlap",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "quarantine",
+                  "available": 7,
+                  "maxPerOrder": 4,
+                  "quarantined": true
+                },
+                {
+                  "sku": "limit",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": false
+                },
+                {
+                  "sku": "short",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "exact",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "below",
+                  "available": 4,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                }
+              ],
+              "reservations": [
+                {
+                  "id": "exact",
+                  "orderId": "exact",
+                  "sku": "exact",
+                  "quantity": 4
+                },
+                {
+                  "id": "below",
+                  "orderId": "below",
+                  "sku": "below",
+                  "quantity": 3
+                }
+              ]
+            }
+          },
+          {
+            "mode": "batch",
+            "assertions": {
+              "versioned precedence": 18,
+              "versioned physical state": 1,
+              "versioned replay": 26,
+              "versioned replay preservation": 1
+            },
+            "facts": {
+              "orders": [
+                {
+                  "id": "negative",
+                  "status": "Draft"
+                },
+                {
+                  "id": "zero",
+                  "status": "Draft"
+                },
+                {
+                  "id": "overlap",
+                  "status": "Draft"
+                },
+                {
+                  "id": "quarantine",
+                  "status": "Draft"
+                },
+                {
+                  "id": "limit",
+                  "status": "Draft"
+                },
+                {
+                  "id": "short",
+                  "status": "Draft"
+                },
+                {
+                  "id": "exact",
+                  "status": "Submitted"
+                },
+                {
+                  "id": "below",
+                  "status": "Submitted"
+                }
+              ],
+              "inventory": [
+                {
+                  "sku": "negative",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "zero",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "overlap",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "quarantine",
+                  "available": 7,
+                  "maxPerOrder": 4,
+                  "quarantined": true
+                },
+                {
+                  "sku": "limit",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": false
+                },
+                {
+                  "sku": "short",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "exact",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "below",
+                  "available": 4,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                }
+              ],
+              "reservations": [
+                {
+                  "id": "exact",
+                  "orderId": "exact",
+                  "sku": "exact",
+                  "quantity": 4
+                },
+                {
+                  "id": "below",
+                  "orderId": "below",
+                  "sku": "below",
+                  "quantity": 3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "cohesive": {
+        "buildManifestSha256": "abb91a5c0ec0c52070f2b9d865e45089b85554ad42355a69de52178862628d16",
+        "observations": [
+          {
+            "mode": "http",
+            "assertions": {
+              "versioned precedence": 25,
+              "versioned physical state": 1,
+              "versioned replay": 19,
+              "versioned replay preservation": 1
+            },
+            "facts": {
+              "orders": [
+                {
+                  "id": "negative",
+                  "status": "Draft"
+                },
+                {
+                  "id": "zero",
+                  "status": "Draft"
+                },
+                {
+                  "id": "overlap",
+                  "status": "Draft"
+                },
+                {
+                  "id": "quarantine",
+                  "status": "Draft"
+                },
+                {
+                  "id": "limit",
+                  "status": "Draft"
+                },
+                {
+                  "id": "short",
+                  "status": "Draft"
+                },
+                {
+                  "id": "exact",
+                  "status": "Submitted"
+                },
+                {
+                  "id": "below",
+                  "status": "Submitted"
+                }
+              ],
+              "inventory": [
+                {
+                  "sku": "negative",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "zero",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "overlap",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "quarantine",
+                  "available": 7,
+                  "maxPerOrder": 4,
+                  "quarantined": true
+                },
+                {
+                  "sku": "limit",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": false
+                },
+                {
+                  "sku": "short",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "exact",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "below",
+                  "available": 4,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                }
+              ],
+              "reservations": [
+                {
+                  "id": "exact",
+                  "orderId": "exact",
+                  "sku": "exact",
+                  "quantity": 4
+                },
+                {
+                  "id": "below",
+                  "orderId": "below",
+                  "sku": "below",
+                  "quantity": 3
+                }
+              ]
+            }
+          },
+          {
+            "mode": "batch",
+            "assertions": {
+              "versioned precedence": 18,
+              "versioned physical state": 1,
+              "versioned replay": 26,
+              "versioned replay preservation": 1
+            },
+            "facts": {
+              "orders": [
+                {
+                  "id": "negative",
+                  "status": "Draft"
+                },
+                {
+                  "id": "zero",
+                  "status": "Draft"
+                },
+                {
+                  "id": "overlap",
+                  "status": "Draft"
+                },
+                {
+                  "id": "quarantine",
+                  "status": "Draft"
+                },
+                {
+                  "id": "limit",
+                  "status": "Draft"
+                },
+                {
+                  "id": "short",
+                  "status": "Draft"
+                },
+                {
+                  "id": "exact",
+                  "status": "Submitted"
+                },
+                {
+                  "id": "below",
+                  "status": "Submitted"
+                }
+              ],
+              "inventory": [
+                {
+                  "sku": "negative",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "zero",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "overlap",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "quarantine",
+                  "available": 7,
+                  "maxPerOrder": 4,
+                  "quarantined": true
+                },
+                {
+                  "sku": "limit",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": false
+                },
+                {
+                  "sku": "short",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "exact",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "below",
+                  "available": 4,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                }
+              ],
+              "reservations": [
+                {
+                  "id": "exact",
+                  "orderId": "exact",
+                  "sku": "exact",
+                  "quantity": 4
+                },
+                {
+                  "id": "below",
+                  "orderId": "below",
+                  "sku": "below",
+                  "quantity": 3
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "revised": {
+      "conventional": {
+        "buildManifestSha256": "34d1dc29c45cc0ddbe6008cf427fcc51924d88b7a8eaa46c5408d9b72a53ce5c",
+        "observations": [
+          {
+            "mode": "http",
+            "assertions": {
+              "versioned precedence": 25,
+              "versioned physical state": 1,
+              "versioned replay": 19,
+              "versioned replay preservation": 1
+            },
+            "facts": {
+              "orders": [
+                {
+                  "id": "negative",
+                  "status": "Draft"
+                },
+                {
+                  "id": "zero",
+                  "status": "Draft"
+                },
+                {
+                  "id": "overlap",
+                  "status": "Draft"
+                },
+                {
+                  "id": "quarantine",
+                  "status": "Draft"
+                },
+                {
+                  "id": "limit",
+                  "status": "Draft"
+                },
+                {
+                  "id": "short",
+                  "status": "Draft"
+                },
+                {
+                  "id": "exact",
+                  "status": "Submitted"
+                },
+                {
+                  "id": "below",
+                  "status": "Submitted"
+                }
+              ],
+              "inventory": [
+                {
+                  "sku": "negative",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "zero",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "overlap",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "quarantine",
+                  "available": 7,
+                  "maxPerOrder": 4,
+                  "quarantined": true
+                },
+                {
+                  "sku": "limit",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": false
+                },
+                {
+                  "sku": "short",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "exact",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "below",
+                  "available": 4,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                }
+              ],
+              "reservations": [
+                {
+                  "id": "exact",
+                  "orderId": "exact",
+                  "sku": "exact",
+                  "quantity": 4
+                },
+                {
+                  "id": "below",
+                  "orderId": "below",
+                  "sku": "below",
+                  "quantity": 3
+                }
+              ]
+            }
+          },
+          {
+            "mode": "batch",
+            "assertions": {
+              "versioned precedence": 18,
+              "versioned physical state": 1,
+              "versioned replay": 26,
+              "versioned replay preservation": 1
+            },
+            "facts": {
+              "orders": [
+                {
+                  "id": "negative",
+                  "status": "Draft"
+                },
+                {
+                  "id": "zero",
+                  "status": "Draft"
+                },
+                {
+                  "id": "overlap",
+                  "status": "Draft"
+                },
+                {
+                  "id": "quarantine",
+                  "status": "Draft"
+                },
+                {
+                  "id": "limit",
+                  "status": "Draft"
+                },
+                {
+                  "id": "short",
+                  "status": "Draft"
+                },
+                {
+                  "id": "exact",
+                  "status": "Submitted"
+                },
+                {
+                  "id": "below",
+                  "status": "Submitted"
+                }
+              ],
+              "inventory": [
+                {
+                  "sku": "negative",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "zero",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "overlap",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "quarantine",
+                  "available": 7,
+                  "maxPerOrder": 4,
+                  "quarantined": true
+                },
+                {
+                  "sku": "limit",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": false
+                },
+                {
+                  "sku": "short",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "exact",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "below",
+                  "available": 4,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                }
+              ],
+              "reservations": [
+                {
+                  "id": "exact",
+                  "orderId": "exact",
+                  "sku": "exact",
+                  "quantity": 4
+                },
+                {
+                  "id": "below",
+                  "orderId": "below",
+                  "sku": "below",
+                  "quantity": 3
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "cohesive": {
+        "buildManifestSha256": "30b21021ac6abcecbb2a741b0a283873943b11296f4d396c445653bd0714f4a0",
+        "observations": [
+          {
+            "mode": "http",
+            "assertions": {
+              "versioned precedence": 25,
+              "versioned physical state": 1,
+              "versioned replay": 19,
+              "versioned replay preservation": 1
+            },
+            "facts": {
+              "orders": [
+                {
+                  "id": "negative",
+                  "status": "Draft"
+                },
+                {
+                  "id": "zero",
+                  "status": "Draft"
+                },
+                {
+                  "id": "overlap",
+                  "status": "Draft"
+                },
+                {
+                  "id": "quarantine",
+                  "status": "Draft"
+                },
+                {
+                  "id": "limit",
+                  "status": "Draft"
+                },
+                {
+                  "id": "short",
+                  "status": "Draft"
+                },
+                {
+                  "id": "exact",
+                  "status": "Submitted"
+                },
+                {
+                  "id": "below",
+                  "status": "Submitted"
+                }
+              ],
+              "inventory": [
+                {
+                  "sku": "negative",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "zero",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "overlap",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "quarantine",
+                  "available": 7,
+                  "maxPerOrder": 4,
+                  "quarantined": true
+                },
+                {
+                  "sku": "limit",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": false
+                },
+                {
+                  "sku": "short",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "exact",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "below",
+                  "available": 4,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                }
+              ],
+              "reservations": [
+                {
+                  "id": "exact",
+                  "orderId": "exact",
+                  "sku": "exact",
+                  "quantity": 4
+                },
+                {
+                  "id": "below",
+                  "orderId": "below",
+                  "sku": "below",
+                  "quantity": 3
+                }
+              ]
+            }
+          },
+          {
+            "mode": "batch",
+            "assertions": {
+              "versioned precedence": 18,
+              "versioned physical state": 1,
+              "versioned replay": 26,
+              "versioned replay preservation": 1
+            },
+            "facts": {
+              "orders": [
+                {
+                  "id": "negative",
+                  "status": "Draft"
+                },
+                {
+                  "id": "zero",
+                  "status": "Draft"
+                },
+                {
+                  "id": "overlap",
+                  "status": "Draft"
+                },
+                {
+                  "id": "quarantine",
+                  "status": "Draft"
+                },
+                {
+                  "id": "limit",
+                  "status": "Draft"
+                },
+                {
+                  "id": "short",
+                  "status": "Draft"
+                },
+                {
+                  "id": "exact",
+                  "status": "Submitted"
+                },
+                {
+                  "id": "below",
+                  "status": "Submitted"
+                }
+              ],
+              "inventory": [
+                {
+                  "sku": "negative",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "zero",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "overlap",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": true
+                },
+                {
+                  "sku": "quarantine",
+                  "available": 7,
+                  "maxPerOrder": 4,
+                  "quarantined": true
+                },
+                {
+                  "sku": "limit",
+                  "available": 0,
+                  "maxPerOrder": 1,
+                  "quarantined": false
+                },
+                {
+                  "sku": "short",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "exact",
+                  "available": 0,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                },
+                {
+                  "sku": "below",
+                  "available": 4,
+                  "maxPerOrder": 4,
+                  "quarantined": false
+                }
+              ],
+              "reservations": [
+                {
+                  "id": "exact",
+                  "orderId": "exact",
+                  "sku": "exact",
+                  "quantity": 4
+                },
+                {
+                  "id": "below",
+                  "orderId": "below",
+                  "sku": "below",
+                  "quantity": 3
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

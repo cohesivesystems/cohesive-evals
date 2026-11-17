@@ -5,9 +5,11 @@ same model that executes business rules can help author and maintain useful test
 
 - [Capability audit](capability-audit.md): actual reservation execution works in both conditions. Assurance can evaluate independent claims and state-only finite admission; quantity-dependent finite admission and ordinary typed Int32 subtraction hit explicit limits.
 - [Protocol](protocol.md): matched authoring/maintenance tasks, independent requirements, held-out defects, feedback and measurement boundaries.
-- [Planned matrix](test-matrix.md): obligations for the separate implementation PR.
+- [Test matrix](test-matrix.md): protocol obligations and implementation coverage.
+- [Tooling map](tooling.md): script roles, comments and consolidation assessment.
+- [Implemented suites and qualification](implementation.md): matched generated inputs, independent assertions, paired faults and retained integration checks.
 - [Runnable witness](audit/run.py): ten manually selected examples per condition, positive/negative capability controls and pinned evidence. This is evaluator tooling, not application code under evaluation.
 
-No automatic test generator or MV1 defect suite is implemented here. The independent
-Python oracle remains authoritative for external behavior. Model-derived tests
-must not be allowed to validate an incorrect model against itself.
+The independent Python assertions remain authoritative. Model inspection proposes inputs;
+it never supplies the expected answers. The implementation is maintainer qualification,
+not a blinded trial or an exhaustive proof.

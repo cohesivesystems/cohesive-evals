@@ -1,0 +1,6 @@
+{
+  "src/Fulfillment.Application/FulfillmentDomain.cs": {
+    "before": "3b2b41e2c08b7736cb6653998c092e8cba2caa4b5fedae9fa96135aad7e6ed3b",
+    "after": "3dec7dba5ec3297f897516d286af5677dd26ad8801c81a4eea9311f086da4e0e"
+  }
+}

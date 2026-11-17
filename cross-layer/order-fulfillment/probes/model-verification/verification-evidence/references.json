@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "conditions": {
+    "original": {
+      "conventional": {
+        "cases": 328,
+        "accepted": 34,
+        "outcomes": [
+          "InsufficientStock",
+          "InvalidQuantity",
+          "InventoryQuarantined",
+          "QuantityLimitExceeded",
+          "Reserved"
+        ],
+        "suiteSha256": "fb0859be4c496dc34e9296fb79955df6b344b3062c455645dc0483ea41aa9189",
+        "manifestSha256": "320a1dd2ad83dfb68f6f0f751d0a29264e77325e06ccd63c0ba0d9f5cb0cf341"
+      },
+      "cohesive": {
+        "cases": 328,
+        "accepted": 34,
+        "outcomes": [
+          "InsufficientStock",
+          "InvalidQuantity",
+          "InventoryQuarantined",
+          "QuantityLimitExceeded",
+          "Reserved"
+        ],
+        "suiteSha256": "69e15996bab2df31dc92c83a64493decf70d5ff53c2eb6b960d2cf017dd222d7",
+        "manifestSha256": "11856573ef30eb5138ed7e1927baf3672294924da0fdef0d5d0db29f4727e794"
+      }
+    },
+    "revised": {
+      "conventional": {
+        "cases": 328,
+        "accepted": 34,
+        "outcomes": [
+          "InsufficientStock",
+          "InvalidQuantity",
+          "InventoryQuarantined",
+          "QuantityLimitExceeded",
+          "Reserved"
+        ],
+        "suiteSha256": "5710b26627e82a756a974ce61379f9eba101fead1f64a073bbf8630993d6a698",
+        "manifestSha256": "5c09541faa5a7ee1002531d783d6f9e696a32a6fc932e5c97edb695bf629c4bf"
+      },
+      "cohesive": {
+        "cases": 328,
+        "accepted": 34,
+        "outcomes": [
+          "InsufficientStock",
+          "InvalidQuantity",
+          "InventoryQuarantined",
+          "QuantityLimitExceeded",
+          "Reserved"
+        ],
+        "suiteSha256": "13d24e0c522eebe3f9a8bef858527f276cff8b1656950757fcc9345b96a6997e",
+        "manifestSha256": "4df04a5f78b53fcfef148e0a8c4be46f62f207a7b80da41cec345a3ad340ef8f"
+      }
+    }
+  },
+  "stalePolicyControls": {
+    "conventional": {
+      "assertion": "domain outcome",
+      "detail": "{'input': {'Name': 'case-10', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True, 'Quantity': 2}, 'expected': 'InventoryQuarantined', 'actual': {'Name': 'case-10', 'Outcome': 'QuantityLimitExceeded', 'FulfillmentOutcome': 'QuantityLimitExceeded', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True}, 'ScopePreserved': True}}"
+    },
+    "cohesive": {
+      "assertion": "domain outcome",
+      "detail": "{'input': {'Name': 'case-10', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True, 'Quantity': 2}, 'expected': 'InventoryQuarantined', 'actual': {'Name': 'case-10', 'Outcome': 'QuantityLimitExceeded', 'FulfillmentOutcome': 'QuantityLimitExceeded', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True}, 'ScopePreserved': True}}"
+    }
+  },
+  "freezeSha256": "fa15314855aaae621c07acef6c235404026225c3d9cd3c0718ccd8528fd8f121"
+}

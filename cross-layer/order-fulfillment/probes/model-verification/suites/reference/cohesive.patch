@@ -1,0 +1,37 @@
+--- a/src/Fulfillment.Application/FulfillmentDomain.cs
++++ b/src/Fulfillment.Application/FulfillmentDomain.cs
+@@ -19,7 +19,7 @@
+     /// <summary>Canonical partition field shared by the example entities.</summary>
+     public const string PartitionField = "partition";
+     /// <summary>Declares the shared entities and their canonical references.</summary>
+-    public FulfillmentDomain() : base(revision: "8")
++    public FulfillmentDomain() : base(revision: "9")
+     {
+         (Orders, Inventory, Reservations) = Discover(DomainDiscovery.For<FulfillmentDomain>(),
+             entities => (entities.Entity<Order>(), entities.Entity<InventoryItem>(), entities.Entity<Reservation>()));
+@@ -268,13 +268,13 @@
+                 .Set(new("limit/update"), item => item.MaxPerOrder, (_, input) => input.MaxPerOrder)
+                 .Return(true));
+         Reserve = inventory.Transition<StockQuantity, StockResult>(
+-            id: new("fulfillment/reserve"), revision: new("5"), transition => transition
++            id: new("fulfillment/reserve"), revision: new("6"), transition => transition
+                 .Requires((item, input) => input.Quantity > 0,
+                     (_, _) => new StockResult(StockOutcome.InvalidQuantity, FulfillmentOutcome.InvalidQuantity))
++                .Requires((item, input) => input.Quantity <= item.MaxPerOrder,
++                    (_, _) => new StockResult(StockOutcome.QuantityLimitExceeded, FulfillmentOutcome.QuantityLimitExceeded))
+                 .Requires((item, input) => !item.Quarantined,
+                     (_, _) => new StockResult(StockOutcome.InventoryQuarantined, FulfillmentOutcome.InventoryQuarantined))
+-                .Requires((item, input) => input.Quantity <= item.MaxPerOrder,
+-                    (_, _) => new StockResult(StockOutcome.QuantityLimitExceeded, FulfillmentOutcome.QuantityLimitExceeded))
+                 .Requires((item, input) => item.Available >= input.Quantity,
+                     (_, _) => new StockResult(StockOutcome.InsufficientStock, FulfillmentOutcome.InsufficientStock))
+                 .Set(new("stock/update"), item => item.Available, (item, input) => item.Available - input.Quantity)
+@@ -291,7 +291,7 @@
+
+ /// <summary>Canonical multi-entity sequence. This syntax is compiled into Process IR, never executed as C#.</summary>
+ /// <param name="domain">Entity and transition authority used by the process.</param>
+-[Process(id: "fulfillment/submit", revision: "12")]
++[Process(id: "fulfillment/submit", revision: "13")]
+ public sealed partial class FulfillmentProcess(FulfillmentDomain domain) : ProcessModel<FulfillOrder, FulfillmentResult>
+ {
+     /// <inheritdoc />
