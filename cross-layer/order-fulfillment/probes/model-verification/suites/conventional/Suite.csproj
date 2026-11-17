@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile><NuGetAudit>false</NuGetAudit></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(FixtureRoot)/conventional/src/Fulfillment.Application/Fulfillment.Application.csproj" />
+    <Compile Include="../common/Cases.cs" Link="Cases.cs" />
+  </ItemGroup>
+</Project>

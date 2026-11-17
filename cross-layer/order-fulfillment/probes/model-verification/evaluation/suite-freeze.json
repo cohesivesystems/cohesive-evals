@@ -1,0 +1,78 @@
+{
+  "sources": {
+    "cohesive/Program.cs": "6a8194055fde4c1c1ad2d7c198de6ac3efa1dd74a53742e90c4f38ad9f878f07",
+    "cohesive/Suite.csproj": "e29e17253f91136dfa0785ecf18c8f7bc9016ed0fb6fdf497fedfff26b25e261",
+    "cohesive/packages.lock.json": "9df966b3eb67334ad9e6696f3fe83224d0bbb061277fe057f7679f8e05f70441",
+    "common/Cases.cs": "e8e9b354c1f718503c3cdef3ee660c8923d45f373724a964fc63aa1117e497f7",
+    "conventional/Program.cs": "7015f7d73c22f1ff014d16212b2be513b1fa4191beae3546350d7f41aa30cbc4",
+    "conventional/Suite.csproj": "e15d8fc313bed972c1c103dba94878126f449d81b0ebb79c96f8204f2e7cb434",
+    "conventional/packages.lock.json": "f531a1f9b63eac0e7b51b0498a76ec9b5e950172d5d53b4ed8831bf2d1f5a426",
+    "fixture.py": "c3e8694bce0e40ef76adfe5cabde35d1b13460dbe7a5284190402e9954a2f51c",
+    "generate.py": "1be45ecebfede3e90059671277c9af82cd9b467a5c45f77bdb9268bcec5d04ae",
+    "oracle.py": "5ba25eeaa08019d331f3fcef52fd078318830a3a938a3955e00be5ac623ed54e",
+    "reference/cohesive.json": "258da8f8cbccdf287e6c1c95c4e530dfdfe5ec44233e9ce04abcb2339edbd61a",
+    "reference/cohesive.patch": "8de55d86862c5be46116e8990b6055db322b7a63374cced5c9d7c91dcdbacbec",
+    "reference/conventional.json": "0f8aed736048cb0300c98b36673abdac9e1b450ffb71b7a4587e6cab7d9720fe",
+    "reference/conventional.patch": "b6c5eb84d81273675f5fccae646003fa3b47fda47ca9b1a589ed5daa9ae21437",
+    "run.py": "5fd71817e15b264a88c031023c4d2fdf766d1c944ad9bcb980312ef4f7078b53",
+    "test_suites.py": "24ff60897fce299837ce2b730a613462118e63ac1888f0e34d2b084276183ab4"
+  },
+  "references": {
+    "original": {
+      "conventional": {
+        "cases": 328,
+        "accepted": 34,
+        "outcomes": [
+          "InsufficientStock",
+          "InvalidQuantity",
+          "InventoryQuarantined",
+          "QuantityLimitExceeded",
+          "Reserved"
+        ],
+        "suiteSha256": "e553b525e4744958961381ed723f63948894ac628f69bedb22eccc3d0fea7db6",
+        "manifestSha256": "59116d2efe95a07539bb9c8f7bd31f0667a376e4d6fb0452f31509e795b93b55"
+      },
+      "cohesive": {
+        "cases": 328,
+        "accepted": 34,
+        "outcomes": [
+          "InsufficientStock",
+          "InvalidQuantity",
+          "InventoryQuarantined",
+          "QuantityLimitExceeded",
+          "Reserved"
+        ],
+        "suiteSha256": "a1b8deb671cc3224435ce1c09283292d7acae68c6df1733c26f0cacf5ecd7088",
+        "manifestSha256": "05b2c84039a19656e9e9f3daf2692624b65b9b04ae28008482e6119c7e8095e7"
+      }
+    },
+    "revised": {
+      "conventional": {
+        "cases": 328,
+        "accepted": 34,
+        "outcomes": [
+          "InsufficientStock",
+          "InvalidQuantity",
+          "InventoryQuarantined",
+          "QuantityLimitExceeded",
+          "Reserved"
+        ],
+        "suiteSha256": "92283e3ad02de6fdd185dd25e3c9787684d7dbf4b0d909c0a875277e50d772dd",
+        "manifestSha256": "4c41df08a01af69907ec2215898f042cba22df3446ff21ea5c7d6660977c1b52"
+      },
+      "cohesive": {
+        "cases": 328,
+        "accepted": 34,
+        "outcomes": [
+          "InsufficientStock",
+          "InvalidQuantity",
+          "InventoryQuarantined",
+          "QuantityLimitExceeded",
+          "Reserved"
+        ],
+        "suiteSha256": "6fc94d459756b84cbae3defc4ce0744c7345d2ec3a88edb03527b043fcb92d4e",
+        "manifestSha256": "c23280c6247de21f9913fd1484da682dcce5c2114b5874b0f639dbbdea49ad29"
+      }
+    }
+  }
+}
