@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile><NuGetAudit>false</NuGetAudit></PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Cohesive.Transitions.Assurance" Version="0.1.0-eval.68b7941" />
     <ProjectReference Include="$(FixtureRoot)/cohesive/src/Fulfillment.Application/Fulfillment.Application.csproj" />
-    <Compile Include="../common/Cases.cs" Link="Cases.cs" />
+    <Compile Include="../common/*.cs" Link="%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

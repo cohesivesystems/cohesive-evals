@@ -2,41 +2,38 @@
   "scope": "Raw source counts, shared files counted once; no task-time or causal advantage estimate",
   "files": {
     "suites/cohesive/Program.cs": {
-      "lines": 32,
-      "nonblankLines": 31
+      "lines": 70,
+      "nonblankLines": 68
+    },
+    "suites/common/CaseCatalog.cs": {
+      "lines": 20,
+      "nonblankLines": 20
     },
     "suites/common/Cases.cs": {
       "lines": 3,
       "nonblankLines": 3
     },
     "suites/conventional/Program.cs": {
-      "lines": 12,
-      "nonblankLines": 11
+      "lines": 30,
+      "nonblankLines": 27
     },
     "suites/fixture.py": {
-      "lines": 53,
-      "nonblankLines": 49
-    },
-    "suites/generate.py": {
-      "lines": 57,
-      "nonblankLines": 52
+      "lines": 155,
+      "nonblankLines": 140
     },
     "suites/oracle.py": {
-      "lines": 31,
-      "nonblankLines": 29
+      "lines": 65,
+      "nonblankLines": 58
     },
     "suites/run.py": {
-      "lines": 51,
-      "nonblankLines": 48
+      "lines": 98,
+      "nonblankLines": 90
     },
     "suites/test_suites.py": {
-      "lines": 47,
-      "nonblankLines": 40
+      "lines": 79,
+      "nonblankLines": 69
     }
   },
-  "feedbackRepairs": [
-    "Cohesive adapter now accepts NoChange as an inspectable decision",
-    "Evaluator mutation anchors scoped to Reserve, excluding Release"
-  ],
+  "developmentStage": "SDK-based generation/execution replaces the development prototype; no blinded trial",
   "policyMaintenance": "Versioned independent precedence oracle; unchanged generator and input catalog; explicit production reference patches"
 }

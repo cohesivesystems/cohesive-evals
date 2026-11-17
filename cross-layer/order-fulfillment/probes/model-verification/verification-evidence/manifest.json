@@ -1,64 +1,63 @@
 {
   "reports": {
-    "references": "b397e413540ebab0f351e107b4a915810ee49154cc431d2cf5d048182f34e0cc",
-    "qualification": "208fc306758e640be1681926a35d71930a681c492af31843568ace37ed86f775",
-    "initial-qualification": "5935a0f35a48d5920dce01e28e984111c3ef7682809f7b4bbd521333189c0d15",
-    "versioned-http": "488420964a3918404f3536fe3e5885a590269d9b286eae6c3f96535832064fec",
-    "retained-ao1": "c70cc24b16d23ffd94f80d77d3676cc609d0dcb45d8e7c239b0783550f60d1e3",
-    "retained-typed": "d79ff21e4541179faf4f93666a5a3afff8ded6d88404023daa12265d8ca6e439",
-    "retained-pv1": "71dd86793f15d844d65908c4b3278c76ae5d4c036b8ffab776ce92342063968c",
-    "retained-evolution": "b9d2e10ec116939de23cca5018074b3278b13e90e841581fbdcc84eb1d5e658d"
+    "references": "ba7dc7ff6f36e667e45880b3ed0fd86a78c90c6fd5b872c47dc09b48ca698198",
+    "qualification": "1675045388e62f612401ccfc90d71dbc64e490879f00ba219fec48cf62d3a7f0",
+    "versioned-http": "411e1a2a6277c4fde8af892283c86f74b632aea6bc2ee67ca39bc4009f169adf",
+    "retained-ao1": "c0fc53b1b4c91a63c788ab7a91b7a9ecf6a84440be43e270474425f0bf5a22fd",
+    "retained-typed": "5a3924746b978b7df8998d4ed1f78eca9e0f30234c12c57f234eba1a182c5ad2",
+    "retained-pv1": "26366b817b91f5d9edec6b8919f69db559042d9ca71c32273b84dfbc6cd006f3",
+    "retained-evolution": "e5ca33205179119baf1f8760a09e387db9d0e63c2e5112427e30687a0feb09e2"
   },
-  "archiveSha256": "ef30425e75987728e0d008a5e292bf0d8dc8d9b1bcf1129bdb81e1820102103f",
-  "archivedFileCount": 1414,
+  "archiveSha256": "759d958cee7daa80f05e8af97444e008fd57e78d552b74953742aa6bb1603b47",
+  "archivedFileCount": 887,
   "archiveIndex": "raw-index.json",
   "sources": {
-    "suites/cohesive/Program.cs": "9979e3a5d7570fcaa9ee9ea517135ed35252ebaacbb765c234dc4142209b293d",
-    "suites/cohesive/Suite.csproj": "e29e17253f91136dfa0785ecf18c8f7bc9016ed0fb6fdf497fedfff26b25e261",
-    "suites/cohesive/packages.lock.json": "9df966b3eb67334ad9e6696f3fe83224d0bbb061277fe057f7679f8e05f70441",
+    "suites/cohesive/Program.cs": "6e4b07dc0df6cc76b83ab796e19a597e101f94a29154361af73f42b9c8a609a1",
+    "suites/cohesive/Suite.csproj": "afba4e705a4b4003c4d2cf8e78f58fc670aaceacfec5186a6a3e09bccaf89fd4",
+    "suites/cohesive/packages.lock.json": "9edc0cd9cba50789e5de3c0ad8e0a111bd829c8b14f32ae6ccd8d1ea7bfe8493",
+    "suites/common/CaseCatalog.cs": "daa774aadb7a07242e4f83da35ba6b9a58e6fb39cd23c677ac2c4f4994e9e2f9",
     "suites/common/Cases.cs": "e8e9b354c1f718503c3cdef3ee660c8923d45f373724a964fc63aa1117e497f7",
-    "suites/conventional/Program.cs": "7015f7d73c22f1ff014d16212b2be513b1fa4191beae3546350d7f41aa30cbc4",
-    "suites/conventional/Suite.csproj": "e15d8fc313bed972c1c103dba94878126f449d81b0ebb79c96f8204f2e7cb434",
+    "suites/conventional/Program.cs": "c1e3efffd1f3e3fc31031d0300358d25f3fdc7a5e74252854e921a665001283c",
+    "suites/conventional/Suite.csproj": "9853056be89a8e716f12c4bea7f101b81386e12d5f96f51c9ebab17aaa730bd8",
     "suites/conventional/packages.lock.json": "f531a1f9b63eac0e7b51b0498a76ec9b5e950172d5d53b4ed8831bf2d1f5a426",
-    "suites/fixture.py": "c3e8694bce0e40ef76adfe5cabde35d1b13460dbe7a5284190402e9954a2f51c",
-    "suites/generate.py": "1be45ecebfede3e90059671277c9af82cd9b467a5c45f77bdb9268bcec5d04ae",
-    "suites/oracle.py": "5ba25eeaa08019d331f3fcef52fd078318830a3a938a3955e00be5ac623ed54e",
+    "suites/fixture.py": "005fa6dbdcd9e8151326c816a342f03f893987257e7b6de10360d0c511e656ae",
+    "suites/oracle.py": "a3a5ec2ab2f3eb1ecd79b167d6de0ba584ce9c41f60a26882a742f2229dcdeab",
     "suites/reference/cohesive.json": "258da8f8cbccdf287e6c1c95c4e530dfdfe5ec44233e9ce04abcb2339edbd61a",
     "suites/reference/cohesive.patch": "8de55d86862c5be46116e8990b6055db322b7a63374cced5c9d7c91dcdbacbec",
     "suites/reference/conventional.json": "0f8aed736048cb0300c98b36673abdac9e1b450ffb71b7a4587e6cab7d9720fe",
     "suites/reference/conventional.patch": "b6c5eb84d81273675f5fccae646003fa3b47fda47ca9b1a589ed5daa9ae21437",
-    "suites/run.py": "5fd71817e15b264a88c031023c4d2fdf766d1c944ad9bcb980312ef4f7078b53",
-    "suites/test_suites.py": "24ff60897fce299837ce2b730a613462118e63ac1888f0e34d2b084276183ab4",
-    "evaluation/defects.py": "9f08d8fd5a27a6e9fb0f80242ab2429ddcd1d48d3af70dce9cd977e3cb81ca7b",
-    "evaluation/history/initial-defect-manifest.json": "dc93ad076e5b6c07992e2d42515dc77bb4038273d3af9cd4800b939fdcac81ee",
-    "evaluation/history/initial-qualification.json": "5935a0f35a48d5920dce01e28e984111c3ef7682809f7b4bbd521333189c0d15",
-    "evaluation/history/initial-suite-freeze.json": "ceda02f6af0de91c67c19762d5e81da3cc6a6d2e05ee3af2a6706dc24281a0bf",
-    "evaluation/integration.py": "a7676d1a2a8883ab84e9f361aaa39e049c89397e7cf9b90a555717fd0bfa1d2d",
-    "evaluation/qualify.py": "d48366c71564928a98f7b89a53dcc6877c0d8220799833a978b0bdc304e59668",
-    "evaluation/record.py": "a3e1f39562b97fdd7298c7710a2c0bdca25253a80c389799700d24087a7c8ebf",
-    "evaluation/suite-freeze.json": "cb895fb2eb0d8dff2775814ab253a5d6e6a0c8ba77f30708d2fbc13306746f2e",
-    "evaluation/test_evaluation.py": "de17bb109d857593cf6c0cb6c109642ff0d2d6b6b53b9b921af3f68432856b1b"
+    "suites/run.py": "b5cde51a83192de60d6f45155a7c3b55b0a6175b713afa60802163ff1d3470bf",
+    "suites/test_suites.py": "154a2a7c58005541709d6e850af4812b3f1879d2bb6ce10419f8200778d69964",
+    "evaluation/defects.py": "1daac637732d0eef913c950da9c7f29b5bcbbab16a5ab481a3d9d1141a583348",
+    "evaluation/integration.py": "70beedd6725561061a25f3dd33640e801f007b53499336a94c822f926d06ce95",
+    "evaluation/qualify.py": "f297b49c58a6ab3aa14393d9caf52f757db4d036e8ea24283d98f6d56401afa8",
+    "evaluation/record.py": "c4657ae66e0423083599ceb516f94fd0d16e340e2123efdcc7c7ce8674097d98",
+    "evaluation/suite-freeze.json": "d95f43c5b7293ea09bab1784dcd8665beab6002328096e6763426b22d3f4d003",
+    "evaluation/test_evaluation.py": "45fe15831fdebb0a0ff608c28b4a2997ee9415fbe0e71da2ef5b18b7e1456046",
+    "sdk/dependency-manifest.json": "fb1cdfaec00bd22c8b6cc17801fd079b37ff0ef61117d8730b7658ee226cb241",
+    "sdk/reference.json": "f0931bdab3c6c35c591adc55e1e8984ad5cf4611ebae29610e09043a0c62c1d1",
+    "sdk/reference.patch": "0817c0f94227f8d801e18a0e5cf4b69ba35f7ea754eab13fb256988e633494e6"
   },
   "httpProductionInputEquality": {
     "original/conventional": {
       "sameInputs": true,
-      "httpBuildManifestSha256": "b791e8da9d511922d022e379a23eb2c99e11a23fefcc10a43aa8f2f2f7a1c6f1",
-      "offlineBuildManifestSha256": "a1a8d4a53d9b20f2c6bdb8eabd3ed767f88b9b95953d2cff175b4840f098606d"
+      "httpBuildManifestSha256": "7f54000313f5b815940e1fee57ec6bbaf8d8c9211f893edf229789c3f2b403b9",
+      "offlineBuildManifestSha256": "1cdf5fbbe696e49a33f6997415bfe81b70cdc11a572873a49b9c8fa57e64ffdf"
     },
     "original/cohesive": {
       "sameInputs": true,
-      "httpBuildManifestSha256": "eb594544abae2cf8d71eab02680b1b09ab173844af75918458dea99f529b71a4",
-      "offlineBuildManifestSha256": "155526d095ce43e2827064d8b5a1cf7209e2b7f721bce7e94e1f3a8da3447cb8"
+      "httpBuildManifestSha256": "efa270d5a24daf6859ed85f17d71878e5fdd805e5d5b32ef79958ecd71e33ac6",
+      "offlineBuildManifestSha256": "58887d90f2d84e4382f2481a836bdb8590d0cb2e029307332500f32ece510a26"
     },
     "revised/conventional": {
       "sameInputs": true,
-      "httpBuildManifestSha256": "02111aaa4aa0ac3cd4fd67afc54d3a6058d6eda08073490f30c9320e933bc6f2",
-      "offlineBuildManifestSha256": "499ef76146e615e9773d937cd104a5a76ddae5e4724bbe7f17ccb7180c7d5201"
+      "httpBuildManifestSha256": "5f464bf808ed06b2ba0f5f7cadea95a19fba60a6901d5c207856e23b355a7b59",
+      "offlineBuildManifestSha256": "572807b04c2cf876922f5a1c7982d136a12584fd358af2d93b0dacfa1456f476"
     },
     "revised/cohesive": {
       "sameInputs": true,
-      "httpBuildManifestSha256": "5a7c7258e94292c29e95fbc75ef85ea2094ef6103b0893e50d7c85440eea502b",
-      "offlineBuildManifestSha256": "fa77e52ebab5d556040c4fb51cc9bdd725846c488f33697ffd17287ec95d7398"
+      "httpBuildManifestSha256": "e32d9d0f48ab7a8e196c6a98d51d5f1530247cecaefb45cd7d471de32c4dc586",
+      "offlineBuildManifestSha256": "e714e4b412c0046bc59ca2c4bc114b07a43132cc8359bfe66cee72b669ef1e4f"
     }
   }
 }

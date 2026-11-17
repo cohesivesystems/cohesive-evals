@@ -1,7 +1,13 @@
 # MV1: model-assisted verification
 
-Specification for [#28](https://github.com/cohesivesystems/cohesive-evals/issues/28).
-This PR supplies a capability audit and protocol, not a generated test suite,
+Specification approved in [#28](https://github.com/cohesivesystems/cohesive-evals/issues/28).
+
+Development update: the [current implementation](implementation.md) upgrades the Cohesive
+SDK through [Cohesive #580](https://github.com/cohesivesystems/cohesive/pull/580) and uses
+its typed generation/execution APIs. The original capability audit remains pinned; the
+implementation prototype is superseded, not a separate scored condition.
+
+The original #49 supplied a capability audit and protocol, not a generated test suite,
 held-out defect qualification, development trial or scored campaign.
 
 ## Question and starting point
