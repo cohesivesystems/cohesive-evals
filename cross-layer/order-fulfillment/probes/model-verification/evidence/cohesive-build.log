@@ -1,0 +1,11 @@
+  Determining projects to restore...
+  Restored /private/tmp/mv1-audit-recorded/references/cohesive/src/Fulfillment.Application/Fulfillment.Application.csproj (in 77 ms).
+  Restored /private/tmp/mv1-audit-recorded/audit/cohesive/Audit.csproj (in 77 ms).
+  Fulfillment.Application -> /private/tmp/mv1-audit-recorded/references/cohesive/src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.dll
+  Audit -> /private/tmp/mv1-audit-recorded/audit/cohesive/bin/Debug/net10.0/Audit.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:00.80

@@ -1,0 +1,314 @@
+{
+  "passed": true,
+  "purpose": "Capability audit; no generated suite or held-out defect qualification",
+  "sdkRevision": "b0c442ab5645907968d6b605edeb1dd54550130d",
+  "casesPerCondition": 10,
+  "conditions": {
+    "conventional": {
+      "rows": [
+        {
+          "Name": "zero",
+          "Outcome": "InvalidQuantity",
+          "After": 10,
+          "Unchanged": true
+        },
+        {
+          "Name": "negative",
+          "Outcome": "InvalidQuantity",
+          "After": 10,
+          "Unchanged": true
+        },
+        {
+          "Name": "quarantine",
+          "Outcome": "InventoryQuarantined",
+          "After": 0,
+          "Unchanged": true
+        },
+        {
+          "Name": "limit",
+          "Outcome": "QuantityLimitExceeded",
+          "After": 0,
+          "Unchanged": true
+        },
+        {
+          "Name": "short",
+          "Outcome": "InsufficientStock",
+          "After": 1,
+          "Unchanged": true
+        },
+        {
+          "Name": "exact-limit",
+          "Outcome": "Reserved",
+          "After": 6,
+          "Unchanged": false
+        },
+        {
+          "Name": "exact-stock",
+          "Outcome": "Reserved",
+          "After": 0,
+          "Unchanged": false
+        },
+        {
+          "Name": "valid",
+          "Outcome": "Reserved",
+          "After": 8,
+          "Unchanged": false
+        },
+        {
+          "Name": "int-max",
+          "Outcome": "Reserved",
+          "After": 0,
+          "Unchanged": false
+        },
+        {
+          "Name": "int-min",
+          "Outcome": "InvalidQuantity",
+          "After": 10,
+          "Unchanged": true
+        }
+      ]
+    },
+    "cohesive": {
+      "rows": [
+        {
+          "Name": "zero",
+          "Outcome": "InvalidQuantity",
+          "After": 10,
+          "Unchanged": true,
+          "Decision": "AdmissionRejected",
+          "Assurance": "not-evaluated-rejection"
+        },
+        {
+          "Name": "negative",
+          "Outcome": "InvalidQuantity",
+          "After": 10,
+          "Unchanged": true,
+          "Decision": "AdmissionRejected",
+          "Assurance": "not-evaluated-rejection"
+        },
+        {
+          "Name": "quarantine",
+          "Outcome": "InventoryQuarantined",
+          "After": 0,
+          "Unchanged": true,
+          "Decision": "AdmissionRejected",
+          "Assurance": "not-evaluated-rejection"
+        },
+        {
+          "Name": "limit",
+          "Outcome": "QuantityLimitExceeded",
+          "After": 0,
+          "Unchanged": true,
+          "Decision": "AdmissionRejected",
+          "Assurance": "not-evaluated-rejection"
+        },
+        {
+          "Name": "short",
+          "Outcome": "InsufficientStock",
+          "After": 1,
+          "Unchanged": true,
+          "Decision": "AdmissionRejected",
+          "Assurance": "not-evaluated-rejection"
+        },
+        {
+          "Name": "exact-limit",
+          "Outcome": "Reserved",
+          "After": 6,
+          "Unchanged": false,
+          "Decision": "Applied",
+          "Assurance": "Satisfied"
+        },
+        {
+          "Name": "exact-stock",
+          "Outcome": "Reserved",
+          "After": 0,
+          "Unchanged": false,
+          "Decision": "Applied",
+          "Assurance": "Satisfied"
+        },
+        {
+          "Name": "valid",
+          "Outcome": "Reserved",
+          "After": 8,
+          "Unchanged": false,
+          "Decision": "Applied",
+          "Assurance": "Satisfied"
+        },
+        {
+          "Name": "int-max",
+          "Outcome": "Reserved",
+          "After": 0,
+          "Unchanged": false,
+          "Decision": "Applied",
+          "Assurance": "Satisfied"
+        },
+        {
+          "Name": "int-min",
+          "Outcome": "InvalidQuantity",
+          "After": 10,
+          "Unchanged": true,
+          "Decision": "AdmissionRejected",
+          "Assurance": "not-evaluated-rejection"
+        }
+      ],
+      "admissionDiagnostic": "Admission 'fulfillment/reserve/body/auto/requires/1' uses unsupported expression 'ParameterExpr'.",
+      "negativeVerdict": "Violated",
+      "guardCount": 4,
+      "transition": {
+        "Source": "execution://fulfillment%2Freserve",
+        "Revision": "5",
+        "Fingerprint": "sha256:cohesive-execution-definition/v1-c14n/v1:57d3fc87af6eb8cb176842c9dfe1243a7b673ec794b72cb5ba4502490137f0a4"
+      },
+      "typedArithmetic": "C# expression lowering failed with authoring.expression.operatorUnsupported at 'body/right': C# operator 'Subtract' over 'System.Int32' and 'System.Int32' does not have the exact value, overflow, or null contract of the canonical operator.",
+      "finiteOrderControl": {
+        "verdict": "Satisfied",
+        "nonVacuity": "Satisfied",
+        "Visited": 4,
+        "EnumerationComplete": true
+      }
+    }
+  },
+  "provenance": {
+    "conventional": {
+      "applicationInputs": {
+        "Directory.Build.props": "367185d34eedc40df516835650552ad7c22e1cce937f93038a3ed675c582fe9c",
+        "NuGet.config": "026760bf198d064aab475ee175033c6db3c732abb90672a652e5b36fe4fdefc7",
+        "global.json": "30fdf1d1d5cfadd6447ab39d18cc5eec405cf1a5ec5b2e4b1d228a6fe757846d",
+        "src/Fulfillment.Application/BatchEndpoint.cs": "1bb79885710f2fa06352458f86d8193506a3053c30ff5d8362ca9fdbfaa70cbd",
+        "src/Fulfillment.Application/BatchService.cs": "4dffc52f990470324538aafcaa3c6196001391527f8a96b377602cd40d28f628",
+        "src/Fulfillment.Application/Contracts.cs": "efd6dd2dea1e7dd9be13f7b6be3543933d7c721c20aaa7a88e9e837ddbf8ccd8",
+        "src/Fulfillment.Application/Domain.cs": "596fad4cf4f0f80d57dae86e868e41ca2f39fb1553c889b8a571b8e96249c1bc",
+        "src/Fulfillment.Application/Fulfillment.Application.csproj": "9049b5bea55fa39198ca5b9adf89fecbde1e649c6c598ae5938934f50a6518e3",
+        "src/Fulfillment.Application/FulfillmentBackend.cs": "6c088895e6c67fb7ff483990c4179a1cb13f02de36f0e666480d2a92cc552d97",
+        "src/Fulfillment.Application/FulfillmentInput.cs": "7b01de01c48a30ff2de43d73239b018c117ae1c666fe13075bb4a53642465b34",
+        "src/Fulfillment.Application/FulfillmentResults.cs": "8a75b1b84720430f7733fcf8d40319942b56f59ade5b53d9f12fa6ceba69d00e",
+        "src/Fulfillment.Application/OperationQueue.cs": "28cf563219e69ab79b61ba156a5f6e738b6b453e0efff33dc134b696a17222b4",
+        "src/Fulfillment.Application/OrderStore.cs": "413b43f137b65bd67a3334357c8e09f3baa9adf0414f2ac01befbd1cbe6485ca",
+        "src/Fulfillment.Application/Program.cs": "d4b6698bb72df2d8fb35108d510824f1e3f9178d61e05a7969682dc19d6e79dd",
+        "src/Fulfillment.Application/QuantityLimitInput.cs": "06b4ad1af3f2d80e639349afea16b522710b5e87b3df0e331019375ec72db3c3",
+        "src/Fulfillment.Application/ReadResults.cs": "5034e6e89198e4406c01d85f2ce51afee1d1dcef153430ff4c76953b707fbeb7",
+        "src/Fulfillment.Application/Seeding.cs": "cfdb86125dd96736d9ddaca361c66e64e0161a3b7d6f0d38370326bb57fd806d",
+        "src/Fulfillment.Application/packages.lock.json": "ef0b1094a4ffbf71f97742bf7e8ffc6a232e1a11aefd31161fb469345ed67d86"
+      },
+      "auditArtifacts": {
+        "bin/Debug/net10.0/Audit": "9eb71247a93a2fe8b1a89fdd8829752f60def13e9caf9e55744d7d7d71d2f6b2",
+        "bin/Debug/net10.0/Audit.deps.json": "a72f0742aa9e212b7846f0cbf4ae597d98d2cd8f292353dd84078bea8773f763",
+        "bin/Debug/net10.0/Audit.dll": "873dded9be0b25ffe3955700fed1a640c0dfeb5ca2c6552ee6aedf4959088c9d",
+        "bin/Debug/net10.0/Audit.pdb": "60fbd72c7f71179c8e3078c706d646332b509f4d05eab57bb2f64273dd7d427b",
+        "bin/Debug/net10.0/Audit.runtimeconfig.json": "f9bc8e9f0c46247078ed47309f19a7576b4b94e4300e9de0003917d6bd2d667a"
+      },
+      "lockSha256": "a29c6aa8cfb81874ff8bb78dc369d7416f28c9b8cc47e99592bfc019b20c41eb"
+    },
+    "cohesive": {
+      "applicationInputs": {
+        "Directory.Build.props": "367185d34eedc40df516835650552ad7c22e1cce937f93038a3ed675c582fe9c",
+        "NuGet.config": "562cae0a31080c2af885f525ee21a489953dcb7c6b439019abfbbd44e1829312",
+        "global.json": "30fdf1d1d5cfadd6447ab39d18cc5eec405cf1a5ec5b2e4b1d228a6fe757846d",
+        "packages/Cohesive.0.1.0-eval.b0c442a.nupkg": "d3af49a2de29c32394fa3b0a493939a6393bfece70a04784375bcb27701b7062",
+        "packages/Cohesive.Adapters.AspNet.0.1.0-eval.b0c442a.nupkg": "53e55c655b97e001325860174c7ed12526090c4a1e9f3927172826d508f77163",
+        "packages/Cohesive.Adapters.Postgres.0.1.0-eval.b0c442a.nupkg": "988c42123e32cee509540706198b71a4375658a870a0b2882fe74dbe35ec6c42",
+        "packages/Cohesive.Adapters.Postgres.Infra.0.1.0-eval.b0c442a.nupkg": "a504baa2d787be3b7ec34a11a0fc59110b467b481063aa8f24987d0c400a263e",
+        "packages/Cohesive.Adapters.Postgres.Services.0.1.0-eval.b0c442a.nupkg": "b1673226cfb0e0404fd9fcf6ec46fd0f13f60bf84199526c9a1b3ceaf2411af7",
+        "packages/Cohesive.Adapters.Sql.0.1.0-eval.b0c442a.nupkg": "04e6368cdb42e83ea657df83e0e5b8e30856a0993397e59a4ce3cf4de8c9100b",
+        "packages/Cohesive.Analyzers.0.1.0-eval.b0c442a.nupkg": "a617242edc64e1438381fb6e67c1f973b8f7b4d9bf8f0728f44447742549d72d",
+        "packages/Cohesive.Api.0.1.0-eval.b0c442a.nupkg": "5cf113a0cff7bdf0ca14119e96c0924d809c7b28ab3198d1a662f970b3408008",
+        "packages/Cohesive.Api.Execution.0.1.0-eval.b0c442a.nupkg": "5d5c278dedeff0fbeebfa8327caf1252c93107d821836757bc6abcc0d9c600b1",
+        "packages/Cohesive.Application.0.1.0-eval.b0c442a.nupkg": "fbaad92f90b05021c24a9bbfd29db71b62b890804808a2aff59a3380c21e2e7b",
+        "packages/Cohesive.Cli.0.1.0-eval.b0c442a.nupkg": "a19678a37cbc7262b82b10a51af528b578de4ca4a9eb470342fe682ed04926aa",
+        "packages/Cohesive.Configuration.0.1.0-eval.b0c442a.nupkg": "9793317dc24cd4cd96a2201ccd0732144bd873657887eb09ad7020a2594bf628",
+        "packages/Cohesive.Host.0.1.0-eval.b0c442a.nupkg": "03d8cf91af44922c7d191ba406c9d7b39590949179798859c2e8de1860678ee9",
+        "packages/Cohesive.Identity.0.1.0-eval.b0c442a.nupkg": "52ae8a86c9e66481d7cced19fe8b89f371704cb60ebcbfd477b939aa3bec606c",
+        "packages/Cohesive.Infra.0.1.0-eval.b0c442a.nupkg": "eb2f58cdd20eeb665bccbd8ac1e5cc6195e2f9c1025959df4ba1a682ea921731",
+        "packages/Cohesive.Processes.0.1.0-eval.b0c442a.nupkg": "f3b53b0ce2c09f4f4af5452a5518373b2128593f1bbfc0f5a8867c732e00b1d7",
+        "packages/Cohesive.Processes.Distribution.0.1.0-eval.b0c442a.nupkg": "5b03c43250e90ee5ff080d7196af3c6e68c67fa0a5b7cf714744cae64c8dcd40",
+        "packages/Cohesive.Relations.0.1.0-eval.b0c442a.nupkg": "2083e4c0cf8d17a746b6c4496dce09dbc7ae5c82dd7f78bd7ba3d55c6c7ea10d",
+        "packages/Cohesive.Relations.Infra.0.1.0-eval.b0c442a.nupkg": "300fe4782901d95429908c480f6fb4d971de498ac8af3f297693c0b40e9b099b",
+        "packages/Cohesive.Storage.0.1.0-eval.b0c442a.nupkg": "ef7755eca5e5451b159a7a4370d07d051c5d7f83242b2a84e7d144b769fb5c18",
+        "packages/Cohesive.Transitions.0.1.0-eval.b0c442a.nupkg": "51d11cda9cbfcb55580e3dfa09cdb01fef60b719eb0e4e0da2aef3011fcb74b5",
+        "src/Fulfillment.Application/BatchEndpoint.cs": "1bb79885710f2fa06352458f86d8193506a3053c30ff5d8362ca9fdbfaa70cbd",
+        "src/Fulfillment.Application/BatchService.cs": "4dffc52f990470324538aafcaa3c6196001391527f8a96b377602cd40d28f628",
+        "src/Fulfillment.Application/Contracts.cs": "f96f85fa283fe7bff45b1adf1a983a964e7338b0039bf571d66e8ab396aac85b",
+        "src/Fulfillment.Application/Fulfillment.Application.csproj": "5313a504d838d6b7b341b686d93bc21bad90a5d2679190ef0d0303b0b4f4a9f1",
+        "src/Fulfillment.Application/FulfillmentBackend.cs": "50158982a86b68400f5c42a5473870fd896850a0d5f7c2aa47459ab1c13d5aef",
+        "src/Fulfillment.Application/FulfillmentDemoIdentity.cs": "038c4a22f5d66c10d2d86975fccf6a6b6373f5c8654ac20f1e12b2d284e74f73",
+        "src/Fulfillment.Application/FulfillmentDomain.cs": "3b2b41e2c08b7736cb6653998c092e8cba2caa4b5fedae9fa96135aad7e6ed3b",
+        "src/Fulfillment.Application/FulfillmentPostgresMappings.cs": "a2b5a91b864eac926d237650b114dd0c0db591509b7cb605ec24884a6cc09789",
+        "src/Fulfillment.Application/FulfillmentQueries.cs": "4a32f6bcb2a518a5ef460f0059122ac037ec780c42caa5ded67b394c66a7ec79",
+        "src/Fulfillment.Application/OperationQueue.cs": "2a23a6e61254bfeb1d7b1ffa4e696a9f4accf8bdedd25cb09a070ac872cb308d",
+        "src/Fulfillment.Application/ProcessCompletion.cs": "10037e8457e2643c6ca9f980f01f964e5c57020438d3ced33ac5dda880961b7b",
+        "src/Fulfillment.Application/Program.cs": "d6ca2e11084e63042a74535b66322454aa156833e8fdb4870b3a5805431e0379",
+        "src/Fulfillment.Application/QuantityLimitInput.cs": "06b4ad1af3f2d80e639349afea16b522710b5e87b3df0e331019375ec72db3c3",
+        "src/Fulfillment.Application/ReadResults.cs": "5034e6e89198e4406c01d85f2ce51afee1d1dcef153430ff4c76953b707fbeb7",
+        "src/Fulfillment.Application/RepositoryBindings.cs": "fd457e8409030232948ce6b687babc7b7ce2e3d3d90c18b557c14beecc773ee7",
+        "src/Fulfillment.Application/packages.lock.json": "ce8e70b0e3068c3510b8e68522d420b5d5f8a6ea0ca7fd3afe2c152d9cca8023"
+      },
+      "auditArtifacts": {
+        "bin/Debug/net10.0/Audit": "9eb71247a93a2fe8b1a89fdd8829752f60def13e9caf9e55744d7d7d71d2f6b2",
+        "bin/Debug/net10.0/Audit.deps.json": "963989a9b325f8eb4f6d9cfd1bedc095a5f7fba14da8f533797308fad35fd753",
+        "bin/Debug/net10.0/Audit.dll": "ac14e61f941277a523ab10aa9151548f58b5bab012d812617d355c1be2f01831",
+        "bin/Debug/net10.0/Audit.pdb": "0298d0acbc4cc7fc9898844cb26038e43ee7af65311eb6def976e83bd03aff3d",
+        "bin/Debug/net10.0/Audit.runtimeconfig.json": "dd72603f49fc74ad956017904a955b25d7043d65291c0c7d033a2064e141622a",
+        "bin/Debug/net10.0/Cohesive.Adapters.AspNet.dll": "c5d1e7cc1e31826742612e8cdb3ee626046de473260515e21da2d9f50be26362",
+        "bin/Debug/net10.0/Cohesive.Adapters.Postgres.Infra.dll": "c7960777ab887360c5bf857fc7c5e2f7f118a3bf8a18b503c8bfa95b66dd4b34",
+        "bin/Debug/net10.0/Cohesive.Adapters.Postgres.Services.dll": "13eaaab1a6feb226d7ddb2f184062f8792dccfbf00f8428e66eb6cd3531f6580",
+        "bin/Debug/net10.0/Cohesive.Adapters.Postgres.dll": "65e664f2c3eacb3967ba6d9f38678d8ec4aa4ba9c11538dd19ccb99a91ccdbdd",
+        "bin/Debug/net10.0/Cohesive.Adapters.Sql.dll": "31a1465a9a890d421da401ef69b204c2417789a49a2f95683383f37562afcc04",
+        "bin/Debug/net10.0/Cohesive.Api.Execution.dll": "0f7690eb06595f745bac673d65f63815ff4f51b7af0d8f86fbb79a4c4f58452b",
+        "bin/Debug/net10.0/Cohesive.Api.dll": "13fabb8e0ae6cfb87aeaed0e441685a66121fd85e6344fa9b297da540c38f5bc",
+        "bin/Debug/net10.0/Cohesive.Application.dll": "b3f436d8ee86b0cdaea041e5682f0f211cd060a3c6a1768265722d63e26f4ae7",
+        "bin/Debug/net10.0/Cohesive.Assurance.dll": "d3e896d16646afab9b00245a44aed06cfa180761193d507a03f12d193a94cb84",
+        "bin/Debug/net10.0/Cohesive.Cli.dll": "c8f9d08ce92f4cf8b3cb2de0b100f9a65298d42df4b4297723f5ab0f504eb6f6",
+        "bin/Debug/net10.0/Cohesive.Configuration.dll": "115da3a945ad822a4b7372c2baa61f176440e909289ff6a51ed8c0a128fe0473",
+        "bin/Debug/net10.0/Cohesive.Host.dll": "86c6402223b3f53cb0d0b61b4008c9a9c5a7c00f3a324c5c9c8efc0dbf775d4b",
+        "bin/Debug/net10.0/Cohesive.Identity.dll": "0f17c19accd36aadb3ca341aeb80fd4e47b216038ad0f66e2e2e5e933cfdaba6",
+        "bin/Debug/net10.0/Cohesive.Infra.dll": "28a87fa5f08fab1fe7474d7f1e1e46d7587ef41dcf858b70ca2567cfeeffd94b",
+        "bin/Debug/net10.0/Cohesive.Processes.Distribution.dll": "76c3c104ee67d60c06722a0d5035c8ff0d043982535285476de8d09cb7e336c1",
+        "bin/Debug/net10.0/Cohesive.Processes.dll": "7245e8bb8bafed3c888aa5c47e9bc8b304ecf1cf719d1c5d4414872fd7e721f6",
+        "bin/Debug/net10.0/Cohesive.Relations.Infra.dll": "6bb964374ad59a145b5ee7c057eb71c74b8d7b160f58ec393466ea2fa3e8130a",
+        "bin/Debug/net10.0/Cohesive.Relations.dll": "817d5509d912c40a36408b4ee7dbf0faeed2c20b91ea23a4041077cae7014264",
+        "bin/Debug/net10.0/Cohesive.Storage.dll": "0d8cf9e8101b58206b5197446046e6809f674ddd6117f28082b36358f66c59cc",
+        "bin/Debug/net10.0/Cohesive.Transitions.Assurance.dll": "1874592179a7338eb157beae9496ea1f3ec34be4610198d3da25d034a8345b56",
+        "bin/Debug/net10.0/Cohesive.Transitions.dll": "a31d3bdb457125dd55c4c4d63349718d0df2a963893835bbc52cd3817a32982b",
+        "bin/Debug/net10.0/Cohesive.dll": "2daf4e6ebf406ad877339129df1d4d58a1e48613c8b19e4766311556b52a0bf9",
+        "bin/Debug/net10.0/Fulfillment.Application": "d6eb0a445ef0ee5d67ae457f70cc4b2c2ef9c348b448958bdef9200f0a6289b0",
+        "bin/Debug/net10.0/Fulfillment.Application.deps.json": "3195671da52e6ed3b4c45e7f12a9363dc17e608d383972a494e632121edfb271",
+        "bin/Debug/net10.0/Fulfillment.Application.dll": "5bb2a364ae66e11a5b3c068c02eabadd862567fadae4c4ef97d9dc274c204246",
+        "bin/Debug/net10.0/Fulfillment.Application.pdb": "e9d23845fea62bfebc6400ce0d68ca4dd7ed36df988019ddfbd44a4948103a73",
+        "bin/Debug/net10.0/Fulfillment.Application.runtimeconfig.json": "2854c873c21edc9fa7c2056f9d4744054aeb11f009d271702daa7794b74e895f",
+        "bin/Debug/net10.0/Fulfillment.Application.staticwebassets.endpoints.json": "eb6525c892afda953a2560f151f9c5e5bc6e79ef6741d886488ac450262c91e3",
+        "bin/Debug/net10.0/Microsoft.Extensions.AsyncState.dll": "2a8696c5eab5b020cec080925dcbc6f3bfe240fa83f275df40960c85f37e35f8",
+        "bin/Debug/net10.0/Microsoft.Extensions.DependencyInjection.AutoActivation.dll": "d60ba599b2ad871dc0f1e772ceb9fa6032ba77ce3f9fb78c9498596abf50390a",
+        "bin/Debug/net10.0/Npgsql.dll": "e2bcafe1660fe4543fe9dfcabed972ec8d32259e5ea8009462ce1de23c7034c2",
+        "bin/Debug/net10.0/System.CommandLine.dll": "0b7790b44a438c6c2f4714ec9d408e02c5ed98145d7c89ecd9a9d11acf0932cb",
+        "bin/Debug/net10.0/cs/System.CommandLine.resources.dll": "15981e39eb96e3f1ccea6745b53ce358c85b6b30659af54cdfdfa2adf0536c20",
+        "bin/Debug/net10.0/de/System.CommandLine.resources.dll": "5cdcd1ce61a638cebe1fbd2ef4c3fc83d046670a4f6b43aeadd82d032b1af03a",
+        "bin/Debug/net10.0/es/System.CommandLine.resources.dll": "1931512c78045dc88f68bc71f9fe7dcf1e3a679ace15b42ddbfc6235978ebc72",
+        "bin/Debug/net10.0/fr/System.CommandLine.resources.dll": "d161253276bd0079e6edd24c689b7e8c36c115c787af0bd528cd86422f94b32d",
+        "bin/Debug/net10.0/it/System.CommandLine.resources.dll": "a9a0ab1041642a0c1a3b7bef39151e2ef393a79a3e5cccd538bd7639bb11f2f9",
+        "bin/Debug/net10.0/ja/System.CommandLine.resources.dll": "ea81cd7153ca5e2ebb6419a76510c241a9d87c8ddba7b850d56bed4d7240e668",
+        "bin/Debug/net10.0/ko/System.CommandLine.resources.dll": "cea119f65a5114c40c32ed06f77f3454d7971ae14397b5e0500005ec136375ad",
+        "bin/Debug/net10.0/pl/System.CommandLine.resources.dll": "d1b332ac112bd517fcd4ac8f97353fb075b1fd40dacf516101c505a303988f6c",
+        "bin/Debug/net10.0/pt-BR/System.CommandLine.resources.dll": "15dfe1a5101b90c0cc3c8d8ed9a483786788a2dbeb0e0df75c70d9df938e5f8e",
+        "bin/Debug/net10.0/ru/System.CommandLine.resources.dll": "3a7bf2fb8c47b2ee365981260324715fc5abb810f92dde4e2e7be094f5734340",
+        "bin/Debug/net10.0/tr/System.CommandLine.resources.dll": "8ad9d45e731598c6fc67ec85a33e90920595b7ab25a88170a7a3a74a7cd9e9a6",
+        "bin/Debug/net10.0/zh-Hans/System.CommandLine.resources.dll": "70ccd79ef38beb16dfd5736a68e60d5812dcc5ab531f63e6c5e33e8a88cae253",
+        "bin/Debug/net10.0/zh-Hant/System.CommandLine.resources.dll": "5141ce74409ee7fb9aa343813f24ebfb7a20871b03df81891447d929d70ac008"
+      },
+      "lockSha256": "e83506749a6abeda6cb4532423ff2290afb25cd0168fd95aa8b386d17e07aff5"
+    }
+  },
+  "auditSourceSha256": {
+    "Input.cs": "1095c1b0ac85dc23864c9540fa1b9f83e49a0f2a5fc1901cf5d4e88a1493c096",
+    "cohesive/Audit.csproj": "c27a78ef47c6d869c8ee6d38b834b7b2a5ddaec6779981815860ff2f4d18acbe",
+    "cohesive/Program.cs": "a5db18aba26e4da6edf177638962cb4bdfad4343b8c9307601d356b8f57a5cbb",
+    "cohesive/packages.lock.json": "e83506749a6abeda6cb4532423ff2290afb25cd0168fd95aa8b386d17e07aff5",
+    "conventional/Audit.csproj": "36563b3934bca9ff2fbf910b5971c2f470e17cff420c21490add622669b45cfd",
+    "conventional/Program.cs": "b11cf5e3204b16449d90d5295c7696563b20a146a8d363e0c49901a4ebdbc1ef",
+    "conventional/packages.lock.json": "a29c6aa8cfb81874ff8bb78dc369d7416f28c9b8cc47e99592bfc019b20c41eb",
+    "package-manifest.json": "8218e26eaa1ebdbceb835edfad37c2491c4bf47310da18e86742bcd479ef9ad8",
+    "packages/Cohesive.Assurance.0.1.0-eval.b0c442a.nupkg": "655880f9e2ca85e268b1885cbcffc47370cb7c1f3de58fd97d4f347d2cc70379",
+    "packages/Cohesive.Transitions.Assurance.0.1.0-eval.b0c442a.nupkg": "53d32858ab4e010b6a57dd4d79a7f5071db4ca8be5a07159d87081764cdbc1ed",
+    "run.py": "8a523cd0cefae0a2572c831fcbe3c2803c964950d40877fdcc7106f7947871cc",
+    "test_audit.py": "86907f2a5a2ade89d37b1f6aa31d4f48d31ea34bb839ab50bc67a79263cc9a42"
+  }
+}
