@@ -24,25 +24,41 @@ if (args[0] == "--unsupported-control")
         TransitionAssurance.Prepare(unsupported).GenerateInputs(new("control", "local", 7, 4, false), new(0));
         throw new InvalidOperationException("Unsupported generator control unexpectedly succeeded.");
     }
-    catch (NotSupportedException error)
+    catch (TransitionInputGenerationException error)
     {
-        Console.WriteLine(JsonSerializer.Serialize(new { kind = "unsupported", detail = error.Message }));
+        Console.WriteLine(JsonSerializer.Serialize(new { kind = "unsupported", code = error.Code, node = error.Node.Value, detail = error.Message }));
     }
     return;
 }
 if (args[0] == "--generate")
 {
     var nodes = new SortedSet<string>(StringComparer.Ordinal);
+    var provenance = new List<object>();
     var generated = CaseCatalog.Generate(state =>
     {
         var proposals = probe.GenerateInputs(new(state.Sku, "local", state.Available, state.MaxPerOrder, state.Quarantined), new(0));
         foreach (var node in proposals.InspectedNodes) nodes.Add(node.Value);
+        provenance.Add(new
+        {
+            state,
+            profile = proposals.Profile,
+            minimum = proposals.Minimum,
+            maximum = proposals.Maximum,
+            maxInputs = proposals.MaxInputs,
+            coverageLimits = proposals.CoverageLimits,
+            candidates = proposals.Candidates.Select(candidate => new
+            {
+                quantity = candidate.Input.Quantity,
+                motivatingNodes = candidate.MotivatingNodes.Select(node => node.Value)
+            })
+        });
         return proposals.Inputs.Select(input => input.Quantity);
     });
     Console.WriteLine(JsonSerializer.Serialize(new
     {
         cases = generated,
         generationCoverage = nodes,
+        generationProvenance = provenance,
         modelReference = new
         {
             definitionId = probe.Reference.DefinitionId.Value,

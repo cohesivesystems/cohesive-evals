@@ -1,44 +1,25 @@
 # Tooling map
 
-The .NET adapters own model input generation and execution. Python owns independent checking,
-process orchestration and evidence. Public methods/classes in the current Python tooling have
-docstrings; non-obvious provenance and failure behavior is commented. Repository-wide guidance
-is in [AGENTS.md](../../../../AGENTS.md).
+MV1 now uses the importable [`cohesive_evals`](../../../../cohesive_evals/README.md) package.
+Run `python3 -m cohesive_evals --help` from the checkout; no runtime Python dependencies are required.
 
-| Read this file | To understand |
+| Read | Purpose |
 | --- | --- |
-| [suites/run.py](suites/run.py) | Build → generate → independently check → freeze |
-| [suites/fixture.py](suites/fixture.py) | Pinned SDK/policy patches, shared production builder, adapter invocation |
-| [suites/oracle.py](suites/oracle.py) | The independent business requirements |
-| [evaluation/defects.py](evaluation/defects.py) | Paired deliberate application defects |
-| [evaluation/qualify.py](evaluation/qualify.py) | Exact-assertion detection credit and integrity controls |
-| [evaluation/integration.py](evaluation/integration.py) | Versioned HTTP, replay and physical-state witnesses |
-| [evaluation/record.py](evaluation/record.py) | Reports and compressed, hashed review evidence |
+| [`mv1/run.py`](../../../../cohesive_evals/mv1/run.py) | Build, generate, independently check and freeze |
+| [`mv1/references.py`](../../../../cohesive_evals/mv1/references.py) | Preserved source recipe; no historical module chains |
+| [`adapters/dotnet.py`](../../../../cohesive_evals/adapters/dotnet.py) | Locked builds and typed executable invocation |
+| [`mv1/oracle.py`](../../../../cohesive_evals/mv1/oracle.py) | Independent business requirements |
+| [`mv1/qualify.py`](../../../../cohesive_evals/mv1/qualify.py) | Paired defects, exact assertion credit and controls |
+| [`mv1/integration.py`](../../../../cohesive_evals/mv1/integration.py) | HTTP, replay and physical-state witnesses |
+| [`mv1/record.py`](../../../../cohesive_evals/mv1/record.py) | Hashed JSON reports and raw evidence |
 
-Two test modules challenge the current Python harness. The older `audit` directory is a separate,
-pinned SDK capability witness; it is not another current implementation of the suites.
+Shared snapshot, lifecycle, qualification and evidence helpers are documented in the package.
+Methods/classes explain purpose and consequential failures. Standard imports replace MV1's
+`sys.path` edits and dynamic module loading. Independent requirement checks remain scenario-owned.
 
-## Structure review
+The package README defines adapter v1, assesses Pydantic/pytest/reporting, and specifies the
+TypeScript follow-up and Alchemy capability audit. PostgreSQL is optional infrastructure for
+HTTP witnesses; offline grading needs neither a database nor a Cohesive dependency.
 
-The order-fulfillment tree currently has 82 Python files, including 15 `test_*.py` modules:
-25 evolution, 22 portable-validation, 11 API-outcome, 11 model-verification, seven durability
-and six in the remaining areas. These counts include historical checkpoints and their tests,
-not 82 independent application implementations.
-
-Changes made here:
-
-- Removed `generate.py` and its handwritten expression-node matcher. Cohesive now owns this
-  capability; the conventional adapter uses ordinary typed C# boundary generation.
-- Reused the existing production build/manifest helpers and the PostgreSQL lifecycle, HTTP client
-  and physical-state observer. No new Docker manager, test runner or expression evaluator.
-- Kept deterministic assertions in Python's `unittest`/standard-library ecosystem. No third-party
-  runtime dependency is needed for this bounded task; formatting tooling is development-only.
-- Used the existing optional Transitions/Assurance package. SDK Simulation already supplies
-  broader generation/property/shrinking machinery; the new API supplies guard-derived proposals.
-
-The clearest next structural improvement is a shared importable tooling package for build,
-PostgreSQL lifecycle and evidence helpers. Today later stages still reach back through earlier
-`build.py` modules and path-based loading. Migrate that responsibility incrementally with its
-existing classification/provenance tests, rather than rewriting independent requirement checks
-or replacing the whole harness at once. This inventory is an initial structure review, not a
-completed semantic audit of every historical script.
+Older probes and the pinned capability audit retain their implementations for now. This is an
+incremental extraction of MV1's infrastructure, not an audit or rewrite of every historical script.

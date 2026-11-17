@@ -5,7 +5,7 @@
   "conditions": {
     "original": {
       "conventional": {
-        "buildManifestSha256": "7f54000313f5b815940e1fee57ec6bbaf8d8c9211f893edf229789c3f2b403b9",
+        "buildManifestSha256": "f568f011a8002a430323ad152c10b90087dd0497a24f224e870e505e14385f8e",
         "observations": [
           {
             "mode": "http",
@@ -228,7 +228,7 @@
         ]
       },
       "cohesive": {
-        "buildManifestSha256": "efa270d5a24daf6859ed85f17d71878e5fdd805e5d5b32ef79958ecd71e33ac6",
+        "buildManifestSha256": "abb91a5c0ec0c52070f2b9d865e45089b85554ad42355a69de52178862628d16",
         "observations": [
           {
             "mode": "http",
@@ -453,7 +453,7 @@
     },
     "revised": {
       "conventional": {
-        "buildManifestSha256": "5f464bf808ed06b2ba0f5f7cadea95a19fba60a6901d5c207856e23b355a7b59",
+        "buildManifestSha256": "34d1dc29c45cc0ddbe6008cf427fcc51924d88b7a8eaa46c5408d9b72a53ce5c",
         "observations": [
           {
             "mode": "http",
@@ -676,7 +676,7 @@
         ]
       },
       "cohesive": {
-        "buildManifestSha256": "e32d9d0f48ab7a8e196c6a98d51d5f1530247cecaefb45cd7d471de32c4dc586",
+        "buildManifestSha256": "30b21021ac6abcecbb2a741b0a283873943b11296f4d396c445653bd0714f4a0",
         "observations": [
           {
             "mode": "http",

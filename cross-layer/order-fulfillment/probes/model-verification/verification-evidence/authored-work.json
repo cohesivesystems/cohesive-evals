@@ -1,37 +1,113 @@
 {
   "scope": "Raw source counts, shared files counted once; no task-time or causal advantage estimate",
   "files": {
-    "suites/cohesive/Program.cs": {
-      "lines": 70,
-      "nonblankLines": 68
+    "cohesive_evals/__init__.py": {
+      "lines": 1,
+      "nonblankLines": 1
     },
-    "suites/common/CaseCatalog.cs": {
+    "cohesive_evals/__main__.py": {
+      "lines": 53,
+      "nonblankLines": 44
+    },
+    "cohesive_evals/adapters/__init__.py": {
+      "lines": 1,
+      "nonblankLines": 1
+    },
+    "cohesive_evals/adapters/dotnet.py": {
+      "lines": 199,
+      "nonblankLines": 183
+    },
+    "cohesive_evals/contracts.py": {
+      "lines": 117,
+      "nonblankLines": 94
+    },
+    "cohesive_evals/evidence.py": {
+      "lines": 15,
+      "nonblankLines": 10
+    },
+    "cohesive_evals/mv1/__init__.py": {
+      "lines": 1,
+      "nonblankLines": 1
+    },
+    "cohesive_evals/mv1/defects.py": {
+      "lines": 175,
+      "nonblankLines": 165
+    },
+    "cohesive_evals/mv1/fixture.py": {
+      "lines": 122,
+      "nonblankLines": 108
+    },
+    "cohesive_evals/mv1/http_checks.py": {
+      "lines": 113,
+      "nonblankLines": 96
+    },
+    "cohesive_evals/mv1/http_world.py": {
+      "lines": 109,
+      "nonblankLines": 101
+    },
+    "cohesive_evals/mv1/integration.py": {
+      "lines": 124,
+      "nonblankLines": 118
+    },
+    "cohesive_evals/mv1/observations.py": {
+      "lines": 67,
+      "nonblankLines": 54
+    },
+    "cohesive_evals/mv1/oracle.py": {
+      "lines": 68,
+      "nonblankLines": 60
+    },
+    "cohesive_evals/mv1/paths.py": {
+      "lines": 12,
+      "nonblankLines": 10
+    },
+    "cohesive_evals/mv1/qualify.py": {
+      "lines": 193,
+      "nonblankLines": 180
+    },
+    "cohesive_evals/mv1/record.py": {
+      "lines": 153,
+      "nonblankLines": 146
+    },
+    "cohesive_evals/mv1/references.py": {
+      "lines": 107,
+      "nonblankLines": 102
+    },
+    "cohesive_evals/mv1/run.py": {
+      "lines": 86,
+      "nonblankLines": 80
+    },
+    "cohesive_evals/postgres.py": {
+      "lines": 126,
+      "nonblankLines": 117
+    },
+    "cohesive_evals/qualification.py": {
+      "lines": 29,
+      "nonblankLines": 24
+    },
+    "cohesive_evals/runtime.py": {
+      "lines": 98,
+      "nonblankLines": 85
+    },
+    "cohesive_evals/snapshots.py": {
+      "lines": 58,
+      "nonblankLines": 53
+    },
+    "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/Program.cs": {
+      "lines": 86,
+      "nonblankLines": 84
+    },
+    "cross-layer/order-fulfillment/probes/model-verification/suites/common/CaseCatalog.cs": {
       "lines": 20,
       "nonblankLines": 20
     },
-    "suites/common/Cases.cs": {
+    "cross-layer/order-fulfillment/probes/model-verification/suites/common/Cases.cs": {
       "lines": 3,
       "nonblankLines": 3
     },
-    "suites/conventional/Program.cs": {
+    "cross-layer/order-fulfillment/probes/model-verification/suites/conventional/Program.cs": {
       "lines": 30,
       "nonblankLines": 27
-    },
-    "suites/fixture.py": {
-      "lines": 155,
-      "nonblankLines": 140
-    },
-    "suites/oracle.py": {
-      "lines": 65,
-      "nonblankLines": 58
-    },
-    "suites/run.py": {
-      "lines": 98,
-      "nonblankLines": 90
-    },
-    "suites/test_suites.py": {
-      "lines": 79,
-      "nonblankLines": 69
     }
   },
   "developmentStage": "SDK-based generation/execution replaces the development prototype; no blinded trial",

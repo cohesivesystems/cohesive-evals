@@ -89,3 +89,10 @@ nunit-*.xml
 
 # Separately versioned typed-input SDK qualification stage.
 !cross-layer/order-fulfillment/probes/portable-validation/typed-input/packages/*.nupkg
+
+# Python tooling caches and local installs
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/

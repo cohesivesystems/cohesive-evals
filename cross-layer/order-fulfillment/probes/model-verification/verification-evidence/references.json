@@ -13,7 +13,7 @@
           "Reserved"
         ],
         "suiteSha256": "fb0859be4c496dc34e9296fb79955df6b344b3062c455645dc0483ea41aa9189",
-        "manifestSha256": "27d10ef6f666fc2509cb075691a07672e3190eed1f64f51469722a62753351a8"
+        "manifestSha256": "320a1dd2ad83dfb68f6f0f751d0a29264e77325e06ccd63c0ba0d9f5cb0cf341"
       },
       "cohesive": {
         "cases": 328,
@@ -25,8 +25,8 @@
           "QuantityLimitExceeded",
           "Reserved"
         ],
-        "suiteSha256": "99c2efea4e575cdf67961cd1e630a29e1569e6d2dfac2bd08c85ba49a75e31e1",
-        "manifestSha256": "c4464e429caba8e6436572e49b37a4f688b3d7d7f404dfd930e7d436721c6cea"
+        "suiteSha256": "69e15996bab2df31dc92c83a64493decf70d5ff53c2eb6b960d2cf017dd222d7",
+        "manifestSha256": "11856573ef30eb5138ed7e1927baf3672294924da0fdef0d5d0db29f4727e794"
       }
     },
     "revised": {
@@ -41,7 +41,7 @@
           "Reserved"
         ],
         "suiteSha256": "5710b26627e82a756a974ce61379f9eba101fead1f64a073bbf8630993d6a698",
-        "manifestSha256": "3163e09473ae89f1c042716d53f0eefd54968fb830c852744b9f0dd12da5e365"
+        "manifestSha256": "5c09541faa5a7ee1002531d783d6f9e696a32a6fc932e5c97edb695bf629c4bf"
       },
       "cohesive": {
         "cases": 328,
@@ -53,8 +53,8 @@
           "QuantityLimitExceeded",
           "Reserved"
         ],
-        "suiteSha256": "27e2bfadf0fad4e49ae225826b4b9a1748ffe4627f13b446cc6044096f1093fb",
-        "manifestSha256": "5f549fefadd19fc6c434c2e1538f966aa5242e47ad8ca8538f13aa221597b768"
+        "suiteSha256": "13d24e0c522eebe3f9a8bef858527f276cff8b1656950757fcc9345b96a6997e",
+        "manifestSha256": "4df04a5f78b53fcfef148e0a8c4be46f62f207a7b80da41cec345a3ad340ef8f"
       }
     }
   },
@@ -68,5 +68,5 @@
       "detail": "{'input': {'Name': 'case-10', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True, 'Quantity': 2}, 'expected': 'InventoryQuarantined', 'actual': {'Name': 'case-10', 'Outcome': 'QuantityLimitExceeded', 'FulfillmentOutcome': 'QuantityLimitExceeded', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True}, 'ScopePreserved': True}}"
     }
   },
-  "freezeSha256": "d95f43c5b7293ea09bab1784dcd8665beab6002328096e6763426b22d3f4d003"
+  "freezeSha256": "fa15314855aaae621c07acef6c235404026225c3d9cd3c0718ccd8528fd8f121"
 }

@@ -14,6 +14,9 @@ we automate or broaden it.
 New to the terminology? See the [evaluation glossary](GLOSSARY.md) for short
 definitions and how this pilot uses them.
 
+Shared MV1 tooling and adapter contracts are documented in
+[`cohesive_evals`](cohesive_evals/README.md). Run `python3 -m cohesive_evals --help`.
+
 ## Repository layout
 
 ```text
