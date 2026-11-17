@@ -1,0 +1,42 @@
+{
+  "scope": "Raw source counts, shared files counted once; no task-time or causal advantage estimate",
+  "files": {
+    "suites/cohesive/Program.cs": {
+      "lines": 32,
+      "nonblankLines": 31
+    },
+    "suites/common/Cases.cs": {
+      "lines": 3,
+      "nonblankLines": 3
+    },
+    "suites/conventional/Program.cs": {
+      "lines": 12,
+      "nonblankLines": 11
+    },
+    "suites/fixture.py": {
+      "lines": 53,
+      "nonblankLines": 49
+    },
+    "suites/generate.py": {
+      "lines": 57,
+      "nonblankLines": 52
+    },
+    "suites/oracle.py": {
+      "lines": 31,
+      "nonblankLines": 29
+    },
+    "suites/run.py": {
+      "lines": 51,
+      "nonblankLines": 48
+    },
+    "suites/test_suites.py": {
+      "lines": 47,
+      "nonblankLines": 40
+    }
+  },
+  "feedbackRepairs": [
+    "Cohesive adapter now accepts NoChange as an inspectable decision",
+    "Evaluator mutation anchors scoped to Reserve, excluding Release"
+  ],
+  "policyMaintenance": "Versioned independent precedence oracle; unchanged generator and input catalog; explicit production reference patches"
+}

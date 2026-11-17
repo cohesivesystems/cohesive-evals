@@ -97,6 +97,7 @@ defines AO1 and its [planned test matrix](probes/api-outcomes/test-matrix.md).
 Its [AO1 implementation and qualification](probes/api-outcomes/README.md) add
 a seeded archived-order rejection in both conditions.
 
-The next [model-assisted verification probe (MV1)](probes/model-verification/README.md)
-audits reuse of the production reservation model offline and specifies a matched
-test-authoring experiment. Its capability witness is not a generated test suite.
+The [model-assisted verification probe (MV1)](probes/model-verification/README.md)
+reuses production reservation logic offline in both conditions. Its
+[implementation and qualification](probes/model-verification/implementation.md) compares
+ordinary and model-assisted input generation against independent assertions and paired faults.

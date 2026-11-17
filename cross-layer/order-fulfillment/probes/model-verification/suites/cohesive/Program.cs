@@ -22,7 +22,7 @@ var results = cases.Select(c =>
     var decision = TransitionReferenceInterpreter.DecideFullState(plan, new(c.Name),
         PortableValue.Concrete(plan.Definition.Input, ObservationValue.FromObject(new StockQuantity(c.Quantity))),
         PortableValue.Concrete(plan.Definition.Observation, before));
-    if (decision.Kind is not (TransitionDecisionKind.Applied or TransitionDecisionKind.AdmissionRejected))
+    if (decision.Kind is not (TransitionDecisionKind.Applied or TransitionDecisionKind.NoChange or TransitionDecisionKind.AdmissionRejected))
         throw new InvalidOperationException(decision.Kind.ToString());
     var state = TransitionStateProjector.Apply(before, decision).Deserialize<InventoryItem>()!;
     var outcome = (decision.Outcome?.Value ?? throw new InvalidOperationException("No typed outcome")).Deserialize<StockResult>()!;

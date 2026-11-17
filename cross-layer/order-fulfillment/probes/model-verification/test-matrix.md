@@ -1,7 +1,8 @@
-# MV1 planned test matrix
+# MV1 test matrix
 
-This is an implementation contract, **not executed MV1 qualification**. The small
-[audit](audit/run.py) only establishes selected API capabilities and example parity.
+The rows below preserve the protocol obligations. The [implementation report](implementation.md)
+records executed coverage and limitations; fault families here are examples, not a claim
+that every listed fault was planted. The [audit](audit/run.py) separately establishes SDK capabilities.
 
 | ID | Obligation | Independent observation | Planned fault family |
 | --- | --- | --- | --- |
@@ -26,3 +27,15 @@ source/build/package hashes, diagnostic text and false alarms. Budget exhaustion
 unsupported operations and infrastructure failures are inconclusive, not detected
 behavioral defects. Never claim an exhaustive Int32 state/input search from a
 small finite grid. Shrinking may simplify a witness only if the failure rechecks.
+
+## Implemented coverage
+
+- MV1-01/08: source/build freeze, actual transition identity, stale-model refusal and stale-policy failures.
+- MV1-02–05: matched 328-case catalogs, independent outcomes/full-state checks and ten paired production fault families. Rejection-state corruption has oracle controls only.
+- MV1-06: guard-to-boundary traces, explicit unsupported-node control and regeneration from wrong/omitted guards.
+- MV1-07: exact authority checks here; independent Assurance claim/finite-scope controls remain in the pinned audit. No new general Assurance proof.
+- MV1-09: named-assertion credit, known-good reruns and build/runtime/timeout/malformed-result controls. Initial unqualified runs remain recorded.
+- MV1-10: unchanged original integration suites plus versioned single/batch/replay/physical-state witnesses.
+
+This is public, feedback-exposed maintainer qualification. Sealed participant cases and
+a blinded trial have not been performed.

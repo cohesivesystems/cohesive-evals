@@ -1,0 +1,187 @@
+{
+  "passed": true,
+  "postgresImage": "postgres:17.10-alpine3.24",
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "conditions": {
+    "conventional": {
+      "run": {
+        "commands": 37,
+        "finalFacts": {
+          "orders": [
+            {
+              "id": "negative",
+              "status": "Draft"
+            },
+            {
+              "id": "order-ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+              "status": "Submitted"
+            },
+            {
+              "id": "quarantined",
+              "status": "Draft"
+            },
+            {
+              "id": "sentinel",
+              "status": "Draft"
+            },
+            {
+              "id": "short",
+              "status": "Draft"
+            },
+            {
+              "id": "success",
+              "status": "Submitted"
+            },
+            {
+              "id": "zero",
+              "status": "Draft"
+            }
+          ],
+          "inventory": [
+            {
+              "sku": "quarantine",
+              "available": 0,
+              "maxPerOrder": 1,
+              "quarantined": false
+            },
+            {
+              "sku": "empty",
+              "available": 0,
+              "maxPerOrder": 5,
+              "quarantined": false
+            },
+            {
+              "sku": "sentinel",
+              "available": 13,
+              "maxPerOrder": 4,
+              "quarantined": false
+            },
+            {
+              "sku": "sku-sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+              "available": 2,
+              "maxPerOrder": 5,
+              "quarantined": false
+            },
+            {
+              "sku": "stock",
+              "available": 8,
+              "maxPerOrder": 5,
+              "quarantined": false
+            }
+          ],
+          "reservations": [
+            {
+              "id": "order-ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+              "orderId": "order-ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+              "sku": "sku-sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+              "quantity": 1
+            },
+            {
+              "id": "success",
+              "orderId": "success",
+              "sku": "stock",
+              "quantity": 2
+            }
+          ]
+        },
+        "requiredInputCases": 30
+      },
+      "capacity": {
+        "commands": 1003,
+        "retainedIdentities": 1000
+      },
+      "visibleChecks": 5,
+      "buildManifestSha256": "b791e8da9d511922d022e379a23eb2c99e11a23fefcc10a43aa8f2f2f7a1c6f1"
+    },
+    "cohesive": {
+      "run": {
+        "commands": 37,
+        "finalFacts": {
+          "orders": [
+            {
+              "id": "negative",
+              "status": "Draft"
+            },
+            {
+              "id": "order-ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+              "status": "Submitted"
+            },
+            {
+              "id": "quarantined",
+              "status": "Draft"
+            },
+            {
+              "id": "sentinel",
+              "status": "Draft"
+            },
+            {
+              "id": "short",
+              "status": "Draft"
+            },
+            {
+              "id": "success",
+              "status": "Submitted"
+            },
+            {
+              "id": "zero",
+              "status": "Draft"
+            }
+          ],
+          "inventory": [
+            {
+              "sku": "quarantine",
+              "available": 0,
+              "maxPerOrder": 1,
+              "quarantined": false
+            },
+            {
+              "sku": "empty",
+              "available": 0,
+              "maxPerOrder": 5,
+              "quarantined": false
+            },
+            {
+              "sku": "sentinel",
+              "available": 13,
+              "maxPerOrder": 4,
+              "quarantined": false
+            },
+            {
+              "sku": "sku-sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+              "available": 2,
+              "maxPerOrder": 5,
+              "quarantined": false
+            },
+            {
+              "sku": "stock",
+              "available": 8,
+              "maxPerOrder": 5,
+              "quarantined": false
+            }
+          ],
+          "reservations": [
+            {
+              "id": "order-ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+              "orderId": "order-ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
+              "sku": "sku-sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss",
+              "quantity": 1
+            },
+            {
+              "id": "success",
+              "orderId": "success",
+              "sku": "stock",
+              "quantity": 2
+            }
+          ]
+        },
+        "requiredInputCases": 30
+      },
+      "capacity": {
+        "commands": 1003,
+        "retainedIdentities": 1000
+      },
+      "visibleChecks": 5,
+      "buildManifestSha256": "eb594544abae2cf8d71eab02680b1b09ab173844af75918458dea99f529b71a4"
+    }
+  }
+}
