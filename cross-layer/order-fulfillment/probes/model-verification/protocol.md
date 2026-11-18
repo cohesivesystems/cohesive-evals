@@ -3,7 +3,7 @@
 Specification approved in [#28](https://github.com/cohesivesystems/cohesive-evals/issues/28).
 
 Development update: the [current implementation](implementation.md) upgrades the Cohesive
-SDK through [Cohesive #584](https://github.com/cohesivesystems/cohesive/pull/584) and uses
+SDK through [Cohesive #587](https://github.com/cohesivesystems/cohesive/pull/587) and uses
 its typed generation/execution APIs. The original capability audit remains pinned; the
 implementation prototype is superseded, not a separate scored condition.
 
@@ -18,7 +18,7 @@ useful tests without sacrificing independent defect detection?
 The preserved audit starts from merged AO1 (`2e51498992ac1ac3cdd87a38d0e930e61932a77a`),
 SDK source `b0c442ab5645907968d6b605edeb1dd54550130d`, package `0.1.0-eval.b0c442a`;
 its [manifest](audit/package-manifest.json) remains unchanged. The current implementation
-uses published SDK `0.1.0-eval.90eefde`, pinned in [sdk](sdk/dependency-manifest.json).
+uses published SDK `0.1.0-eval.f9439d2`, pinned in [sdk](sdk/dependency-manifest.json).
 The original business source is preserved; package/lockfile changes are separately checked.
 Each SDK/guidance change creates a development version; do not pool scored trial results.
 
@@ -73,7 +73,7 @@ may evaluate independently authored claims over explicitly labeled model observa
 Do not present these observations as production commits. The finite admission bridge
 supports only state-dependent predicates; it rejects command-dependent reservation
 guards. The original audit found no general automatic boundary generator. The current SDK
-adds bounded Int32/Boolean proposals with caller-supplied states and per-input provenance;
+adds bounded Int32/Boolean proposals from a supplied state template and typed field ranges, with per-command provenance;
 this does not imply arbitrary predicate solving or exhaustive coverage.
 Added generator/adapter work is recorded and qualified separately.
 The audited typed Int32 subtraction claim is unsupported; do not silently replace

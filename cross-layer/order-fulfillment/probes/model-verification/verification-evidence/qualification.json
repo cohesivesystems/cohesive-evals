@@ -1,13 +1,13 @@
 {
   "passed": true,
   "design": "post-freeze maintainer qualification; not blinded or held-out from the author",
-  "freezeSha256": "fa15314855aaae621c07acef6c235404026225c3d9cd3c0718ccd8528fd8f121",
-  "referenceRunFreezeSha256": "fa15314855aaae621c07acef6c235404026225c3d9cd3c0718ccd8528fd8f121",
+  "freezeSha256": "f3788226e0611d26dfa0c02c0e428c624c9223ed2db3a502e224473c9ed74c86",
+  "referenceRunFreezeSha256": "f3788226e0611d26dfa0c02c0e428c624c9223ed2db3a502e224473c9ed74c86",
   "defectManifestSha256": "ca86853f82c1888de91a49c0f73a0d6700959b2dd3475a55c6fa37471cfd4264",
   "controls": {
     "original/conventional": {
-      "cases": 328,
-      "accepted": 34,
+      "cases": 388,
+      "accepted": 41,
       "outcomes": [
         "InsufficientStock",
         "InvalidQuantity",
@@ -17,8 +17,8 @@
       ]
     },
     "original/cohesive": {
-      "cases": 328,
-      "accepted": 34,
+      "cases": 388,
+      "accepted": 41,
       "outcomes": [
         "InsufficientStock",
         "InvalidQuantity",
@@ -28,8 +28,8 @@
       ]
     },
     "revised/conventional": {
-      "cases": 328,
-      "accepted": 34,
+      "cases": 388,
+      "accepted": 41,
       "outcomes": [
         "InsufficientStock",
         "InvalidQuantity",
@@ -39,8 +39,8 @@
       ]
     },
     "revised/cohesive": {
-      "cases": 328,
-      "accepted": 34,
+      "cases": 388,
+      "accepted": 41,
       "outcomes": [
         "InsufficientStock",
         "InvalidQuantity",
@@ -74,7 +74,7 @@
       "kind": "unsupported",
       "code": "assurance.inputs.unsupported",
       "node": "audit/compound/body/auto/requires/1",
-      "detail": "Boundary generation at 'audit/compound/body/auto/requires/1': expected an Int32 comparison or direct/negated boolean. No complete case set was generated."
+      "detail": "Boundary generation at 'audit/compound/body/auto/requires/1': expected an Int32 comparison. No complete case set was generated."
     }
   },
   "records": [
@@ -86,7 +86,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-2', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 0}, 'expected': 'InvalidQuantity', 'actual': {'Name': 'case-2', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "3860d393820e7f2dcbea5e472e4b5732df1284eedd244cd72896e13536b5e743"
+      "manifestSha256": "9122830faee9c0a3a1a8bce7568642bf128f37709d12632bae8bbe9939bc9dcc"
     },
     {
       "version": "original",
@@ -96,7 +96,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-9', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True, 'Quantity': 1}, 'expected': 'InventoryQuarantined', 'actual': {'Name': 'case-9', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True}, 'ScopePreserved': True}}",
-      "manifestSha256": "6143317a39af28de77bb060060fa608e82ae39c37597e084efdbe32c585f705f"
+      "manifestSha256": "55b684aabcb1bfc5e23cce12561b2c4259a64f0f17cd01519caa5fd832411060"
     },
     {
       "version": "original",
@@ -106,7 +106,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-4', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 2}, 'expected': 'QuantityLimitExceeded', 'actual': {'Name': 'case-4', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "a59892cfe2ace876444c788844cd87bc25cbcf3c3b23c9ba2831734976542a16"
+      "manifestSha256": "ef6c456d9a8c87a0a1e8f44e3fb648c52a940026aa053a19cba3d84714082f21"
     },
     {
       "version": "original",
@@ -116,7 +116,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-3', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'InsufficientStock', 'actual': {'Name': 'case-3', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': -1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "1ee75aa24c1cf6b53b4f5dbc0a2b9832a574201e391b8979a6dfe6fd3c7c319b"
+      "manifestSha256": "c68a67d2d63a93ef359b2e8cd39f98b18e92f73cd04df2b3e479ae931685f45c"
     },
     {
       "version": "original",
@@ -125,8 +125,8 @@
       "expectedAssertion": "domain outcome",
       "kind": "detected",
       "assertion": "domain outcome",
-      "detail": "{'input': {'Name': 'case-59', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'Reserved', 'actual': {'Name': 'case-59', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "3c471c8c6bba3ca47a3cce3060f970f0c0b684ef188953e87fb0367a46d4e34a"
+      "detail": "{'input': {'Name': 'case-71', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'Reserved', 'actual': {'Name': 'case-71', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
+      "manifestSha256": "b6f5ae741ada77a9f02ab8b61e347935a764c6b72f2c37ce4ad0934a7bc81a86"
     },
     {
       "version": "original",
@@ -136,7 +136,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-3', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'InsufficientStock', 'actual': {'Name': 'case-3', 'Outcome': 'QuantityLimitExceeded', 'FulfillmentOutcome': 'QuantityLimitExceeded', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "7c0d846dd1d1fb2b7512ead10895e8579f88e3f08dc4e1c71b4ed8bf6cc34d31"
+      "manifestSha256": "7b732f22bc58bafd0033e4cd26b74d8cce9f7ad52b489d7b185fb3ac4e018406"
     },
     {
       "version": "original",
@@ -145,8 +145,8 @@
       "expectedAssertion": "accepted delta",
       "kind": "detected",
       "assertion": "accepted delta",
-      "detail": "{'input': {'Name': 'case-59', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-59', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "1a3d9487ef2356b60e1300c8f743fa01bcfe2fa3d79500aa711d0a4e681cf8d3"
+      "detail": "{'input': {'Name': 'case-71', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-71', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
+      "manifestSha256": "a03dfdb4f2f8e35b7d25abd6cea647c19fe754e908c74971670d1c98d9d23bc8"
     },
     {
       "version": "original",
@@ -156,7 +156,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-3', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'InsufficientStock', 'actual': {'Name': 'case-3', 'Outcome': 'InvalidQuantity', 'FulfillmentOutcome': 'InvalidQuantity', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "d1c47453a66c09a83ced7694339813880bc3c8f5dc1b1bda42c3de62f9dc403a"
+      "manifestSha256": "dbfd4473180694770625231041eb786442bcb6b2511057c85e5b6755d67ec8d3"
     },
     {
       "version": "original",
@@ -165,8 +165,8 @@
       "expectedAssertion": "accepted delta",
       "kind": "detected",
       "assertion": "accepted delta",
-      "detail": "{'input': {'Name': 'case-59', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-59', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 0, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "6adc444785a50734d4059b79af959ff0fa4831b7c229a7f9bec2f4e382a23ffc"
+      "detail": "{'input': {'Name': 'case-71', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-71', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 0, 'Quarantined': False}, 'ScopePreserved': True}}",
+      "manifestSha256": "be23a58fa3b9ff0fd0079685e2e35faaced4c5008849188efe9ddf89707256f5"
     },
     {
       "version": "original",
@@ -176,7 +176,7 @@
       "kind": "detected",
       "assertion": "terminal outcome",
       "detail": "{'input': {'Name': 'case-0', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': -2147483648}, 'actual': {'Name': 'case-0', 'Outcome': 'InvalidQuantity', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "4bebadaae16451926016d150879e205d75fe2cbe5d5190bd1c2507ef7b55dfa5"
+      "manifestSha256": "10b8b7a97f157f9b42fcfa330e0afa2b962496345c28d2a93b815662288447b4"
     },
     {
       "version": "original",
@@ -186,12 +186,12 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-2', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 0}, 'expected': 'InvalidQuantity', 'actual': {'Name': 'case-2', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "20c9b417c6ae0150a10fcd1aa10bbc31b3204004d2671719060f4f5aca12aa8e",
+      "manifestSha256": "354a3066025675e18bfeec1281c7e0b7cdea6d2a46c9183820b4ea5530df2934",
       "correlatedModelControl": {
         "kind": "detected",
         "assertion": "domain outcome",
         "detail": "{'input': {'Name': 'case-2', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 0}, 'expected': 'InvalidQuantity', 'actual': {'Name': 'case-2', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-        "cases": 328,
+        "cases": 388,
         "modelReference": {
           "definitionId": "fulfillment/reserve",
           "revisionId": "5",
@@ -202,7 +202,7 @@
           }
         },
         "misleadingSelfAgreement": {
-          "matches": 328,
+          "matches": 388,
           "meaning": "Copying candidate outputs as expectations agrees by construction; grants no correctness credit"
         }
       }
@@ -215,12 +215,12 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-9', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True, 'Quantity': 1}, 'expected': 'InventoryQuarantined', 'actual': {'Name': 'case-9', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True}, 'ScopePreserved': True}}",
-      "manifestSha256": "292e90a091ef1970288e7ea4c17286b941ac8069606c9d00b9b0c9990f788aa8",
+      "manifestSha256": "a414f4b35a45443f23c0d3af93bc1e039f0930c9113b6b091d04b6154c31bbd6",
       "correlatedModelControl": {
         "kind": "detected",
         "assertion": "domain outcome",
-        "detail": "{'input': {'Name': 'case-9', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True, 'Quantity': 1}, 'expected': 'InventoryQuarantined', 'actual': {'Name': 'case-9', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True}, 'ScopePreserved': True}}",
-        "cases": 328,
+        "detail": "{'input': {'Name': 'case-97', 'Sku': 'stock-😀', 'Available': 4, 'MaxPerOrder': 4, 'Quarantined': True, 'Quantity': 1}, 'expected': 'InventoryQuarantined', 'actual': {'Name': 'case-97', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 3, 'MaxPerOrder': 4, 'Quarantined': True}, 'ScopePreserved': True}}",
+        "cases": 195,
         "modelReference": {
           "definitionId": "fulfillment/reserve",
           "revisionId": "5",
@@ -231,7 +231,7 @@
           }
         },
         "misleadingSelfAgreement": {
-          "matches": 328,
+          "matches": 195,
           "meaning": "Copying candidate outputs as expectations agrees by construction; grants no correctness credit"
         }
       }
@@ -244,7 +244,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-4', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 2}, 'expected': 'QuantityLimitExceeded', 'actual': {'Name': 'case-4', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "4905e6a5c1e121437dd4c970804c43b946943b8287d9a4af66be6570ee613b54"
+      "manifestSha256": "7634b96735dc3dfae72566059361af31be9f1e18cb481350961fc831023669a0"
     },
     {
       "version": "original",
@@ -254,7 +254,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-3', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'InsufficientStock', 'actual': {'Name': 'case-3', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': -1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "f725583082b821764145df84c1f85472555a140fbcbc8018f2891442f7c88b7b"
+      "manifestSha256": "1ffe5879c3b4f17b53cd230c42b4b44ef5bc92588b3119258ca5617b046c07e0"
     },
     {
       "version": "original",
@@ -263,8 +263,8 @@
       "expectedAssertion": "domain outcome",
       "kind": "detected",
       "assertion": "domain outcome",
-      "detail": "{'input': {'Name': 'case-59', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'Reserved', 'actual': {'Name': 'case-59', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "f04f998ee88eb0ff03608b96f0cd2cce3454ccc6f8b25ddfc3e8ff9d6936fcec"
+      "detail": "{'input': {'Name': 'case-71', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'Reserved', 'actual': {'Name': 'case-71', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
+      "manifestSha256": "a453fe20cae2262462e175ad07d913dc851635a65733088cf1d117f8087ec63a"
     },
     {
       "version": "original",
@@ -274,7 +274,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-3', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'InsufficientStock', 'actual': {'Name': 'case-3', 'Outcome': 'QuantityLimitExceeded', 'FulfillmentOutcome': 'QuantityLimitExceeded', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "033369e1612be34501fe0f2982291dfc4a4655124740af787a59fdac58b30c0f"
+      "manifestSha256": "bb7d6afaa14b79bd76fadf788e588f4590b40393e540147eaea443ccc3cbb1c1"
     },
     {
       "version": "original",
@@ -283,8 +283,8 @@
       "expectedAssertion": "accepted delta",
       "kind": "detected",
       "assertion": "accepted delta",
-      "detail": "{'input': {'Name': 'case-59', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-59', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "163a5d664e7c67896db511d05b46c4d72554a163bf0195712d6a08831e6e3b2d"
+      "detail": "{'input': {'Name': 'case-71', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-71', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
+      "manifestSha256": "8111de777690179bde84523a6093b1f56039db41f7bd2b76a1c2e5a79c93a2a8"
     },
     {
       "version": "original",
@@ -294,7 +294,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-3', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'InsufficientStock', 'actual': {'Name': 'case-3', 'Outcome': 'InvalidQuantity', 'FulfillmentOutcome': 'InvalidQuantity', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "ec4c6a1be7576332188a8914f42a13686dead80fea4c27a81fa8c6b0b9e09bff"
+      "manifestSha256": "8d6994578fd524c915dcf954991aba43d2d1fed36f0c00dc954e9c6efaece50b"
     },
     {
       "version": "original",
@@ -303,8 +303,8 @@
       "expectedAssertion": "accepted delta",
       "kind": "detected",
       "assertion": "accepted delta",
-      "detail": "{'input': {'Name': 'case-59', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-59', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 0, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "242dcca6cce1d40fe6d2912ba1887596656d060eadec4b4a361a84489873c261"
+      "detail": "{'input': {'Name': 'case-71', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-71', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 0, 'Quarantined': False}, 'ScopePreserved': True}}",
+      "manifestSha256": "40c2cd814d11feb97dda6f852993f2640943fd6bcc9cb25947bce2e183084ff6"
     },
     {
       "version": "original",
@@ -314,7 +314,7 @@
       "kind": "detected",
       "assertion": "terminal outcome",
       "detail": "{'input': {'Name': 'case-0', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': -2147483648}, 'actual': {'Name': 'case-0', 'Outcome': 'InvalidQuantity', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "9a350d3b6056f2631ce1e646ea321ef803a09e49b656fbaf46d742adf4119691"
+      "manifestSha256": "2687ff6eb1b4af5d5a0626b0948f495ee610b4a2e9c2536130f65d5f323aa8e9"
     },
     {
       "version": "revised",
@@ -324,7 +324,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-2', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 0}, 'expected': 'InvalidQuantity', 'actual': {'Name': 'case-2', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "cf9aed5bc8d7331caa9a184ece535c18d5e2e640f5bdfce61e473bb77b7f0ccd"
+      "manifestSha256": "05d6add967bc109174f36654cf02f8b7f1be8b243c8641888e3199230c7d1c5e"
     },
     {
       "version": "revised",
@@ -334,7 +334,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-9', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True, 'Quantity': 1}, 'expected': 'InventoryQuarantined', 'actual': {'Name': 'case-9', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True}, 'ScopePreserved': True}}",
-      "manifestSha256": "c6acb9791bb54c8cdf611adaa5f0b433cc6461688a04e9dac1e765f415c437f0"
+      "manifestSha256": "f59d19b434b7c9f7885a10c9a3c867096f4f5406fb7a1640f2a64dca6f22d2bd"
     },
     {
       "version": "revised",
@@ -344,7 +344,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-4', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 2}, 'expected': 'QuantityLimitExceeded', 'actual': {'Name': 'case-4', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "5964f84e9af24e81acf118b570d06ae4be8e1c4b5e17977624249db1f976b80a"
+      "manifestSha256": "b4706ad6d19b37176377301ccb94ebbadb52ec5a9be37df1685c697a89e57949"
     },
     {
       "version": "revised",
@@ -354,7 +354,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-3', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'InsufficientStock', 'actual': {'Name': 'case-3', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': -1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "40c37c873ee4790436e72bd3d56b8fb50b35e533bf4c3cd6ed12fbcbd71cc356"
+      "manifestSha256": "38395d2419bcbcb417156ad867d70989b00d421614a8630957c966c63ce217e9"
     },
     {
       "version": "revised",
@@ -363,8 +363,8 @@
       "expectedAssertion": "domain outcome",
       "kind": "detected",
       "assertion": "domain outcome",
-      "detail": "{'input': {'Name': 'case-59', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'Reserved', 'actual': {'Name': 'case-59', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "582baf14419eb923503bc5a13c91dc55ddbabba0d7041ef5381947e2649946e0"
+      "detail": "{'input': {'Name': 'case-71', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'Reserved', 'actual': {'Name': 'case-71', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
+      "manifestSha256": "ae0b4870a9629c22d9745f94e1b13d70390b36a156595b1c13e7abdc36bb397d"
     },
     {
       "version": "revised",
@@ -374,7 +374,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-3', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'InsufficientStock', 'actual': {'Name': 'case-3', 'Outcome': 'QuantityLimitExceeded', 'FulfillmentOutcome': 'QuantityLimitExceeded', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "bff351e50f4f1c67c160ee0f00c217b76dc0f32865d1e08e8e4ace11e681e2da"
+      "manifestSha256": "824e82eae0cb2cba8aa180c5548a24652d72504ac64f3f240ecd45966cd966ca"
     },
     {
       "version": "revised",
@@ -383,8 +383,8 @@
       "expectedAssertion": "accepted delta",
       "kind": "detected",
       "assertion": "accepted delta",
-      "detail": "{'input': {'Name': 'case-59', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-59', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "65fedac4879d395b0d0539387e0a9db0ceff49400910ae71085b3ab69f332124"
+      "detail": "{'input': {'Name': 'case-71', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-71', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
+      "manifestSha256": "fc5449e9ab06cb3ccb15b2067bb92ad91f29bd07598a55a242feb1f1e8722ad7"
     },
     {
       "version": "revised",
@@ -394,7 +394,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-3', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'InsufficientStock', 'actual': {'Name': 'case-3', 'Outcome': 'InvalidQuantity', 'FulfillmentOutcome': 'InvalidQuantity', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "346c48e534e20ebe933e22694f542b635f1dd45deafa9ae96792622375a59e0b"
+      "manifestSha256": "9eb0cdcfa062403e2cfa7f9591d852f924f8288762b4156d3ea8f43aec5e2a77"
     },
     {
       "version": "revised",
@@ -403,8 +403,8 @@
       "expectedAssertion": "accepted delta",
       "kind": "detected",
       "assertion": "accepted delta",
-      "detail": "{'input': {'Name': 'case-59', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-59', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 0, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "2e07d97019598ca241c164bd5e4fc56701ad4b2a7ef9230497c3398191ed2cbb"
+      "detail": "{'input': {'Name': 'case-71', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-71', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 0, 'Quarantined': False}, 'ScopePreserved': True}}",
+      "manifestSha256": "0b9638de839ed3609d6718b562eb4ec22e3229fd231e80579c32967f6c8b4663"
     },
     {
       "version": "revised",
@@ -414,7 +414,7 @@
       "kind": "detected",
       "assertion": "terminal outcome",
       "detail": "{'input': {'Name': 'case-0', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': -2147483648}, 'actual': {'Name': 'case-0', 'Outcome': 'InvalidQuantity', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "c5ac1262dcceb2dab99a1cace71ec484e4146308aa1a5aac0685eae927689737"
+      "manifestSha256": "8d22a6d21726bf45a442a78e79ab0e4233ab8b7abc0d7b333f373bca4678d005"
     },
     {
       "version": "revised",
@@ -424,12 +424,12 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-2', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 0}, 'expected': 'InvalidQuantity', 'actual': {'Name': 'case-2', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "2575a163eee34ac496574c1bb0889384c6d8fcbf1461311107104f9ee19f21d6",
+      "manifestSha256": "39249fd0c63ceb270590af25b93565920748fe3927fe38bbccd1082ec9d87d7b",
       "correlatedModelControl": {
         "kind": "detected",
         "assertion": "domain outcome",
         "detail": "{'input': {'Name': 'case-2', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 0}, 'expected': 'InvalidQuantity', 'actual': {'Name': 'case-2', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-        "cases": 328,
+        "cases": 388,
         "modelReference": {
           "definitionId": "fulfillment/reserve",
           "revisionId": "6",
@@ -440,7 +440,7 @@
           }
         },
         "misleadingSelfAgreement": {
-          "matches": 328,
+          "matches": 388,
           "meaning": "Copying candidate outputs as expectations agrees by construction; grants no correctness credit"
         }
       }
@@ -453,12 +453,12 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-9', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True, 'Quantity': 1}, 'expected': 'InventoryQuarantined', 'actual': {'Name': 'case-9', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True}, 'ScopePreserved': True}}",
-      "manifestSha256": "b01b84e2c01c18b65c40a489679695b7beb53ddb8df687942f17d00a816409c0",
+      "manifestSha256": "72d38e3f11241f0a096a28b3b5395a85b77585d3df3b17be32699929275b4e2d",
       "correlatedModelControl": {
         "kind": "detected",
         "assertion": "domain outcome",
-        "detail": "{'input': {'Name': 'case-9', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True, 'Quantity': 1}, 'expected': 'InventoryQuarantined', 'actual': {'Name': 'case-9', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': True}, 'ScopePreserved': True}}",
-        "cases": 328,
+        "detail": "{'input': {'Name': 'case-97', 'Sku': 'stock-😀', 'Available': 4, 'MaxPerOrder': 4, 'Quarantined': True, 'Quantity': 1}, 'expected': 'InventoryQuarantined', 'actual': {'Name': 'case-97', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 3, 'MaxPerOrder': 4, 'Quarantined': True}, 'ScopePreserved': True}}",
+        "cases": 195,
         "modelReference": {
           "definitionId": "fulfillment/reserve",
           "revisionId": "6",
@@ -469,7 +469,7 @@
           }
         },
         "misleadingSelfAgreement": {
-          "matches": 328,
+          "matches": 195,
           "meaning": "Copying candidate outputs as expectations agrees by construction; grants no correctness credit"
         }
       }
@@ -482,7 +482,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-4', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 2}, 'expected': 'QuantityLimitExceeded', 'actual': {'Name': 'case-4', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "f2f72e80b77f9e0fc19fb7cc38f6c0149f472569b1291820966d5271012cf8dd"
+      "manifestSha256": "3060ebb6176e205730d5f470ac50ee399e6a8da6a7f622338e6fa3d819609fe3"
     },
     {
       "version": "revised",
@@ -492,7 +492,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-3', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'InsufficientStock', 'actual': {'Name': 'case-3', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': -1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "d9e82af8063979f6993f6e158940460af11460487e435275dbc71c43685c991d"
+      "manifestSha256": "ad852ff009554a1bf7bc4be73ed83b94612b116f6806e9ddee36870b65fa70bf"
     },
     {
       "version": "revised",
@@ -501,8 +501,8 @@
       "expectedAssertion": "domain outcome",
       "kind": "detected",
       "assertion": "domain outcome",
-      "detail": "{'input': {'Name': 'case-59', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'Reserved', 'actual': {'Name': 'case-59', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "1243f99a18b020204633580fea6b89ac0533b86190609fe4604facf25e3b9544"
+      "detail": "{'input': {'Name': 'case-71', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'Reserved', 'actual': {'Name': 'case-71', 'Outcome': 'InsufficientStock', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
+      "manifestSha256": "cdba0f23975dbb5edd12ee80825e248d0c3f9749968a0db10bfaafe733fe0670"
     },
     {
       "version": "revised",
@@ -512,7 +512,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-3', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'InsufficientStock', 'actual': {'Name': 'case-3', 'Outcome': 'QuantityLimitExceeded', 'FulfillmentOutcome': 'QuantityLimitExceeded', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "2828036c01f817fcccc8fdb5af447e020dabbac8a37f0575f1328af9e1bf5561"
+      "manifestSha256": "5121286d53ef9c0cbdeb2815dcde7284202575dd92a3e2c3fa780f31096e69e9"
     },
     {
       "version": "revised",
@@ -521,8 +521,8 @@
       "expectedAssertion": "accepted delta",
       "kind": "detected",
       "assertion": "accepted delta",
-      "detail": "{'input': {'Name': 'case-59', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-59', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "de67421bb1e1b6000f654b6de97e5f904cf7466f0a96217a7eef892e353a80fe"
+      "detail": "{'input': {'Name': 'case-71', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-71', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
+      "manifestSha256": "250188a06f264706ad18e51c6d428b913d45ab0a7cf02eaf1f9c02cd89dbe276"
     },
     {
       "version": "revised",
@@ -532,7 +532,7 @@
       "kind": "detected",
       "assertion": "domain outcome",
       "detail": "{'input': {'Name': 'case-3', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': 'InsufficientStock', 'actual': {'Name': 'case-3', 'Outcome': 'InvalidQuantity', 'FulfillmentOutcome': 'InvalidQuantity', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "5fefef7748a9d4737687aeac1fd2a1cfc426c664572ad732651f009cd45fa310"
+      "manifestSha256": "c66e739003eb6878ec3bf98b78075062584887f1206cdc66894a119baf8ca21a"
     },
     {
       "version": "revised",
@@ -541,8 +541,8 @@
       "expectedAssertion": "accepted delta",
       "kind": "detected",
       "assertion": "accepted delta",
-      "detail": "{'input': {'Name': 'case-59', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-59', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 0, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "5740dd9e559105f236dd9c66b6ea8802231b4c8711db6e580918487834f46a8e"
+      "detail": "{'input': {'Name': 'case-71', 'Sku': 'stock-😀', 'Available': 1, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': 1}, 'expected': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'actual': {'Name': 'case-71', 'Outcome': 'Reserved', 'FulfillmentOutcome': 'ReservedAndSubmitted', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 0, 'Quarantined': False}, 'ScopePreserved': True}}",
+      "manifestSha256": "0ea256258c696f8d06860687e3ff0ddd7392647dad84a4a84763d70fc5ce1838"
     },
     {
       "version": "revised",
@@ -552,7 +552,7 @@
       "kind": "detected",
       "assertion": "terminal outcome",
       "detail": "{'input': {'Name': 'case-0', 'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False, 'Quantity': -2147483648}, 'actual': {'Name': 'case-0', 'Outcome': 'InvalidQuantity', 'FulfillmentOutcome': 'InsufficientStock', 'After': {'Sku': 'stock-😀', 'Available': 0, 'MaxPerOrder': 1, 'Quarantined': False}, 'ScopePreserved': True}}",
-      "manifestSha256": "a821ae637768c8691f8c5d9b0e93c974c5066893855f4d2504bf17f24b7fd616"
+      "manifestSha256": "5d86898849f6879a4a83fdd216a345266208ddab81445f6c2c71a8182120305a"
     }
   ]
 }

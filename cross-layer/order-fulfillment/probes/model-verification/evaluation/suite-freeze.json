@@ -149,15 +149,15 @@
     "cross-layer/order-fulfillment/probes/api-outcomes/test_harness.py": "b19a2170c1dd8a51186e9cc2edefc03e975974dcd55903958abb8948436e13df",
     "cross-layer/order-fulfillment/probes/api-outcomes/test_measurements.py": "f0bd2fce5be9600cbcb4cfea207eba837d20997d1cbf84043c1a722429fab5ac",
     "cross-layer/order-fulfillment/probes/api-outcomes/verify.py": "a5791ac070d4c871b4886f013b7f47739fabc7f311a2e5a7de5163a9019fa09b",
-    "cross-layer/order-fulfillment/probes/model-verification/sdk/dependency-manifest.json": "6fcc06bd317735110348c592d2ba018d944bfdb025c401b0b20ea087cdc5562d",
-    "cross-layer/order-fulfillment/probes/model-verification/sdk/reference.json": "5547c6c18b42bb8a4ea1c8fec056dec3fafe6bd447265ab7c02c7aeb854cd7bb",
-    "cross-layer/order-fulfillment/probes/model-verification/sdk/reference.patch": "2e4e7dfeba7627f55610924a75c088e02594924178af30e8bf995c31461481f9",
-    "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/Program.cs": "0464e177a6b2103e2753f0b75791952037d650539babf9a95355567f4a7712dd",
-    "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/Suite.csproj": "faf12e36ef172f06196163eb48876d91ca5f7123f2c6b18e49e598ae115d9234",
-    "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/packages.lock.json": "8779bedaf829e82891d3c04a160d0e456278759d98d71ae2bef7c3a616584b5f",
-    "cross-layer/order-fulfillment/probes/model-verification/suites/common/CaseCatalog.cs": "daa774aadb7a07242e4f83da35ba6b9a58e6fb39cd23c677ac2c4f4994e9e2f9",
+    "cross-layer/order-fulfillment/probes/model-verification/sdk/dependency-manifest.json": "deeae522ad3c9c7515b01fd852fc8b78597c9f884ef954c4efdffa67a179cea2",
+    "cross-layer/order-fulfillment/probes/model-verification/sdk/reference.json": "8ea4e8fb49171f72fbc509a3e6e1720593fb913e6bd0802cd071c535b5e6f4b7",
+    "cross-layer/order-fulfillment/probes/model-verification/sdk/reference.patch": "cce6ef71d2d9eb98f217b9064a902445058fc384de48d64858cdfd087200ac90",
+    "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/Program.cs": "9386d2dfee2e156e1fe67e728255872745f82792b6b906d39f00ed03cbdfc746",
+    "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/Suite.csproj": "5e7b5651335d91ae3c7814872d921a7ecfb5f56635ad0d736d227d922399f795",
+    "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/packages.lock.json": "527188a8364b09dc61cb388aaf5faa9855e41fd8f453c4d4970ebd7c9c982217",
+    "cross-layer/order-fulfillment/probes/model-verification/suites/common/CaseCatalog.cs": "a48ce8a3e6f78f7193fe949c523d3d12772d4d776cdabdc7c15a95f95c0b894d",
     "cross-layer/order-fulfillment/probes/model-verification/suites/common/Cases.cs": "e8e9b354c1f718503c3cdef3ee660c8923d45f373724a964fc63aa1117e497f7",
-    "cross-layer/order-fulfillment/probes/model-verification/suites/conventional/Program.cs": "c1e3efffd1f3e3fc31031d0300358d25f3fdc7a5e74252854e921a665001283c",
+    "cross-layer/order-fulfillment/probes/model-verification/suites/conventional/Program.cs": "35be8ca5ed549c87bf06f495bae927057732f201f9a2a93092b80e7e1d6f71d0",
     "cross-layer/order-fulfillment/probes/model-verification/suites/conventional/Suite.csproj": "9853056be89a8e716f12c4bea7f101b81386e12d5f96f51c9ebab17aaa730bd8",
     "cross-layer/order-fulfillment/probes/model-verification/suites/conventional/packages.lock.json": "f531a1f9b63eac0e7b51b0498a76ec9b5e950172d5d53b4ed8831bf2d1f5a426",
     "cross-layer/order-fulfillment/probes/model-verification/suites/reference/cohesive.json": "258da8f8cbccdf287e6c1c95c4e530dfdfe5ec44233e9ce04abcb2339edbd61a",
@@ -226,8 +226,8 @@
   "references": {
     "original": {
       "conventional": {
-        "cases": 328,
-        "accepted": 34,
+        "cases": 388,
+        "accepted": 41,
         "outcomes": [
           "InsufficientStock",
           "InvalidQuantity",
@@ -235,12 +235,12 @@
           "QuantityLimitExceeded",
           "Reserved"
         ],
-        "suiteSha256": "fb0859be4c496dc34e9296fb79955df6b344b3062c455645dc0483ea41aa9189",
-        "manifestSha256": "320a1dd2ad83dfb68f6f0f751d0a29264e77325e06ccd63c0ba0d9f5cb0cf341"
+        "suiteSha256": "705e1d04437d63dabdd1ca0b1fedfd89d2843d921b30a7f7ac991f1eda784861",
+        "manifestSha256": "7aa25aa3cf2165a675833b52f5aee410899e3e89f5cbe85b75e920186e4d1927"
       },
       "cohesive": {
-        "cases": 328,
-        "accepted": 34,
+        "cases": 388,
+        "accepted": 41,
         "outcomes": [
           "InsufficientStock",
           "InvalidQuantity",
@@ -248,14 +248,14 @@
           "QuantityLimitExceeded",
           "Reserved"
         ],
-        "suiteSha256": "69e15996bab2df31dc92c83a64493decf70d5ff53c2eb6b960d2cf017dd222d7",
-        "manifestSha256": "11856573ef30eb5138ed7e1927baf3672294924da0fdef0d5d0db29f4727e794"
+        "suiteSha256": "53c16725bf8de3784b5c19651195bd7c65ef262d66e28b6ed89dcb7c2def0784",
+        "manifestSha256": "480b794116134da2d8e6ecbb34730bef3a599f09ce9128e991f46a9c63729d74"
       }
     },
     "revised": {
       "conventional": {
-        "cases": 328,
-        "accepted": 34,
+        "cases": 388,
+        "accepted": 41,
         "outcomes": [
           "InsufficientStock",
           "InvalidQuantity",
@@ -263,12 +263,12 @@
           "QuantityLimitExceeded",
           "Reserved"
         ],
-        "suiteSha256": "5710b26627e82a756a974ce61379f9eba101fead1f64a073bbf8630993d6a698",
-        "manifestSha256": "5c09541faa5a7ee1002531d783d6f9e696a32a6fc932e5c97edb695bf629c4bf"
+        "suiteSha256": "81df94de702b42429e5dab8a2dc11b89cf9535f2dfeae0760aacaf4bf6a9bbff",
+        "manifestSha256": "2875684bdc9540b44613fc83244ad14d5570d63cdc04d3d33ef10eceab7db5b4"
       },
       "cohesive": {
-        "cases": 328,
-        "accepted": 34,
+        "cases": 388,
+        "accepted": 41,
         "outcomes": [
           "InsufficientStock",
           "InvalidQuantity",
@@ -276,8 +276,8 @@
           "QuantityLimitExceeded",
           "Reserved"
         ],
-        "suiteSha256": "13d24e0c522eebe3f9a8bef858527f276cff8b1656950757fcc9345b96a6997e",
-        "manifestSha256": "4df04a5f78b53fcfef148e0a8c4be46f62f207a7b80da41cec345a3ad340ef8f"
+        "suiteSha256": "514a0aa8a1b50f0b8805aa421ccde94e6f3f459f96e58ed45681ff52ea0ea9f9",
+        "manifestSha256": "c5bcf19abf45d025e4c4a104c835e65dc64a6b0d8d16715739f194fae96129ed"
       }
     }
   }

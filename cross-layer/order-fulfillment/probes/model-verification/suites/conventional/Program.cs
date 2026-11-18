@@ -4,7 +4,13 @@ using Fulfillment.Application;
 if (args[0] == "--generate")
 {
     // Ordinary boundary testing: the developer identifies the policy's thresholds.
-    var generated = CaseCatalog.Generate(state => Neighbors(0, state.Available, state.MaxPerOrder));
+    var seed = CaseCatalog.Template;
+    var proposals = from stock in StateBoundaries(CaseCatalog.MinimumStock, seed.Available)
+                    from limit in StateBoundaries(CaseCatalog.MinimumLimit, seed.MaxPerOrder)
+                    from flag in new[] { false, true }
+                    from quantity in Neighbors(0, stock, limit).Concat([int.MinValue, int.MaxValue])
+                    select (seed with { Available = stock, MaxPerOrder = limit, Quarantined = flag }, quantity);
+    var generated = CaseCatalog.Freeze(proposals);
     Console.WriteLine(JsonSerializer.Serialize(new
     {
         cases = generated,
@@ -28,3 +34,6 @@ Console.WriteLine(JsonSerializer.Serialize(results));
 static IEnumerable<int> Neighbors(params int[] thresholds) =>
     thresholds.SelectMany(n => new[] { (long)n - 1, n, (long)n + 1 })
         .Where(n => n >= int.MinValue && n <= int.MaxValue).Select(n => (int)n);
+
+static int[] StateBoundaries(int minimum, int seed) =>
+    [minimum, minimum + 1, seed, CaseCatalog.Maximum - 1, CaseCatalog.Maximum];

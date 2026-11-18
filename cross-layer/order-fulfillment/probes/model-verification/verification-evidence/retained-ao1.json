@@ -16,7 +16,7 @@
         "mixed batch preservation": 9,
         "archived read and restart": 6
       },
-      "buildManifestSha256": "94f928d0e0ee24017bae97fc826926f82549e7ea5638360271c8301d694d63ef"
+      "buildManifestSha256": "582c8de3b1cb29569e2698d8f7ba1476b6a7f9a91f69980825681397b5cea57d"
     },
     "cohesive": {
       "assertions": {
@@ -31,7 +31,7 @@
         "mixed batch preservation": 9,
         "archived read and restart": 6
       },
-      "buildManifestSha256": "c01970fbdab3db43ef78397060c2b944b5dfaf7f967e8d71d853b8b41f50a0fe"
+      "buildManifestSha256": "5e796a638a4a82f05ea0227ed24573a5ca9ee0483298d3fc4d62dec0be4ec519"
     }
   }
 }

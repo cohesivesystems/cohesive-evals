@@ -9,15 +9,23 @@ reservation task in the [protocol](protocol.md). This is benchmark development, 
 
 | Responsibility | Conventional | Cohesive |
 | --- | --- | --- |
-| Generate quantities | Ordinary C# threshold neighbors | `probe.GenerateInputs(state, seed)` from actual transition guards |
+| Generate states and quantities | Ordinary C# boundary values and threshold neighbors | `probe.GenerateCases(template, seed, options)` from actual transition guards |
 | Execute production rules | `InventoryRules.Reserve(...)` | `probe.Execute(state, input, activationId)` |
 | Source | [Program.cs](suites/conventional/Program.cs) | [Program.cs](suites/cohesive/Program.cs) |
 
-The reusable Cohesive APIs are supplied by [SDK PR #584](https://github.com/cohesivesystems/cohesive/pull/584)
+The reusable Cohesive APIs are supplied by [SDK PR #587](https://github.com/cohesivesystems/cohesive/pull/587)
 in `Cohesive.Transitions.Assurance` and the public `Cohesive.Transitions.Execution` layer. The SDK compiles once, generates typed inputs and returns
 typed execution results with full decision evidence. No Python script parses expression IR.
 
-Both adapters use the same [state envelope and baseline inputs](suites/common/CaseCatalog.cs).
+Both adapters start from the same [template and bounds](suites/common/CaseCatalog.cs).
+The conventional generator chooses stock and limit values at each endpoint, its inward
+neighbor, and the template value. Cohesive inspects the reservation guards to choose
+which fields to vary. The harness compares the sorted catalogs exactly before recording parity.
+
+Two independently authored examples exercise zero quantity and a quarantined item
+even when a defective model omits either guard. Both pass through the same oracle
+as every generated pair. The earlier 328-case supplied-state run is preserved in
+[the previous baseline](https://github.com/cohesivesystems/cohesive-evals/tree/f3a51a843751ee86c58e01b4135b38fb22a0d3f8/cross-layer/order-fulfillment/probes/model-verification).
 The [independent Python oracle](../../../../cohesive_evals/mv1/oracle.py) checks domain/terminal outcomes, exact stock
 delta and preservation of SKU, limit, quarantine and Cohesive partition. It imports neither
 candidate model. The conventional success terminal label remains an adapter constant; actual
@@ -25,7 +33,7 @@ workflow projection is checked through HTTP separately.
 
 ## Qualification
 
-- 328 matched cases, including 34 accepted, per condition and policy version.
+- 388 matched cases, including 41 accepted, per condition and policy version.
 - Ten paired production faults under both policies: 40 qualification runs.
 - Original assertions detect the revised precedence. Wrong/omitted model guards remain detectable
   when cases are regenerated; generated outcomes never become expected answers.
@@ -33,26 +41,26 @@ workflow projection is checked through HTTP separately.
 - Eight independent versioned HTTP witnesses through single/batch APIs, replay and physical state.
 - Retained AO1, typed-input/PV2/Required, PV1 and cumulative G0–G3 checks.
 - Nineteen package tests (oracle, evaluator and infrastructure) and three preserved audit tests.
-  SDK validation includes 194 Assurance tests; full SDK CI passed.
+  SDK validation includes 206 Assurance tests; full SDK CI passed.
 
 The [current reports](verification-evidence/manifest.json) record actual results and bind raw
 traces, diagnostics, locks, packages, source and build/output hashes. Fault detection gets credit
 only for its expected named assertion; exceptions, unrelated assertions and unsupported results
-never count as success. SDK packages are pinned to source `90eefde60b2b0554c3dcbf77a6759128928f004c`.
+never count as success. SDK packages are pinned to source `f9439d2bc6d4477636f3a03bb84c4a541d383caa`.
 
 The only business-rule change is the separately hashed [precedence patch](suites/reference/):
 positive over-limit rejection precedes quarantine; nonpositive quantity stays first. Original
 business source is unchanged; Cohesive's package/lockfile upgrade is explicit in [sdk](sdk/).
 Earlier AO1/PV checkpoints retain their original SDKs. The exact local-feed packages were
-[published as an SDK prerelease](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-90eefde)
+[published as an SDK prerelease](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-f9439d2)
 before this upgrade; this is not a nuget.org release.
 
 ## Limits and development history
 
 The SDK proposes neighbors for direct Int32 comparisons and handles direct/negated Boolean guards.
 It records per-candidate motivating nodes, bounds, a versioned profile and coverage limits.
-Callers supply states; it does not solve guards, generate arbitrary combinations or prove complete
-behavioral coverage. Unsupported constructs and input-budget exhaustion fail explicitly.
+Callers supply a template and integer domains. The SDK varies guard-referenced fields to
+construct synthetic pre-states. State-to-state comparisons sample around template values. Unsupported constructs and input-budget exhaustion fail explicitly.
 `NoChange` remains an inspectable decision, so omitted effects can fail independent assertions.
 No database commit, concurrency, durable-recovery or general Assurance proof follows from an
 offline execution. Existing audit limitations describe its original SDK pin.

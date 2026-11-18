@@ -34,9 +34,16 @@ if (args[0] == "--generate")
 {
     var nodes = new SortedSet<string>(StringComparer.Ordinal);
     var provenance = new List<object>();
-    var generated = CaseCatalog.Generate(state =>
+    var seed = CaseCatalog.Template;
+    var options = new StateCaseOptions<InventoryItem>()
+        .Range(s => s.Available, CaseCatalog.MinimumStock, CaseCatalog.Maximum)
+        .Range(s => s.MaxPerOrder, CaseCatalog.MinimumLimit, CaseCatalog.Maximum);
+    var groups = probe.GenerateCases(new(seed.Sku, "local", seed.Available, seed.MaxPerOrder, seed.Quarantined), new(0), options);
+    var pairs = new List<(State, int)>();
+    foreach (var group in groups)
     {
-        var proposals = probe.GenerateInputs(new(state.Sku, "local", state.Available, state.MaxPerOrder, state.Quarantined), new(0));
+        var state = new State(group.State.Sku, group.State.Available, group.State.MaxPerOrder, group.State.Quarantined);
+        var proposals = group.Commands;
         foreach (var node in proposals.InspectedNodes) nodes.Add(node.Value);
         provenance.Add(new
         {
@@ -52,8 +59,9 @@ if (args[0] == "--generate")
                 motivatingNodes = candidate.MotivatingNodes.Select(node => node.Value)
             })
         });
-        return proposals.Inputs.Select(input => input.Quantity);
-    });
+        pairs.AddRange(proposals.Inputs.Select(input => (state, input.Quantity)));
+    }
+    var generated = CaseCatalog.Freeze(pairs);
     Console.WriteLine(JsonSerializer.Serialize(new
     {
         cases = generated,

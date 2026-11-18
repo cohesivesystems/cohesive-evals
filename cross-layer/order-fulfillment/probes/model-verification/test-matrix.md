@@ -31,7 +31,7 @@ small finite grid. Shrinking may simplify a witness only if the failure rechecks
 ## Implemented coverage
 
 - MV1-01/08: source/build freeze, actual transition identity, stale-model refusal and stale-policy failures.
-- MV1-02–05: matched 328-case catalogs, independent outcomes/full-state checks and ten paired production fault families. Rejection-state corruption has oracle controls only.
+- MV1-02–05: matched 388-case catalogs, independent outcomes/full-state checks and ten paired production fault families. Rejection-state corruption has oracle controls only.
 - MV1-06: guard-to-boundary traces, explicit unsupported-node control and regeneration from wrong/omitted guards.
 - MV1-07: exact authority checks here; independent Assurance claim/finite-scope controls remain in the pinned audit. No new general Assurance proof.
 - MV1-09: named-assertion credit, known-good reruns and build/runtime/timeout/malformed-result controls. Initial unqualified runs remain recorded.
