@@ -94,20 +94,20 @@
       "nonblankLines": 53
     },
     "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/Program.cs": {
-      "lines": 86,
-      "nonblankLines": 84
+      "lines": 94,
+      "nonblankLines": 92
     },
     "cross-layer/order-fulfillment/probes/model-verification/suites/common/CaseCatalog.cs": {
-      "lines": 20,
-      "nonblankLines": 20
+      "lines": 17,
+      "nonblankLines": 16
     },
     "cross-layer/order-fulfillment/probes/model-verification/suites/common/Cases.cs": {
       "lines": 3,
       "nonblankLines": 3
     },
     "cross-layer/order-fulfillment/probes/model-verification/suites/conventional/Program.cs": {
-      "lines": 30,
-      "nonblankLines": 27
+      "lines": 39,
+      "nonblankLines": 35
     }
   },
   "developmentStage": "SDK-based generation/execution replaces the development prototype; no blinded trial",

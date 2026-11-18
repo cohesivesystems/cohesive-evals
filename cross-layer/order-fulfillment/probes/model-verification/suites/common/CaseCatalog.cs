@@ -1,20 +1,17 @@
-/// <summary>Shared experimental state envelope; contains no expected business outcomes.</summary>
+/// <summary>Scenario-owned bounds, template and independent requirement examples.</summary>
 public static class CaseCatalog
 {
-    /// <summary>Expand each supplied state's proposed quantities into stable, matched case records.</summary>
-    public static Case[] Generate(Func<State, IEnumerable<int>> propose)
+    public const int MinimumStock = 0, MinimumLimit = 1, Maximum = int.MaxValue;
+    public static readonly State Template = new("stock-😀", 4, 4, false);
+
+    public static Case[] Freeze(IEnumerable<(State State, int Quantity)> proposals)
     {
-        List<Case> cases = [];
-        foreach (var available in new[] { 0, 1, 4, 7, int.MaxValue })
-        foreach (var limit in new[] { 1, 4, 7, int.MaxValue })
-        foreach (var quarantined in new[] { false, true })
-        {
-            var state = new State("stock-😀", available, limit, quarantined);
-            // Independent baseline inputs survive missing model guards.
-            int[] baseline = [int.MinValue, -1, 0, 1, int.MaxValue];
-            foreach (var quantity in propose(state).Concat(baseline).Distinct().Order())
-                cases.Add(new("case-" + cases.Count, state.Sku, available, limit, quarantined, quantity));
-        }
-        return [.. cases];
+        // These witnesses survive even if a defective generator loses the corresponding guard.
+        (State State, int Quantity)[] required = [(Template, 0), (Template with { Quarantined = true }, 1)];
+        return proposals.Concat(required).Distinct()
+            .OrderBy(p => p.State.Available).ThenBy(p => p.State.MaxPerOrder)
+            .ThenBy(p => p.State.Quarantined).ThenBy(p => p.Quantity)
+            .Select((p, i) => new Case("case-" + i, p.State.Sku, p.State.Available,
+                p.State.MaxPerOrder, p.State.Quarantined, p.Quantity)).ToArray();
     }
 }

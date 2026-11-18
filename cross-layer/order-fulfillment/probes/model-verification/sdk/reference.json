@@ -1,10 +1,10 @@
 {
   "src/Fulfillment.Application/Fulfillment.Application.csproj": {
     "before": "5313a504d838d6b7b341b686d93bc21bad90a5d2679190ef0d0303b0b4f4a9f1",
-    "after": "321260b1601e0e2880a5b8e2af8969bf4495539cba028ec4460b964541081bdc"
+    "after": "06e82e5f3860fdc700d4089590a33cfda830ec7e16ea361f9b7b16e604874d32"
   },
   "src/Fulfillment.Application/packages.lock.json": {
     "before": "ce8e70b0e3068c3510b8e68522d420b5d5f8a6ea0ca7fd3afe2c152d9cca8023",
-    "after": "5e8d0d92e76a32410e2234b86a6f6bd670818a3d46c54d0b1d4bd2f07897af7b"
+    "after": "f35e408f50d15a51383e874c0de06075fcc182b80e3d85c9155989b10436033e"
   }
 }

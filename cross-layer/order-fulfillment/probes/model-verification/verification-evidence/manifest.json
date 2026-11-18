@@ -1,14 +1,14 @@
 {
   "reports": {
-    "references": "4ffe1f4eb621c33cc428fa06ecb60cd4040ae7b5a18d31a35bf61e8c7327483b",
-    "qualification": "485358c77d935f32a9515ac672861044f2fcb4e0ab669775c4707dab9488a146",
-    "versioned-http": "858f2a98b19d70d8be74a69cae82c019de5412804e6b3b9e26855a4e86e27485",
-    "retained-ao1": "586838a1b0d36d019f95e3b6d51e24e0cd88a44a2783ad43597f201baf47567f",
-    "retained-typed": "2fec18082fbe02c6fedb1d0328f4a99a95219da9202abc19b06a56c818269b28",
-    "retained-pv1": "d10cff653299fd4294427ed2a07b52be4ff02363b83a5f24d1be15479ee7a8a7",
-    "retained-evolution": "842fabf5d92bc21a3c57284bc5757acd293a64d9ed7eeaa22ef37e5d7471b66d"
+    "references": "674d31a7ed6e1764d7e3085e9506e3d0aa448def8a16ea40fe712db11a1b4175",
+    "qualification": "c296a2a79ba5e92b9cafc6f7eefc3d74ef6868df4f120445b5873d88d8a3162c",
+    "versioned-http": "d9317dbd6d1e63f3f1c98014968a51036da44785247d3c571cd4c43a046fe190",
+    "retained-ao1": "ca047344987ac6743d591031e2cb946cf1bec9a4e7f9df81615e132412f31686",
+    "retained-typed": "a1ef940703f7df9c85de727da6559a178d269ddf36766fbad312c4da10655944",
+    "retained-pv1": "15123a134a9caea7129914ca15ac57bb12827f21e05d8c5b53a869b0ce0f4f5f",
+    "retained-evolution": "953ec447d88e42db90ffe3cf25df84ca158f50c62b599ce5b4405ced5f29d262"
   },
-  "archiveSha256": "d4b45e8b2832c07945d9da1b55977c46830e110e336158fc16c1339e0c8b4cae",
+  "archiveSha256": "48872826d9106f95861cbeeb18ebe06d84a32e0c5334d38bc50de069f42eaa3b",
   "archivedFileCount": 887,
   "archiveIndex": "raw-index.json",
   "sources": {
@@ -161,15 +161,15 @@
     "cross-layer/order-fulfillment/probes/api-outcomes/test_harness.py": "b19a2170c1dd8a51186e9cc2edefc03e975974dcd55903958abb8948436e13df",
     "cross-layer/order-fulfillment/probes/api-outcomes/test_measurements.py": "f0bd2fce5be9600cbcb4cfea207eba837d20997d1cbf84043c1a722429fab5ac",
     "cross-layer/order-fulfillment/probes/api-outcomes/verify.py": "a5791ac070d4c871b4886f013b7f47739fabc7f311a2e5a7de5163a9019fa09b",
-    "cross-layer/order-fulfillment/probes/model-verification/sdk/dependency-manifest.json": "6fcc06bd317735110348c592d2ba018d944bfdb025c401b0b20ea087cdc5562d",
-    "cross-layer/order-fulfillment/probes/model-verification/sdk/reference.json": "5547c6c18b42bb8a4ea1c8fec056dec3fafe6bd447265ab7c02c7aeb854cd7bb",
-    "cross-layer/order-fulfillment/probes/model-verification/sdk/reference.patch": "2e4e7dfeba7627f55610924a75c088e02594924178af30e8bf995c31461481f9",
-    "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/Program.cs": "0464e177a6b2103e2753f0b75791952037d650539babf9a95355567f4a7712dd",
-    "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/Suite.csproj": "faf12e36ef172f06196163eb48876d91ca5f7123f2c6b18e49e598ae115d9234",
-    "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/packages.lock.json": "8779bedaf829e82891d3c04a160d0e456278759d98d71ae2bef7c3a616584b5f",
-    "cross-layer/order-fulfillment/probes/model-verification/suites/common/CaseCatalog.cs": "daa774aadb7a07242e4f83da35ba6b9a58e6fb39cd23c677ac2c4f4994e9e2f9",
+    "cross-layer/order-fulfillment/probes/model-verification/sdk/dependency-manifest.json": "deeae522ad3c9c7515b01fd852fc8b78597c9f884ef954c4efdffa67a179cea2",
+    "cross-layer/order-fulfillment/probes/model-verification/sdk/reference.json": "8ea4e8fb49171f72fbc509a3e6e1720593fb913e6bd0802cd071c535b5e6f4b7",
+    "cross-layer/order-fulfillment/probes/model-verification/sdk/reference.patch": "cce6ef71d2d9eb98f217b9064a902445058fc384de48d64858cdfd087200ac90",
+    "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/Program.cs": "9386d2dfee2e156e1fe67e728255872745f82792b6b906d39f00ed03cbdfc746",
+    "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/Suite.csproj": "5e7b5651335d91ae3c7814872d921a7ecfb5f56635ad0d736d227d922399f795",
+    "cross-layer/order-fulfillment/probes/model-verification/suites/cohesive/packages.lock.json": "527188a8364b09dc61cb388aaf5faa9855e41fd8f453c4d4970ebd7c9c982217",
+    "cross-layer/order-fulfillment/probes/model-verification/suites/common/CaseCatalog.cs": "a48ce8a3e6f78f7193fe949c523d3d12772d4d776cdabdc7c15a95f95c0b894d",
     "cross-layer/order-fulfillment/probes/model-verification/suites/common/Cases.cs": "e8e9b354c1f718503c3cdef3ee660c8923d45f373724a964fc63aa1117e497f7",
-    "cross-layer/order-fulfillment/probes/model-verification/suites/conventional/Program.cs": "c1e3efffd1f3e3fc31031d0300358d25f3fdc7a5e74252854e921a665001283c",
+    "cross-layer/order-fulfillment/probes/model-verification/suites/conventional/Program.cs": "35be8ca5ed549c87bf06f495bae927057732f201f9a2a93092b80e7e1d6f71d0",
     "cross-layer/order-fulfillment/probes/model-verification/suites/conventional/Suite.csproj": "9853056be89a8e716f12c4bea7f101b81386e12d5f96f51c9ebab17aaa730bd8",
     "cross-layer/order-fulfillment/probes/model-verification/suites/conventional/packages.lock.json": "f531a1f9b63eac0e7b51b0498a76ec9b5e950172d5d53b4ed8831bf2d1f5a426",
     "cross-layer/order-fulfillment/probes/model-verification/suites/reference/cohesive.json": "258da8f8cbccdf287e6c1c95c4e530dfdfe5ec44233e9ce04abcb2339edbd61a",
@@ -234,28 +234,28 @@
     "tests/test_evaluation.py": "59708b2928616ca16249079a025605c21fd04380ec187ebe6cd05f9cd724fbc4",
     "tests/test_infrastructure.py": "55adef96e9db0f8a2fe773cf5b0b1a94641f215d2c80b6540297be382322edda",
     "tests/test_suites.py": "6f014e878b0be29a02b4e3aecf14cae2a13d17817c559fbfc3b025200461496d",
-    "cross-layer/order-fulfillment/probes/model-verification/evaluation/suite-freeze.json": "fa15314855aaae621c07acef6c235404026225c3d9cd3c0718ccd8528fd8f121"
+    "cross-layer/order-fulfillment/probes/model-verification/evaluation/suite-freeze.json": "f3788226e0611d26dfa0c02c0e428c624c9223ed2db3a502e224473c9ed74c86"
   },
   "httpProductionInputEquality": {
     "original/conventional": {
       "sameInputs": true,
-      "httpBuildManifestSha256": "f568f011a8002a430323ad152c10b90087dd0497a24f224e870e505e14385f8e",
-      "offlineBuildManifestSha256": "f568f011a8002a430323ad152c10b90087dd0497a24f224e870e505e14385f8e"
+      "httpBuildManifestSha256": "582c8de3b1cb29569e2698d8f7ba1476b6a7f9a91f69980825681397b5cea57d",
+      "offlineBuildManifestSha256": "582c8de3b1cb29569e2698d8f7ba1476b6a7f9a91f69980825681397b5cea57d"
     },
     "original/cohesive": {
       "sameInputs": true,
-      "httpBuildManifestSha256": "abb91a5c0ec0c52070f2b9d865e45089b85554ad42355a69de52178862628d16",
-      "offlineBuildManifestSha256": "abb91a5c0ec0c52070f2b9d865e45089b85554ad42355a69de52178862628d16"
+      "httpBuildManifestSha256": "5e796a638a4a82f05ea0227ed24573a5ca9ee0483298d3fc4d62dec0be4ec519",
+      "offlineBuildManifestSha256": "5e796a638a4a82f05ea0227ed24573a5ca9ee0483298d3fc4d62dec0be4ec519"
     },
     "revised/conventional": {
       "sameInputs": true,
-      "httpBuildManifestSha256": "34d1dc29c45cc0ddbe6008cf427fcc51924d88b7a8eaa46c5408d9b72a53ce5c",
-      "offlineBuildManifestSha256": "34d1dc29c45cc0ddbe6008cf427fcc51924d88b7a8eaa46c5408d9b72a53ce5c"
+      "httpBuildManifestSha256": "3bb4f4f2586bc9add72c9039be85ea7e8698cb64a3262fc1dcbc46f547a9970b",
+      "offlineBuildManifestSha256": "3bb4f4f2586bc9add72c9039be85ea7e8698cb64a3262fc1dcbc46f547a9970b"
     },
     "revised/cohesive": {
       "sameInputs": true,
-      "httpBuildManifestSha256": "30b21021ac6abcecbb2a741b0a283873943b11296f4d396c445653bd0714f4a0",
-      "offlineBuildManifestSha256": "30b21021ac6abcecbb2a741b0a283873943b11296f4d396c445653bd0714f4a0"
+      "httpBuildManifestSha256": "98cc40db71b4d1915ccea6fed734a3cb551a95adfdfdc88beb2714028889c827",
+      "offlineBuildManifestSha256": "98cc40db71b4d1915ccea6fed734a3cb551a95adfdfdc88beb2714028889c827"
     }
   }
 }
