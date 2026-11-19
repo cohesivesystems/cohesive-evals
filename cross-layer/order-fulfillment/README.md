@@ -54,9 +54,11 @@ The verifier also runs [maintainer invariant sequences](verification/README.md)
 against an independent settled-state model and read-only persistence observer.
 This establishes tested G0 parity, not independent design review or full oracle qualification.
 
-Independent conventional review, the private oracle, evolved checkpoints,
-calibration and scored agent runs remain pending. Hold and review-marker target
-implementations are deliberately absent from participant starting applications.
+Evolved checkpoints G1–G3 have since been implemented and qualified (see below).
+Independent conventional review, H/L references and oracle qualification,
+acceptance-breadth review, campaign admission, calibration and scored agent runs
+remain pending. Hold and review-marker target implementations are deliberately
+absent from participant starting applications.
 
 ## Qualification and durability follow-through
 
