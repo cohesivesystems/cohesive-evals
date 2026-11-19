@@ -273,5 +273,17 @@
     "Worker/API crashes only; scheduler and databases remain available",
     "Single active host; sequential independent intents",
     "Reference qualification, not scored agent evidence"
-  ]
+  ],
+  "capacityControls": {
+    "conventional": {
+      "buildManifestSha256": "dd4f0b5afb743fde871e488522234c09dc13aaa27a159e75ef1ebdaf8a4dbcd3",
+      "distinctAdmissions": 1000,
+      "restartCapacityReplayConflict": true
+    },
+    "cohesive": {
+      "buildManifestSha256": "9dd4eed780ec79992b5cf06d212ca023369a1f50592bd5bd554c50d72b222ff9",
+      "distinctAdmissions": 1000,
+      "restartCapacityReplayConflict": true
+    }
+  }
 }

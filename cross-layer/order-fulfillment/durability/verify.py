@@ -6,7 +6,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
-import socket
+from contextlib import ExitStack
 import subprocess
 import sys
 import time
@@ -17,7 +17,9 @@ import urllib.request
 ROOT=Path(__file__).resolve().parent
 CASE=ROOT.parent
 sys.path.insert(0,str(CASE/'verification'))
-from verify import run, free_port, IMAGE
+sys.path.insert(0,str(CASE.parents[1]))
+from cohesive_evals.runtime import durable_task_scheduler, kestrel_url
+from verify import run, IMAGE
 from build import reference_fingerprint, verify_build
 spec=importlib.util.spec_from_file_location('contract_tests',CASE/'conditions/conventional/tests/contract_tests.py')
 suite=importlib.util.module_from_spec(spec);spec.loader.exec_module(suite)
@@ -44,21 +46,17 @@ def main():
     (output/'assertion-failure.json').unlink(missing_ok=True)
     (output/'report.json').unlink(missing_ok=True)
     manifest=json.loads((ROOT/'dependency-manifest.json').read_text())
-    suffix=uuid.uuid4().hex[:10];pg='order-recovery-pg-'+suffix;dts='order-recovery-dts-'+suffix
-    owned=[];process=None;records=[]
+    suffix=uuid.uuid4().hex[:10];pg='order-recovery-pg-'+suffix
+    services=ExitStack()
+    process=None;records=[]
     condition=None;point=None
     build_manifests={c:verify_build(args.references.resolve()/c) for c in ([args.condition] if args.condition else ['conventional','cohesive'])}
     try:
-        run('docker','run','-d','--name',pg,'-e','POSTGRES_PASSWORD=fixture-only','-p','127.0.0.1::5432',IMAGE);owned.append(pg)
-        run('docker','run','-d','--name',dts,'-p','127.0.0.1::8080',manifest['schedulerImage']);owned.append(dts)
+        run('docker','run','-d','--name',pg,'-e','POSTGRES_PASSWORD=fixture-only','-p','127.0.0.1::5432',IMAGE)
+        services.callback(run,'docker','rm','-f',pg)
+        connection=services.enter_context(durable_task_scheduler(manifest['schedulerImage']))
         wait_until(lambda:subprocess.run(['docker','exec',pg,'pg_isready','-h','127.0.0.1','-U','postgres'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0,30,'PostgreSQL ready')
         dbport=run('docker','port',pg,'5432/tcp').rsplit(':',1)[1]
-        dtsport=run('docker','port',dts,'8080/tcp').rsplit(':',1)[1]
-        def scheduler_ready():
-            try:
-                with socket.create_connection(('127.0.0.1',int(dtsport)),timeout=.5): return True
-            except OSError:return False
-        wait_until(scheduler_ready,30,'scheduler ready')
         for condition in ([args.condition] if args.condition else ['conventional','cohesive']):
             folder=args.references.resolve()/condition
             executable=folder/'src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.dll'
@@ -73,17 +71,20 @@ def main():
                       'inventory':[{'sku':'stock','available':5},{'sku':'untouched','available':9}], 'reservations':[]}
                 seed_path=evidence/'seed.json';seed_path.write_text(json.dumps(seed))
                 env=dict(os.environ,ConnectionStrings__Orders=f'Host=127.0.0.1;Port={dbport};Database={database};Username=postgres;Password=fixture-only',
-                         DURABLE_TASK_CONNECTION=f'Endpoint=http://127.0.0.1:{dtsport};TaskHub=default;Authentication=None', ASPNETCORE_ENVIRONMENT='Production')
+                         DURABLE_TASK_CONNECTION=connection, ASPNETCORE_ENVIRONMENT='Production')
                 with (evidence/'host.log').open('w') as log:
                     subprocess.run(['dotnet',str(executable),'--seed',str(seed_path)],cwd=folder,env=dict(env,FULFILLMENT_SETUP='1'),stdout=log,stderr=log,check=True,timeout=60)
-                    port=free_port();url=f'http://127.0.0.1:{port}';client=suite.Client(url)
+                    client=None
                     def start(crash):
-                        nonlocal process
+                        """Launch with optional fault injection and bind the client to this host."""
+                        nonlocal process,client
                         current=dict(env)
                         if crash:
                             if terminal: current.update(EVAL_FAIL_POINT="before-reserve",EVAL_FAIL_MARKER=str(marker))
                             else: current.update(EVAL_CRASH_POINT=point,EVAL_CRASH_MARKER=str(marker))
-                        process=subprocess.Popen(['dotnet',str(executable),'--urls',url],cwd=folder,env=current,stdout=log,stderr=log)
+                        offset=log.tell()
+                        process=subprocess.Popen(['dotnet',str(executable),'--urls','http://127.0.0.1:0'],cwd=folder,env=current,stdout=log,stderr=log)
+                        client=suite.Client(kestrel_url(process,evidence/'host.log',offset))
                         def ready():
                             if process.poll() is not None:raise RuntimeError('Host exited; see '+str(evidence/'host.log'))
                             try:return client.request('GET','/orders/a')[0]==200
@@ -153,6 +154,6 @@ def main():
         raise
     finally:
         if process is not None:process.kill();process.wait(timeout=10)
-        for container in reversed(owned):subprocess.run(['docker','rm','-f',container],stdout=subprocess.DEVNULL,check=True)
+        services.close()
 
 if __name__=='__main__':main()

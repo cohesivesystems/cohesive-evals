@@ -16,7 +16,20 @@
 
 Both submissions built with locked dependencies. Their retained HTTP observations and invariant-sequence results matched exactly. The ten scenarios cover eight abrupt termination points, uninterrupted completion and terminal engine failure. The scheduler and database remained available throughout host restarts.
 
-The conventional author moved the existing backend's fulfillment sequence into an SDK orchestrator with five activities and retained the underlying business operations. The Cohesive author scheduled the existing fulfillment process unchanged and added a 70-line activity host. Both implemented persistent admission, recovery of admitted work, activity receipts and result retention. Workflow reuse was visible in this pair. The 17-second difference between submissions gives little evidence about comparative effort or speed.
+| Responsibility in the frozen patch | Conventional | Cohesive |
+|---|---|---|
+| Fulfillment decisions | Moved inspection, reserve, submit, record and compensation into an orchestrator and five named activities | Retained the entire `FulfillmentProcess` definition |
+| Effect replay | Reused the store and its receipts, adding a transaction-scoped lock before receipt lookup | Bound PostgreSQL transition receipts to the order, inventory and reservation repositories |
+| Admission and retained results | Authored PostgreSQL operations table, replay/conflict and capacity checks, dispatch and result persistence | Authored the same responsibilities in `OperationQueue`. It serializes admission, counts rows, and polls every 100 ms when idle |
+| Crash instrumentation | Activities call the evaluator after store operations | Activity host matches four transition IDs and inspects typed outcomes before signaling an applied effect |
+
+These observations describe two submitted patches. The pilot did not measure throughput, multi-host contention or the distribution of authoring effort. Estimating typical differences would require additional independent pairs on a frozen SDK and rubric.
+
+### Cohesive API follow-ups
+
+The submission used `ScheduleCohesiveProcessAsync`. The pinned SDK also exposes `AdmitCohesiveProcessAsync` for accepted, replayed and conflicting starts. A follow-up should run that API against the same public contract, especially atomic capacity across distinct identities, replay at capacity, and retained results after restart. That would establish which pieces need a typed admission API and which already exist. [Pinned admission implementation](https://github.com/cohesivesystems/cohesive/blob/b0af008d85871ad8866d7d4311707ecd926529de/src/adapters/Cohesive.Adapters.DurableTask/DurableTaskProcessStartAdmission.cs)
+
+Two smaller API candidates come from the host code. A typed post-commit callback for applied transitions could replace the evaluator's ID switch and result decoding. A registration helper could share the data converter between the Durable Task client and worker. Evaluate these changes in a subsequent SDK run against the same crash boundaries.
 
 The [conventional submission](conventional/submission.patch) and [Cohesive submission](cohesive/submission.patch) preserve the exact authored changes. Each condition's evidence directory contains the build manifest, recovery observations, G0 report, HTTP observations and capacity result. Neither session tested a hosted scheduler.
 
@@ -30,4 +43,4 @@ For grading, use `durability/build.py::build_candidate` on the frozen submission
 
 [Control results](control.json) record the existing known-good applications passing the same ten recovery scenarios per condition.
 
-A supplemental capacity check was specified while the authors worked, before grading either submission. It admits 1,000 distinct requests through HTTP, checks the first overflow, replay and conflict, kills the host, and repeats those three observations after restart. Run `PYTHONPATH=. python3 -B cross-layer/order-fulfillment/durability/pilot/capacity.py ABSOLUTE_APP_DLL FRESH_OUTPUT CONDITION` from the repo root. Both [capacity controls](capacity-controls.json) passed. This check is reported separately from the ten pre-existing recovery scenarios.
+A supplemental capacity check was specified while the authors worked, before grading either submission. It admits 1,000 distinct requests through HTTP, checks the first overflow, replay and conflict, kills the host, and repeats those three observations after restart. Run `PYTHONPATH=. python3 -B cross-layer/order-fulfillment/durability/pilot/capacity.py ABSOLUTE_APP_DLL FRESH_OUTPUT CONDITION` from the repo root. Both known-good controls passed. The [control record](control.json) identifies their build manifests and capacity outcomes. This check is reported separately from the ten pre-existing recovery scenarios.
