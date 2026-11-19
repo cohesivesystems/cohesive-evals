@@ -1,0 +1,57 @@
+[
+  {
+    "scenario": "none",
+    "exitCode": 0,
+    "kind": "passed"
+  },
+  {
+    "scenario": "before-admission-commit",
+    "exitCode": 0,
+    "kind": "passed"
+  },
+  {
+    "scenario": "after-admission-commit",
+    "exitCode": 0,
+    "kind": "passed"
+  },
+  {
+    "scenario": "before-dispatch",
+    "exitCode": 0,
+    "kind": "passed"
+  },
+  {
+    "scenario": "after-reserve",
+    "exitCode": 0,
+    "kind": "passed"
+  },
+  {
+    "scenario": "after-submit",
+    "exitCode": 0,
+    "kind": "passed"
+  },
+  {
+    "scenario": "after-reservation",
+    "exitCode": 0,
+    "kind": "passed"
+  },
+  {
+    "scenario": "after-release",
+    "exitCode": 0,
+    "kind": "passed"
+  },
+  {
+    "scenario": "before-result-commit",
+    "exitCode": 0,
+    "kind": "passed"
+  },
+  {
+    "scenario": "terminal-failure",
+    "exitCode": 0,
+    "kind": "passed"
+  },
+  {
+    "scenario": "g0",
+    "exitCode": 0,
+    "kind": "passed"
+  }
+]

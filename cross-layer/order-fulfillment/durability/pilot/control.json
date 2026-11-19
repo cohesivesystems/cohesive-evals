@@ -1,0 +1,277 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "condition": "conventional",
+      "point": "none",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "before-admission-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-admission-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "before-dispatch",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-reserve",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-submit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-reservation",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "after-release",
+      "passed": true,
+      "completion": {
+        "status": "Rejected",
+        "outcome": "OrderRejected"
+      },
+      "physical": {
+        "count": 0,
+        "quantity": 0
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "before-result-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "conventional",
+      "point": "terminal-failure",
+      "passed": true,
+      "completion": {
+        "code": "ExecutionFailed"
+      },
+      "physical": {
+        "count": 1,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "none",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "before-admission-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-admission-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "before-dispatch",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-reserve",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-submit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-reservation",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "after-release",
+      "passed": true,
+      "completion": {
+        "status": "Rejected",
+        "outcome": "OrderRejected"
+      },
+      "physical": {
+        "count": 0,
+        "quantity": 0
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "before-result-commit",
+      "passed": true,
+      "completion": {
+        "status": "Submitted",
+        "outcome": "ReservedAndSubmitted"
+      },
+      "physical": {
+        "count": 2,
+        "quantity": 5
+      }
+    },
+    {
+      "condition": "cohesive",
+      "point": "terminal-failure",
+      "passed": true,
+      "completion": {
+        "code": "ExecutionFailed"
+      },
+      "physical": {
+        "count": 1,
+        "quantity": 5
+      }
+    }
+  ],
+  "schedulerImage": "mcr.microsoft.com/dts/dts-emulator@sha256:1b49dcf1581168f5c620a4f32083e1291a7dddfa60434acb3eacd8b23355936a",
+  "buildManifests": {
+    "conventional": "dd4f0b5afb743fde871e488522234c09dc13aaa27a159e75ef1ebdaf8a4dbcd3",
+    "cohesive": "9dd4eed780ec79992b5cf06d212ca023369a1f50592bd5bd554c50d72b222ff9"
+  },
+  "referenceFingerprints": {
+    "conventional": "52c9f372ff9cca464656641b7f022b6d33add2a3f295269666488fefb2520345",
+    "cohesive": "ea0410734b54f511b68d75e7116723cf3d543fa7497c0f45c5fef00d655a05a3"
+  },
+  "limitations": [
+    "Worker/API crashes only; scheduler and databases remain available",
+    "Single active host; sequential independent intents",
+    "Reference qualification, not scored agent evidence"
+  ]
+}

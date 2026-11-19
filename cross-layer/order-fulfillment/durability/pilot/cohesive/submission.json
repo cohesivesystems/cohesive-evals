@@ -1,0 +1,16 @@
+{
+  "startTree": "34a2c3449f3a37e276d1d6093717a1d5f6dc89cf",
+  "submittedTree": "d13493031d8e5c03e8a4f0bf90a989dbe4fa76ce",
+  "numstat": [
+    "9\t7\tCONTRACT.md",
+    "8\t8\tREADME.md",
+    "12\t0\tdependency-manifest.json",
+    "0\t1\tsrc/Fulfillment.Application/Contracts.cs",
+    "3\t0\tsrc/Fulfillment.Application/Fulfillment.Application.csproj",
+    "70\t0\tsrc/Fulfillment.Application/FulfillmentActivityHost.cs",
+    "24\t10\tsrc/Fulfillment.Application/FulfillmentBackend.cs",
+    "123\t47\tsrc/Fulfillment.Application/OperationQueue.cs",
+    "29\t3\tsrc/Fulfillment.Application/Program.cs",
+    "352\t0\tsrc/Fulfillment.Application/packages.lock.json"
+  ]
+}

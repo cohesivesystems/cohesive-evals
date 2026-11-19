@@ -1,0 +1,851 @@
+diff --git a/CONTRACT.md b/CONTRACT.md
+index 9f20a53..7affb7d 100644
+--- a/CONTRACT.md
++++ b/CONTRACT.md
+@@ -39,7 +39,7 @@ database-memory or streaming bound.
+ ## Fulfillment behavior
+ 
+ Exact duplicate requestId and input return the original admission and retained
+-result for the lifetime of this host. A reused requestId with different input
++result across host restarts. A reused requestId with different input
+ returns 409 {code: "RequestIdentityConflict"} and starts no work. No failed
+ operation is retried under the same identity. The host retains at most 1000
+ admitted requests; additional new identities receive 503 without admission.
+@@ -67,11 +67,17 @@ preserved. Replayed results do not depend on later state changes.
+ 
+ ## Execution and setup
+ 
+-Admission and result retention last only for this host. Client disconnection
+-cannot cancel admitted work. A single bounded host worker executes admitted
+-operations. Each mutation and its process-step receipt commit together in
+-PostgreSQL; the whole sequence is not one transaction. Independent-intent races
+-and crash recovery are outside this application's declared guarantees.
++Admission commits to PostgreSQL before HTTP acknowledgment. If a response is
++lost, the client can repeat the same request to recover its admission or create
++it if the first transaction rolled back. The host scans pending operations on
++startup and while running. Each operation has a stable Durable Task instance ID.
++A scheduler activity commits each mutation and its receipt together in PostgreSQL.
++The host copies terminal scheduler outcomes, including failures, to the admission
++record for subsequent result reads.
++
++With one host, sequential independent intents, and PostgreSQL and the scheduler
++available across host restarts, acknowledged work completes autonomously within
++120 seconds of restart. Concurrent copies of the same request are supported.
+ 
+ Inventory and preexisting records can be provisioned before the host starts with
+ --seed FILE and FULFILLMENT_SETUP=1, against a dedicated empty database. The file
+diff --git a/README.md b/README.md
+index 7339d14..3a7d1c6 100644
+--- a/README.md
++++ b/README.md
+@@ -1,10 +1,11 @@
+ # Fulfillment service
+ 
+-Requires .NET SDK 10.0.402, Python 3.9+ for the HTTP checks, and PostgreSQL 17.
++Requires .NET SDK 10.0.402, Python 3.9+ for the HTTP checks, PostgreSQL 17, and a Durable Task Scheduler endpoint and task hub.
+ 
+ ```sh
+ dotnet restore Fulfillment.slnx --locked-mode
+ dotnet build Fulfillment.slnx --no-restore
++export DURABLE_TASK_CONNECTION='Endpoint=http://127.0.0.1:8080;Authentication=None;TaskHub=default'
+ export ConnectionStrings__Orders='Host=127.0.0.1;Database=orders;Username=postgres;Password=local-password'
+ python3 tests/contract_tests.py --seed > /tmp/fulfillment-seed.json
+ FULFILLMENT_SETUP=1 dotnet run --no-build --project src/Fulfillment.Application -- --seed /tmp/fulfillment-seed.json
+@@ -15,10 +16,8 @@ With that fresh host running, execute `python3 tests/contract_tests.py http://12
+ The checks mutate data; use a new database for every complete test run.
+ `CONTRACT.md` describes the public behavior. `schemas.json` specifies wire shapes.
+ 
+-The application separates HTTP and host-lifetime admission from domain decisions,
+-execution and persistence. The host owns its database pool and background worker.
+-Request results and replay identities remain private to that host; PostgreSQL owns
+-entity state and mutation receipts. `Program.cs`, `Contracts.cs` and
+-`OperationQueue.cs` implement transport and admission. Domain and backend files
+-own submission, inventory and workflow behavior. Read projections return current
+-persisted facts. There is no implicit rollback of the whole fulfillment sequence.
++PostgreSQL retains admissions, terminal HTTP results, entity state, and mutation
++receipts. The host reconciles pending admissions with Durable Task Scheduler
++using the operation ID as the orchestration instance ID. The orchestrator calls
++activities that use the same order, stock, and reservation operations as the
++domain backend. Keep the database, scheduler, and task hub across host restarts.
+diff --git a/src/Fulfillment.Application/Contracts.cs b/src/Fulfillment.Application/Contracts.cs
+index 858fecf..9dd61df 100644
+--- a/src/Fulfillment.Application/Contracts.cs
++++ b/src/Fulfillment.Application/Contracts.cs
+@@ -19,7 +19,6 @@ public interface IFulfillmentBackend
+     Task<OrderSummary?> GetOrder(string id);
+     Task<InventoryView?> GetInventory(string sku);
+     Task<OrderDetailsView?> GetDetails(string id);
+-    Task<Completion> Fulfill(string operationId, FulfillmentRequest request);
+     void MapSubmit(WebApplication app);
+ }
+ 
+diff --git a/src/Fulfillment.Application/EvaluationHooks.cs b/src/Fulfillment.Application/EvaluationHooks.cs
+new file mode 100644
+index 0000000..43a97f7
+--- /dev/null
++++ b/src/Fulfillment.Application/EvaluationHooks.cs
+@@ -0,0 +1,33 @@
++namespace Fulfillment.Application;
++
++internal static class EvaluationHooks
++{
++    public static async Task CrashAt(string point)
++    {
++        if (Environment.GetEnvironmentVariable("EVAL_CRASH_POINT") != point)
++            return;
++
++        var marker = Environment.GetEnvironmentVariable("EVAL_CRASH_MARKER")
++            ?? throw new InvalidOperationException("Missing crash marker path.");
++        await File.WriteAllTextAsync(marker, point);
++        await Task.Delay(Timeout.InfiniteTimeSpan);
++    }
++
++    public static void FailBeforeReserve()
++    {
++        if (Environment.GetEnvironmentVariable("EVAL_FAIL_POINT") != "before-reserve")
++            return;
++
++        var marker = Environment.GetEnvironmentVariable("EVAL_FAIL_MARKER")
++            ?? throw new InvalidOperationException("Missing failure marker path.");
++        try
++        {
++            using var file = new FileStream(marker, FileMode.CreateNew, FileAccess.Write);
++        }
++        catch (IOException) when (File.Exists(marker))
++        {
++            return;
++        }
++        throw new InvalidOperationException("Injected failure before reserve.");
++    }
++}
+diff --git a/src/Fulfillment.Application/Fulfillment.Application.csproj b/src/Fulfillment.Application/Fulfillment.Application.csproj
+index c317543..3830dbb 100644
+--- a/src/Fulfillment.Application/Fulfillment.Application.csproj
++++ b/src/Fulfillment.Application/Fulfillment.Application.csproj
+@@ -1 +1,11 @@
+-<Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup><AssemblyName>Fulfillment.Application</AssemblyName><RootNamespace>Fulfillment.Application</RootNamespace></PropertyGroup><ItemGroup><PackageReference Include="Npgsql" Version="[10.0.3]" /></ItemGroup></Project>
++<Project Sdk="Microsoft.NET.Sdk.Web">
++  <PropertyGroup>
++    <AssemblyName>Fulfillment.Application</AssemblyName>
++    <RootNamespace>Fulfillment.Application</RootNamespace>
++  </PropertyGroup>
++  <ItemGroup>
++    <PackageReference Include="Npgsql" Version="[10.0.3]" />
++    <PackageReference Include="Microsoft.DurableTask.Client.AzureManaged" Version="[1.25.0]" />
++    <PackageReference Include="Microsoft.DurableTask.Worker.AzureManaged" Version="[1.25.0]" />
++  </ItemGroup>
++</Project>
+diff --git a/src/Fulfillment.Application/FulfillmentBackend.cs b/src/Fulfillment.Application/FulfillmentBackend.cs
+index 4b50932..31863f3 100644
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -1,9 +1,8 @@
+ using Npgsql;
+ namespace Fulfillment.Application;
+ 
+-public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillmentBackend
++public sealed class FulfillmentBackend(NpgsqlDataSource database, OrderStore store) : IFulfillmentBackend
+ {
+-    readonly OrderStore store = new(database);
+     public Task Seed(SeedData data) => Seeding.Write(database, data);
+     public Task Initialize() => store.Initialize();
+     public Task<OrderCreated> CreateOrder() => store.Create();
+@@ -18,34 +17,4 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+             SubmissionOutcome.NotDraft => Results.Conflict(new ErrorResponse("OrderNotDraft")),
+             _ => throw new InvalidOperationException("Unknown submission outcome.")
+         });
+-
+-    public async Task<Completion> Fulfill(string operationId, FulfillmentRequest request)
+-    {
+-        static Completion Reject(string outcome) => new("Rejected", outcome);
+-        var order = await store.Order(request.OrderId);
+-        if (order is null) return Reject("OrderMissing");
+-        var existing = await store.Reservation(request.OrderId);
+-        if (existing is not null)
+-            return existing.OrderId == request.OrderId && existing.Sku == request.Sku && existing.Quantity == request.Quantity && order.Status == OrderStatus.Submitted
+-                ? new("Submitted", "ReservedAndSubmitted") : Reject("ReservationConflict");
+-        if (await store.Inventory(request.Sku) is null) return Reject("InventoryMissing");
+-        var reserved = await store.Stock(request.Sku, request.Quantity, false, operationId + "/reserve");
+-        if (reserved == StockOutcome.InvalidQuantity) return Reject("InvalidQuantity");
+-        if (reserved == StockOutcome.InsufficientStock) return Reject("InsufficientStock");
+-        if (reserved != StockOutcome.Reserved) throw new InvalidOperationException("Unknown reserve outcome.");
+-        var submitted = await store.Submit(request.OrderId, operationId + "/submit");
+-        if (submitted == SubmissionOutcome.Submitted)
+-        {
+-            await store.CreateReservation(new(request.OrderId, request.OrderId, request.Sku, request.Quantity), operationId + "/reservation");
+-            return new("Submitted", "ReservedAndSubmitted");
+-        }
+-        await store.Stock(request.Sku, request.Quantity, true, operationId + "/release");
+-        return Reject("OrderRejected");
+-    }
+-}
+-
+-public static class HostSetup
+-{
+-    public static void Configure(IServiceCollection services) { }
+-    public static void Configure(WebApplication app) { }
+ }
+diff --git a/src/Fulfillment.Application/FulfillmentWorkflow.cs b/src/Fulfillment.Application/FulfillmentWorkflow.cs
+new file mode 100644
+index 0000000..e247f41
+--- /dev/null
++++ b/src/Fulfillment.Application/FulfillmentWorkflow.cs
+@@ -0,0 +1,109 @@
++using Microsoft.DurableTask;
++using Microsoft.DurableTask.Client;
++using Microsoft.DurableTask.Client.AzureManaged;
++using Microsoft.DurableTask.Worker;
++using Microsoft.DurableTask.Worker.AzureManaged;
++
++namespace Fulfillment.Application;
++
++public sealed record Work(string OperationId, FulfillmentRequest Request);
++
++public static class FulfillmentWorkflow
++{
++    public const string Name = "FulfillOrder";
++    const string Inspect = "InspectOrder";
++    const string Reserve = "ReserveStock";
++    const string Submit = "SubmitOrder";
++    const string Record = "CreateReservation";
++    const string Release = "ReleaseStock";
++
++    public static void Configure(IServiceCollection services, string scheduler)
++    {
++        services.AddDurableTaskClient(client =>
++        {
++            client.UseDurableTaskScheduler(scheduler);
++            client.RegisterDirectly();
++        });
++        services.AddDurableTaskWorker(worker =>
++        {
++            worker.UseDurableTaskScheduler(scheduler);
++            worker.AddTasks(tasks =>
++            {
++                tasks.AddOrchestratorFunc<Work, Completion>(Name, Run);
++                tasks.AddActivity(Inspect, sp => new InspectActivity(sp.GetRequiredService<OrderStore>()));
++                tasks.AddActivity(Reserve, sp => new StockActivity(sp.GetRequiredService<OrderStore>(), release: false));
++                tasks.AddActivity(Submit, sp => new SubmitActivity(sp.GetRequiredService<OrderStore>()));
++                tasks.AddActivity(Record, sp => new ReservationActivity(sp.GetRequiredService<OrderStore>()));
++                tasks.AddActivity(Release, sp => new StockActivity(sp.GetRequiredService<OrderStore>(), release: true));
++            });
++        });
++    }
++
++    static async Task<Completion> Run(TaskOrchestrationContext context, Work work)
++    {
++        var preexisting = await context.CallActivityAsync<Completion?>(Inspect, work);
++        if (preexisting is not null) return preexisting;
++        var reserved = await context.CallActivityAsync<StockOutcome>(Reserve, work);
++        if (reserved is StockOutcome.InvalidQuantity or StockOutcome.InsufficientStock)
++            return new("Rejected", reserved.ToString());
++        if (reserved != StockOutcome.Reserved) throw new InvalidOperationException("Unknown reserve outcome.");
++        var submitted = await context.CallActivityAsync<SubmissionOutcome?>(Submit, work);
++        if (submitted == SubmissionOutcome.Submitted)
++        {
++            await context.CallActivityAsync<bool>(Record, work);
++            return new("Submitted", "ReservedAndSubmitted");
++        }
++        await context.CallActivityAsync<StockOutcome>(Release, work);
++        return new("Rejected", "OrderRejected");
++    }
++
++    sealed class InspectActivity(OrderStore store) : TaskActivity<Work, Completion?>
++    {
++        public override async Task<Completion?> RunAsync(TaskActivityContext context, Work work)
++        {
++            var request = work.Request;
++            var order = await store.Order(request.OrderId);
++            if (order is null) return new("Rejected", "OrderMissing");
++            var existing = await store.Reservation(request.OrderId);
++            if (existing is not null)
++                return existing.OrderId == request.OrderId && existing.Sku == request.Sku
++                    && existing.Quantity == request.Quantity && order.Status == OrderStatus.Submitted
++                    ? new("Submitted", "ReservedAndSubmitted") : new("Rejected", "ReservationConflict");
++            return await store.Inventory(request.Sku) is null ? new("Rejected", "InventoryMissing") : null;
++        }
++    }
++
++    sealed class StockActivity(OrderStore store, bool release) : TaskActivity<Work, StockOutcome>
++    {
++        public override async Task<StockOutcome> RunAsync(TaskActivityContext context, Work work)
++        {
++            if (!release) EvaluationHooks.FailBeforeReserve();
++            var step = release ? "release" : "reserve";
++            var result = await store.Stock(work.Request.Sku, work.Request.Quantity, release, work.OperationId + "/" + step);
++            await EvaluationHooks.CrashAt("after-" + step);
++            return result;
++        }
++    }
++
++    sealed class SubmitActivity(OrderStore store) : TaskActivity<Work, SubmissionOutcome?>
++    {
++        public override async Task<SubmissionOutcome?> RunAsync(TaskActivityContext context, Work work)
++        {
++            var result = await store.Submit(work.Request.OrderId, work.OperationId + "/submit");
++            await EvaluationHooks.CrashAt("after-submit");
++            return result;
++        }
++    }
++
++    sealed class ReservationActivity(OrderStore store) : TaskActivity<Work, bool>
++    {
++        public override async Task<bool> RunAsync(TaskActivityContext context, Work work)
++        {
++            var request = work.Request;
++            var result = await store.CreateReservation(new(request.OrderId, request.OrderId, request.Sku, request.Quantity),
++                work.OperationId + "/reservation");
++            await EvaluationHooks.CrashAt("after-reservation");
++            return result;
++        }
++    }
++}
+diff --git a/src/Fulfillment.Application/OperationQueue.cs b/src/Fulfillment.Application/OperationQueue.cs
+index 2f331a4..e48a2c5 100644
+--- a/src/Fulfillment.Application/OperationQueue.cs
++++ b/src/Fulfillment.Application/OperationQueue.cs
+@@ -1,74 +1,176 @@
+-using System.Threading.Channels;
++using Microsoft.DurableTask;
++using Microsoft.DurableTask.Client;
++using Npgsql;
++using System.Text.Json;
+ 
+ namespace Fulfillment.Application;
+ 
+-// Admission and completed results live only for this host lifetime. Execution is
+-// bounded and owned by the host; a client disconnect does not cancel admitted work.
+-public sealed class OperationQueue(IFulfillmentBackend backend, ILogger<OperationQueue> logger) : BackgroundService
++public sealed class OperationQueue(NpgsqlDataSource database, DurableTaskClient client, ILogger<OperationQueue> logger)
++    : BackgroundService
+ {
+-    sealed class Entry(FulfillmentRequest request, Admission admission)
+-    {
+-        public FulfillmentRequest Request { get; } = request;
+-        public Admission Admission { get; } = admission;
+-        public Completion? Result { get; set; }
+-        public bool Failed { get; set; }
+-    }
+-    readonly object gate = new();
+-    readonly Dictionary<string, Entry> requests = new(StringComparer.Ordinal);
+-    readonly Dictionary<string, Entry> operations = new(StringComparer.Ordinal);
+-    readonly Channel<Entry> work = Channel.CreateBounded<Entry>(new BoundedChannelOptions(1000)
+-        { SingleReader = true, FullMode = BoundedChannelFullMode.Wait });
++    // One host owns admission. The gate protects duplicate/capacity decisions and
++    // prevents dispatch before the after-commit admission boundary has returned.
++    readonly SemaphoreSlim admissionGate = new(1, 1);
+ 
+-    public IResult Admit(FulfillmentRequest request)
++    public async Task<IResult> Admit(FulfillmentRequest request)
+     {
+         if (string.IsNullOrWhiteSpace(request.RequestId) || string.IsNullOrWhiteSpace(request.OrderId)
+             || string.IsNullOrWhiteSpace(request.Sku)) return Results.BadRequest(new ErrorResponse("InvalidRequest"));
+-        lock (gate)
++
++        await admissionGate.WaitAsync();
++        try
+         {
+-            if (requests.TryGetValue(request.RequestId, out var previous))
+-                return previous.Request == request ? Results.Json(previous.Admission, statusCode: 202)
+-                    : Results.Conflict(new ErrorResponse("RequestIdentityConflict"));
+-            // Retain every admitted identity until shutdown; do not evict replay evidence.
+-            if (requests.Count >= 1000) return Results.StatusCode(503);
+-            var id = Guid.NewGuid().ToString("N");
+-            var entry = new Entry(request, new Admission(id, $"/fulfillment/results/{id}"));
+-            requests.Add(request.RequestId, entry);
+-            operations.Add(id, entry);
+-            if (!work.Writer.TryWrite(entry))
++            await using var connection = await database.OpenConnectionAsync();
++            await using var transaction = await connection.BeginTransactionAsync();
++            // Store opaque input as escaped JSON text. Even long IDs and JSON NUL
++            // characters must survive admission. Only fixed-size operation IDs are
++            // B-tree keys; identity lookups scan at most 1,000 retained rows.
++            var requestId = JsonSerializer.Serialize(request.RequestId);
++            var payload = JsonSerializer.Serialize(request);
++            await using (var lookup = new NpgsqlCommand("""
++                SELECT operation_id, request_payload FROM fulfillment_operations WHERE request_id=$1
++                """, connection, transaction))
+             {
+-                requests.Remove(request.RequestId); operations.Remove(id);
+-                return Results.StatusCode(503);
++                lookup.Parameters.AddWithValue(requestId);
++                await using var reader = await lookup.ExecuteReaderAsync();
++                if (await reader.ReadAsync())
++                {
++                    if (JsonSerializer.Deserialize<FulfillmentRequest>(reader.GetString(1)) != request)
++                        return Results.Conflict(new ErrorResponse("RequestIdentityConflict"));
++                    return Accepted(reader.GetString(0));
++                }
+             }
+-            return Results.Json(entry.Admission, statusCode: 202);
++
++            await using var count = new NpgsqlCommand("SELECT count(*) FROM fulfillment_operations", connection, transaction);
++            if ((long)(await count.ExecuteScalarAsync())! >= 1000) return Results.StatusCode(503);
++
++            var id = Guid.NewGuid().ToString("N");
++            await using var insert = new NpgsqlCommand("""
++                INSERT INTO fulfillment_operations(operation_id, request_id, request_payload) VALUES($1, $2, $3)
++                """, connection, transaction);
++            insert.Parameters.AddWithValue(id);
++            insert.Parameters.AddWithValue(requestId);
++            insert.Parameters.AddWithValue(payload);
++            await insert.ExecuteNonQueryAsync();
++            await EvaluationHooks.CrashAt("before-admission-commit");
++            await transaction.CommitAsync();
++            await EvaluationHooks.CrashAt("after-admission-commit");
++            return Accepted(id);
++        }
++        finally
++        {
++            admissionGate.Release();
++        }
++    }
++
++    static IResult Accepted(string id) => Results.Json(new Admission(id, $"/fulfillment/results/{id}"), statusCode: 202);
++
++    public async Task<IResult> Result(string id)
++    {
++        if (!Guid.TryParseExact(id, "N", out _)) return Results.NotFound();
++        await using var query = database.CreateCommand("""
++            SELECT failed, result_status, result_outcome FROM fulfillment_operations WHERE operation_id=$1
++            """);
++        query.Parameters.AddWithValue(id);
++        await using var reader = await query.ExecuteReaderAsync();
++        if (!await reader.ReadAsync()) return Results.NotFound();
++        if (reader.GetBoolean(0)) return Results.Json(new ErrorResponse("ExecutionFailed"), statusCode: 500);
++        return reader.IsDBNull(1) ? Results.StatusCode(202) : Results.Ok(new Completion(reader.GetString(1), reader.GetString(2)));
++    }
++
++    async Task<List<Work>> Pending(CancellationToken cancellation)
++    {
++        var pending = new List<Work>();
++        await admissionGate.WaitAsync(cancellation);
++        try
++        {
++            await using var query = database.CreateCommand("""
++                SELECT operation_id, request_payload FROM fulfillment_operations
++                WHERE NOT failed AND result_status IS NULL
++                """);
++            await using var reader = await query.ExecuteReaderAsync(cancellation);
++            while (await reader.ReadAsync(cancellation))
++                pending.Add(new(reader.GetString(0), JsonSerializer.Deserialize<FulfillmentRequest>(reader.GetString(1))
++                    ?? throw new InvalidOperationException("Pending operation has no request.")));
+         }
++        finally
++        {
++            admissionGate.Release();
++        }
++        return pending;
+     }
+-    public IResult Result(string id)
++
++    async Task Reconcile(Work work, CancellationToken cancellation)
+     {
+-        lock (gate)
++        var instance = await client.GetInstanceAsync(work.OperationId, getInputsAndOutputs: true, cancellation);
++        if (instance is null)
+         {
+-            if (!operations.TryGetValue(id, out var entry)) return Results.NotFound();
+-            if (entry.Failed) return Results.Json(new ErrorResponse("ExecutionFailed"), statusCode: 500);
+-            return entry.Result is { } result ? Results.Ok(result) : Results.StatusCode(202);
++            // If the scheduler accepted an earlier start whose reply was lost, use
++            // the same instance ID. Terminal histories must also prevent a restart.
++            var options = new StartOrchestrationOptions(work.OperationId).WithDedupeStatuses(
++                OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running,
++                OrchestrationRuntimeStatus.Completed, OrchestrationRuntimeStatus.Failed,
++                OrchestrationRuntimeStatus.Terminated, OrchestrationRuntimeStatus.Suspended);
++            await EvaluationHooks.CrashAt("before-dispatch");
++            await client.ScheduleNewOrchestrationInstanceAsync(FulfillmentWorkflow.Name, work, options, cancellation);
++            return;
+         }
++
++        Completion? result = null;
++        switch (instance.RuntimeStatus)
++        {
++            case OrchestrationRuntimeStatus.Completed:
++                result = instance.ReadOutputAs<Completion>() ?? throw new InvalidOperationException("Missing workflow result.");
++                break;
++            case OrchestrationRuntimeStatus.Failed:
++            case OrchestrationRuntimeStatus.Terminated:
++                break;
++            default:
++                return;
++        }
++        await using var connection = await database.OpenConnectionAsync(cancellation);
++        await using var transaction = await connection.BeginTransactionAsync(cancellation);
++        await using var update = new NpgsqlCommand("""
++            UPDATE fulfillment_operations SET failed=$2, result_status=$3, result_outcome=$4
++            WHERE operation_id=$1 AND NOT failed AND result_status IS NULL
++            """, connection, transaction);
++        update.Parameters.AddWithValue(work.OperationId);
++        update.Parameters.AddWithValue(result is null);
++        update.Parameters.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Text, Value = (object?)result?.Status ?? DBNull.Value });
++        update.Parameters.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Text, Value = (object?)result?.Outcome ?? DBNull.Value });
++        await update.ExecuteNonQueryAsync(cancellation);
++        await EvaluationHooks.CrashAt("before-result-commit");
++        await transaction.CommitAsync(cancellation);
+     }
++
+     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+     {
+-        try
++        while (!stoppingToken.IsCancellationRequested)
+         {
+-            await foreach (var entry in work.Reader.ReadAllAsync(stoppingToken))
++            try
+             {
+-                try
++                var pending = await Pending(stoppingToken);
++                await Parallel.ForEachAsync(pending, new ParallelOptions
+                 {
+-                    var result = await backend.Fulfill(entry.Admission.OperationId, entry.Request);
+-                    lock (gate) entry.Result = result;
+-                }
+-                catch (Exception ex)
++                    MaxDegreeOfParallelism = 8,
++                    CancellationToken = stoppingToken
++                }, async (work, cancellation) =>
+                 {
+-                    logger.LogError(ex, "Fulfillment execution failed: {OperationId}", entry.Admission.OperationId);
+-                    lock (gate) entry.Failed = true;
+-                }
++                    try
++                    {
++                        await Reconcile(work, cancellation);
++                    }
++                    catch (Exception ex) when (!cancellation.IsCancellationRequested)
++                    {
++                        logger.LogWarning(ex, "Will retry scheduler reconciliation for {OperationId}", work.OperationId);
++                    }
++                });
++            }
++            catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
++            {
++                logger.LogWarning(ex, "Will retry pending operation scan");
+             }
++            await Task.Delay(TimeSpan.FromMilliseconds(150), stoppingToken);
+         }
+-        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
+     }
+ }
+diff --git a/src/Fulfillment.Application/OrderStore.cs b/src/Fulfillment.Application/OrderStore.cs
+index 092942b..6e01620 100644
+--- a/src/Fulfillment.Application/OrderStore.cs
++++ b/src/Fulfillment.Application/OrderStore.cs
+@@ -12,6 +12,10 @@ public sealed class OrderStore(NpgsqlDataSource database)
+             CREATE TABLE IF NOT EXISTS inventory(sku text COLLATE "C" PRIMARY KEY, available integer NOT NULL CHECK(available >= 0));
+             CREATE TABLE IF NOT EXISTS reservations(id text COLLATE "C" PRIMARY KEY, order_id text COLLATE "C" NOT NULL REFERENCES orders(id),
+                 sku text COLLATE "C" NOT NULL REFERENCES inventory(sku), quantity integer NOT NULL CHECK(quantity > 0));
++            CREATE TABLE IF NOT EXISTS fulfillment_operations(
++                operation_id text COLLATE "C" PRIMARY KEY,
++                request_id text COLLATE "C" NOT NULL, request_payload text NOT NULL,
++                result_status text, result_outcome text, failed boolean NOT NULL DEFAULT false);
+             CREATE TABLE IF NOT EXISTS operation_receipts(operation_key text COLLATE "C" PRIMARY KEY, input text NOT NULL, result jsonb NOT NULL);
+             """);
+         await command.ExecuteNonQueryAsync();
+@@ -63,6 +67,11 @@ public sealed class OrderStore(NpgsqlDataSource database)
+         await using var transaction = await connection.BeginTransactionAsync();
+         if (key is not null)
+         {
++            // At-least-once activity deliveries can overlap. Serialize the receipt lookup
++            // and effect together even when the receipt row does not exist yet.
++            await using var stepLock = new NpgsqlCommand("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", connection, transaction);
++            stepLock.Parameters.AddWithValue(key);
++            await stepLock.ExecuteNonQueryAsync();
+             await using var receipt = new NpgsqlCommand("SELECT input,result::text FROM operation_receipts WHERE operation_key=$1", connection, transaction);
+             receipt.Parameters.AddWithValue(key); await using var reader = await receipt.ExecuteReaderAsync();
+             if (await reader.ReadAsync())
+diff --git a/src/Fulfillment.Application/Program.cs b/src/Fulfillment.Application/Program.cs
+index ce221e9..475a468 100644
+--- a/src/Fulfillment.Application/Program.cs
++++ b/src/Fulfillment.Application/Program.cs
+@@ -12,9 +12,15 @@ builder.Services.ConfigureHttpJsonOptions(options =>
+ });
+ builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(connection));
+ builder.Services.AddSingleton<IFulfillmentBackend, FulfillmentBackend>();
+-builder.Services.AddSingleton<OperationQueue>();
+-builder.Services.AddHostedService(provider => provider.GetRequiredService<OperationQueue>());
+-HostSetup.Configure(builder.Services);
++builder.Services.AddSingleton<OrderStore>();
++if (builder.Configuration["seed"] is null)
++{
++    var scheduler = builder.Configuration["DURABLE_TASK_CONNECTION"]
++        ?? throw new InvalidOperationException("Set DURABLE_TASK_CONNECTION to the scheduler connection string.");
++    FulfillmentWorkflow.Configure(builder.Services, scheduler);
++    builder.Services.AddSingleton<OperationQueue>();
++    builder.Services.AddHostedService(provider => provider.GetRequiredService<OperationQueue>());
++}
+ var app = builder.Build();
+ await app.Services.GetRequiredService<IFulfillmentBackend>().Initialize();
+ if (builder.Configuration["seed"] is { } seedFile)
+@@ -29,7 +35,6 @@ if (builder.Configuration["seed"] is { } seedFile)
+     await app.DisposeAsync();
+     return;
+ }
+-HostSetup.Configure(app);
+ // The local fixture has one host-provided identity/scope. It exposes no seed,
+ // reset or arbitrary SQL route, and never derives identity from request JSON.
+ app.MapPost("/orders", async (IFulfillmentBackend backend) =>
+diff --git a/src/Fulfillment.Application/packages.lock.json b/src/Fulfillment.Application/packages.lock.json
+index c2c2719..355ca28 100644
+--- a/src/Fulfillment.Application/packages.lock.json
++++ b/src/Fulfillment.Application/packages.lock.json
+@@ -2,11 +2,258 @@
+   "version": 1,
+   "dependencies": {
+     "net10.0": {
++      "Microsoft.DurableTask.Client.AzureManaged": {
++        "type": "Direct",
++        "requested": "[1.25.0, 1.25.0]",
++        "resolved": "1.25.0",
++        "contentHash": "edNP1DOyW8H8T30hwcHUFSiCsMlwDLQFxBTRQAd6S4NbTUVtfDvjnLlwwym58HZWCa4UuvVlhVQQh7JaMzuZQg==",
++        "dependencies": {
++          "Azure.Identity": "1.21.0",
++          "Grpc.Net.Client": "2.80.0",
++          "Microsoft.DurableTask.Client.Grpc": "1.25.0"
++        }
++      },
++      "Microsoft.DurableTask.Worker.AzureManaged": {
++        "type": "Direct",
++        "requested": "[1.25.0, 1.25.0]",
++        "resolved": "1.25.0",
++        "contentHash": "tegVSulbEd9yuwze03HQt6maAyU8SqUltGD9HNN0ZT+AG6uZ50JWFBbXd6QygAYwcDPd4goUiZ7BY/EZ7BdrMw==",
++        "dependencies": {
++          "Azure.Identity": "1.21.0",
++          "Grpc.Net.Client": "2.80.0",
++          "Microsoft.DurableTask.Worker.Grpc": "1.25.0"
++        }
++      },
+       "Npgsql": {
+         "type": "Direct",
+         "requested": "[10.0.3, 10.0.3]",
+         "resolved": "10.0.3",
+         "contentHash": "7nb5YzXuvWWJxB0J8DiyL3we+X4FOctZrt0fIBnucOIaIevFEEwGQVZKtiu9olXdlNAK1eNgqSral6r/jlhI4w=="
++      },
++      "Azure.Core": {
++        "type": "Transitive",
++        "resolved": "1.53.0",
++        "contentHash": "x9c/toFMOtRrlTdFuE7rlGCVAduQzWVfKmLz5juj41zJAXEhYD5hluiUyyAEzJ6OxpBnKtiaBztzwpZITAVjtg==",
++        "dependencies": {
++          "Microsoft.Bcl.AsyncInterfaces": "10.0.3",
++          "Microsoft.Identity.Client": "4.83.1",
++          "Microsoft.Identity.Client.Extensions.Msal": "4.83.1",
++          "System.ClientModel": "1.10.0",
++          "System.Memory.Data": "10.0.3"
++        }
++      },
++      "Azure.Identity": {
++        "type": "Transitive",
++        "resolved": "1.21.0",
++        "contentHash": "GeFv8sGwRKvDKwI2WFy8r0mhmlxEVZg24Sit2NogTjiSO8RVjllWM65OT6e1sKjOvG8V74y7hAbaELUUPjZQSw==",
++        "dependencies": {
++          "Azure.Core": "1.53.0"
++        }
++      },
++      "Castle.Core": {
++        "type": "Transitive",
++        "resolved": "5.2.1",
++        "contentHash": "wHARzQA695jwwKreOzNsq54KiGqKP38tv8hi8e2FXDEC/sA6BtrX90tVPDkOfVu13PbEzr00TCV8coikl+D1Iw=="
++      },
++      "Google.Protobuf": {
++        "type": "Transitive",
++        "resolved": "3.33.5",
++        "contentHash": "XEzLpCTosZb5I6eGSPn7rAES0VfkJkn3Cqydh0W39POdZwkdhPhOmAROTFJF9g0ardst4ulNXRm/q/iXwNu+Qw=="
++      },
++      "Grpc.Core.Api": {
++        "type": "Transitive",
++        "resolved": "2.80.0",
++        "contentHash": "i/8s+MOrYa6n7BmZ5bilcbHk+EMJDQHm2MKLhwGAT+urQqlZ6cpjvSivYvuULjebuX+UKieLYZbLRCmVQxFRkw=="
++      },
++      "Grpc.Net.Client": {
++        "type": "Transitive",
++        "resolved": "2.80.0",
++        "contentHash": "I1Aa24nTRMHqx0pmQfvthFsOpejquDjiJV6092KBqjw6EEr3wA9CMXlrdkoEgHartOiJrpKyZiQRl7n0NVlfBg==",
++        "dependencies": {
++          "Grpc.Net.Common": "2.80.0"
++        }
++      },
++      "Grpc.Net.Common": {
++        "type": "Transitive",
++        "resolved": "2.80.0",
++        "contentHash": "E2ERsx+9IXlry4yjBl8btx0XMIKzymGNSvX5jmBS/uSwYyYDoKIDcIREyLqFLvd8vcJdcoRlycpvn9YRXutFpQ==",
++        "dependencies": {
++          "Grpc.Core.Api": "2.80.0"
++        }
++      },
++      "Microsoft.Azure.DurableTask.Core": {
++        "type": "Transitive",
++        "resolved": "3.9.0",
++        "contentHash": "wnB/MYS/qlYM87O1JMbIdhQW5qtFx4VEpVQ95l7D5NZSku9upjelHJ3jlmuhdIwpInMqVaPGcCd8E3fmmmgV5w==",
++        "dependencies": {
++          "Castle.Core": "5.2.1",
++          "Newtonsoft.Json": "13.0.1",
++          "System.Reactive.Compatibility": "4.4.1",
++          "System.Reactive.Core": "4.4.1"
++        }
++      },
++      "Microsoft.Bcl.AsyncInterfaces": {
++        "type": "Transitive",
++        "resolved": "10.0.3",
++        "contentHash": "TV62UsrJZPX6gbt3c4WrtXh7bmaDIcMqf9uft1cc4L6gJXOU07hDGEh+bFQh/L2Az0R1WVOkiT66lFqS6G2NmA=="
++      },
++      "Microsoft.DurableTask.Abstractions": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "vpIRvPSQ0jvtjsDGo7k84IWIRfXn1yMvLe1KpJzG8CoHRS2N1Mx+WaOGRhPcBmf1631GgEL9FKkRNQumSnEAkw==",
++        "dependencies": {
++          "Microsoft.Azure.DurableTask.Core": "3.9.0",
++          "Microsoft.Bcl.AsyncInterfaces": "9.0.1"
++        }
++      },
++      "Microsoft.DurableTask.Client": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "u+iQqStb+y1CGTCOPR7K0zp3QRF1qXCJx+GtI+AJP8Y5/ovimrkxWOe7Gq4GPr2oGtkSzQ5MLh8txuE86o4UQA==",
++        "dependencies": {
++          "Microsoft.DurableTask.Abstractions": "1.25.0"
++        }
++      },
++      "Microsoft.DurableTask.Client.Grpc": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "eor0bQZuafVMtQ0ypZWuWJsh3b2iI1y++b3D9KzcLmLd/XVxmlx2x5PBYnR19ZEJQgNW3CkbNbeYor3dNdGYeg==",
++        "dependencies": {
++          "Microsoft.DurableTask.Client": "1.25.0",
++          "Microsoft.DurableTask.Grpc": "1.25.0"
++        }
++      },
++      "Microsoft.DurableTask.Grpc": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "38+XB7btms8Ig9uLAWl5TQ20ohLa1AYKKh4OWVS+HKODBCqbfiPkdp8E+DbWxkGUvOBKgvo9sRjYGoOiIYfipQ==",
++        "dependencies": {
++          "Google.Protobuf": "3.33.5",
++          "Grpc.Net.Client": "2.80.0"
++        }
++      },
++      "Microsoft.DurableTask.Worker": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "+z6IjInPsREORXYKbYRaYzoESjeT+IpuHGjir4edKvDSdaFErW3zpN2b8PLXBiaEqflAVp/pL0N+7HG44ImOWg==",
++        "dependencies": {
++          "Microsoft.DurableTask.Abstractions": "1.25.0"
++        }
++      },
++      "Microsoft.DurableTask.Worker.Grpc": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "beweVPbC1IQnkVgy6a8UINlfV142eAJ/SssIB+DEZPQ8W/K+/TdFbAA54hADCBct+V4ZDruXjyo49nd+4LuKdg==",
++        "dependencies": {
++          "Google.Protobuf": "3.33.5",
++          "Grpc.Net.Client": "2.80.0",
++          "Microsoft.Azure.DurableTask.Core": "3.9.0",
++          "Microsoft.DurableTask.Abstractions": "1.25.0",
++          "Microsoft.DurableTask.Grpc": "1.25.0",
++          "Microsoft.DurableTask.Worker": "1.25.0"
++        }
++      },
++      "Microsoft.Identity.Client": {
++        "type": "Transitive",
++        "resolved": "4.83.1",
++        "contentHash": "jOLIrZ3cynoqHLLO1cXplFFabrhrMEYs/EuKHvmCyrOm1axqiVFT6nCSnHxk7w5+d2BeQfCdM12Yf/0X7OeS1g==",
++        "dependencies": {
++          "Microsoft.IdentityModel.Abstractions": "8.14.0"
++        }
++      },
++      "Microsoft.Identity.Client.Extensions.Msal": {
++        "type": "Transitive",
++        "resolved": "4.83.1",
++        "contentHash": "I3k4J4Hj4KbLEFanjeUzzDOVecukETaTgEkJ7h2pP/Yazs6SLp6TVUTo/Eo+ptPXMwvc+iX7rBFtMSUrA7R+Mg==",
++        "dependencies": {
++          "Microsoft.Identity.Client": "4.83.1",
++          "System.Security.Cryptography.ProtectedData": "4.5.0"
++        }
++      },
++      "Microsoft.IdentityModel.Abstractions": {
++        "type": "Transitive",
++        "resolved": "8.14.0",
++        "contentHash": "iwbCpSjD3ehfTwBhtSNEtKPK0ICun6ov7Ibx6ISNA9bfwIyzI2Siwyi9eJFCJBwxowK9xcA1mj+jBWiigeqgcQ=="
++      },
++      "Newtonsoft.Json": {
++        "type": "Transitive",
++        "resolved": "13.0.1",
++        "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
++      },
++      "System.ClientModel": {
++        "type": "Transitive",
++        "resolved": "1.10.0",
++        "contentHash": "lBEWs54F5Y5pZ9hC+8z4S/X76957ex+DPk7WecRHlbIHtrPfbRMMlOgI3iDn4Jpb3bSxvBnKaaHoD59auFjlBA==",
++        "dependencies": {
++          "System.Memory.Data": "10.0.3"
++        }
++      },
++      "System.Memory.Data": {
++        "type": "Transitive",
++        "resolved": "10.0.3",
++        "contentHash": "MaGhRfGunmrj/nHjtsi9XkhlYJ/ERGWrbA+BiSKNtGnAjc9XlG5EhAvak6VRcX5LYzPF6pBO8nJ613dTgzabig=="
++      },
++      "System.Reactive": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "iSTPeWR9HJhGoNV4WhVlvofuiTjpok1i4E3LPgMdbMqf3jKhFlT9HAlO32lb52NLppWC/4dZQFfUzTytvyXBmw=="
++      },
++      "System.Reactive.Compatibility": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "Ad2/TBOBV0/45pzccpbQj2vo3S85uipF/PfqkbQUnH0vOtBqrXd1eqWtky5YTXq/WIRU1HF62HFSOdXiNC+E4A==",
++        "dependencies": {
++          "System.Reactive.Core": "4.4.1",
++          "System.Reactive.Interfaces": "4.4.1",
++          "System.Reactive.Linq": "4.4.1",
++          "System.Reactive.PlatformServices": "4.4.1",
++          "System.Reactive.Providers": "4.4.1"
++        }
++      },
++      "System.Reactive.Core": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "YQHJOt8hZvwFelIIfs19t8Jhz5P6NS1ZZccbVUuE1LFyoFZjaUecdYIYykgXzpyj5Rl40XC3xkyuuhHRaAln2w==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Reactive.Interfaces": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "Pk++rL2lxe6yhBEzgc9eJWR57YxYxtAmcz9U0JdKyHEzTLqba3B7MhhYrpN2ToTPVRyJJzxMdPdLieIJvlsACg==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Reactive.Linq": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "wyOVuUyHmPV667REPwcZjFjOlRLX6qSGVcXMye0qUqBAWFB3bu1RO1XLGWZTnf0d67DQHV69kw7tAtTh+4EYyQ==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Reactive.PlatformServices": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "jVF40bEwEES1DpDxI8pRcVEkH/TztFCOSToMYIK6TNE5QojsQljfvZd6jaDG4jRZ9hkoMYyUbkeSDYG/1ldPDg==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Reactive.Providers": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "K9RDgMHsuceX8QTk5ALCgYpexA9qcMsIi4K97Eigqcz9hD6fa4Smrjy8F/m6YdVJZFsBGaZ3uwj+d0loAdMfbA==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Security.Cryptography.ProtectedData": {
++        "type": "Transitive",
++        "resolved": "4.5.0",
++        "contentHash": "wLBKzFnDCxP12VL9ANydSYhk59fC4cvOr9ypYQLPnAj48NQIhqnjdD2yhP8yEKyBJEjERWS9DisKL7rX5eU25Q=="
+       }
+     }
+   }

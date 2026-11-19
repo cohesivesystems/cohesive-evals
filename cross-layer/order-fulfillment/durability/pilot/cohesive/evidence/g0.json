@@ -1,0 +1,152 @@
+{
+  "passed": true,
+  "conditions": [
+    "cohesive"
+  ],
+  "suite": "all",
+  "pairEquivalenceChecked": false,
+  "conditionSpecificExecution": false,
+  "checksPerCondition": 52,
+  "invariantSequences": [
+    {
+      "seed": 17,
+      "commands": 60,
+      "facts": {
+        "inventory": [
+          {
+            "sku": "inv-17-other",
+            "available": 1
+          },
+          {
+            "sku": "inv-17-stock",
+            "available": 0
+          },
+          {
+            "sku": "inv-17-untouched",
+            "available": 11
+          }
+        ],
+        "reservations": [
+          {
+            "id": "inv-17-0",
+            "orderId": "inv-17-0",
+            "sku": "inv-17-stock",
+            "quantity": 3
+          },
+          {
+            "id": "inv-17-1",
+            "orderId": "inv-17-1",
+            "sku": "inv-17-stock",
+            "quantity": 2
+          },
+          {
+            "id": "inv-17-5",
+            "orderId": "inv-17-5",
+            "sku": "inv-17-other",
+            "quantity": 1
+          },
+          {
+            "id": "inv-17-6",
+            "orderId": "inv-17-6",
+            "sku": "inv-17-other",
+            "quantity": 5
+          }
+        ]
+      }
+    },
+    {
+      "seed": 83,
+      "commands": 60,
+      "facts": {
+        "inventory": [
+          {
+            "sku": "inv-83-other",
+            "available": 7
+          },
+          {
+            "sku": "inv-83-stock",
+            "available": 0
+          },
+          {
+            "sku": "inv-83-untouched",
+            "available": 11
+          }
+        ],
+        "reservations": [
+          {
+            "id": "inv-83-0",
+            "orderId": "inv-83-0",
+            "sku": "inv-83-stock",
+            "quantity": 3
+          },
+          {
+            "id": "inv-83-1",
+            "orderId": "inv-83-1",
+            "sku": "inv-83-stock",
+            "quantity": 2
+          }
+        ]
+      }
+    },
+    {
+      "seed": 251,
+      "commands": 60,
+      "facts": {
+        "inventory": [
+          {
+            "sku": "inv-251-other",
+            "available": 5
+          },
+          {
+            "sku": "inv-251-stock",
+            "available": 0
+          },
+          {
+            "sku": "inv-251-untouched",
+            "available": 11
+          }
+        ],
+        "reservations": [
+          {
+            "id": "inv-251-0",
+            "orderId": "inv-251-0",
+            "sku": "inv-251-stock",
+            "quantity": 3
+          },
+          {
+            "id": "inv-251-1",
+            "orderId": "inv-251-1",
+            "sku": "inv-251-stock",
+            "quantity": 2
+          },
+          {
+            "id": "inv-251-4",
+            "orderId": "inv-251-4",
+            "sku": "inv-251-other",
+            "quantity": 2
+          }
+        ]
+      }
+    }
+  ],
+  "invariantCommandsPerCondition": 180,
+  "checkerSeededDefectsRejected": [
+    "negative stock",
+    "double decrement",
+    "duplicate order reservation",
+    "dangling reference",
+    "missing reservation",
+    "unrelated stock mutation"
+  ],
+  "postgresImage": "postgres:17.10-alpine3.24",
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "sdk": "10.0.402",
+  "cohesiveSourceRevision": "b0af008d85871ad8866d7d4311707ecd926529de",
+  "limitations": [
+    "G0 only",
+    "Visible suite plus maintainer invariant checks; full hidden oracle not qualified",
+    "Sequential settled-state checks only; no crash or concurrency qualification",
+    "Independent baseline review pending",
+    "No agent runs"
+  ]
+}

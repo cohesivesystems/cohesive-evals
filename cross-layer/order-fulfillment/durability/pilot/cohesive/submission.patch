@@ -1,0 +1,936 @@
+diff --git a/CONTRACT.md b/CONTRACT.md
+index 9f20a53..c94eb39 100644
+--- a/CONTRACT.md
++++ b/CONTRACT.md
+@@ -39,9 +39,9 @@ database-memory or streaming bound.
+ ## Fulfillment behavior
+ 
+ Exact duplicate requestId and input return the original admission and retained
+-result for the lifetime of this host. A reused requestId with different input
++result across host restarts. A reused requestId with different input
+ returns 409 {code: "RequestIdentityConflict"} and starts no work. No failed
+-operation is retried under the same identity. The host retains at most 1000
++operation is retried under the same identity. The database retains at most 1000
+ admitted requests; additional new identities receive 503 without admission.
+ Existing identities remain replayable at capacity.
+ 
+@@ -67,11 +67,13 @@ preserved. Replayed results do not depend on later state changes.
+ 
+ ## Execution and setup
+ 
+-Admission and result retention last only for this host. Client disconnection
+-cannot cancel admitted work. A single bounded host worker executes admitted
+-operations. Each mutation and its process-step receipt commit together in
+-PostgreSQL; the whole sequence is not one transaction. Independent-intent races
+-and crash recovery are outside this application's declared guarantees.
++Admission and result retention survive abrupt host termination. A caller that
++did not receive an admission response may replay the same request. A single
++background worker recovers pending admissions without a client retry, including
++when the process ended before the result was recorded. The Durable Task
++scheduler retains workflow progress and each mutation and its process-step
++receipt commit together in PostgreSQL. Recovery assumes one host, sequential
++independent intents, and a continuously available database and scheduler.
+ 
+ Inventory and preexisting records can be provisioned before the host starts with
+ --seed FILE and FULFILLMENT_SETUP=1, against a dedicated empty database. The file
+diff --git a/README.md b/README.md
+index 7339d14..d187640 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # Fulfillment service
+ 
+-Requires .NET SDK 10.0.402, Python 3.9+ for the HTTP checks, and PostgreSQL 17.
++Requires .NET SDK 10.0.402, Python 3.9+ for the HTTP checks, PostgreSQL 17, and a Durable Task Scheduler task hub.
+ 
+ ```sh
+ dotnet restore Fulfillment.slnx --locked-mode
+@@ -8,6 +8,7 @@ dotnet build Fulfillment.slnx --no-restore
+ export ConnectionStrings__Orders='Host=127.0.0.1;Database=orders;Username=postgres;Password=local-password'
+ python3 tests/contract_tests.py --seed > /tmp/fulfillment-seed.json
+ FULFILLMENT_SETUP=1 dotnet run --no-build --project src/Fulfillment.Application -- --seed /tmp/fulfillment-seed.json
++export DURABLE_TASK_CONNECTION='Endpoint=http://127.0.0.1:8080;Authentication=None;TaskHub=default'
+ dotnet run --no-build --project src/Fulfillment.Application -- --urls http://127.0.0.1:5080
+ ```
+ 
+@@ -15,10 +16,9 @@ With that fresh host running, execute `python3 tests/contract_tests.py http://12
+ The checks mutate data; use a new database for every complete test run.
+ `CONTRACT.md` describes the public behavior. `schemas.json` specifies wire shapes.
+ 
+-The application separates HTTP and host-lifetime admission from domain decisions,
+-execution and persistence. The host owns its database pool and background worker.
+-Request results and replay identities remain private to that host; PostgreSQL owns
+-entity state and mutation receipts. `Program.cs`, `Contracts.cs` and
+-`OperationQueue.cs` implement transport and admission. Domain and backend files
+-own submission, inventory and workflow behavior. Read projections return current
+-persisted facts. There is no implicit rollback of the whole fulfillment sequence.
++PostgreSQL stores each admitted request before the host returns HTTP 202. The
++background worker recovers outstanding rows in admission order, starts or
++reattaches to their stable scheduler instances, and records terminal outcomes.
++The Durable Task realization runs the canonical fulfillment process. Its
++PostgreSQL transitions commit each business mutation and replay receipt together.
++Restart with the same database and task hub to resume outstanding work.
+diff --git a/dependency-manifest.json b/dependency-manifest.json
+index b4215cc..22a28e8 100644
+--- a/dependency-manifest.json
++++ b/dependency-manifest.json
+@@ -6,10 +6,22 @@
+       "file": "Cohesive.0.1.0-eval.b0af008.nupkg",
+       "sha256": "9fd5f2eb851d68188b960b990f1b87c74819c1b627487c8b83c551bd9a3094eb"
+     },
++    {
++      "file": "Cohesive.AI.0.1.0-eval.b0af008.nupkg",
++      "sha256": "d7f4386dcd7a14bbe0326c2795c98157064fd02a451c28e0d1bccd42105b7353"
++    },
+     {
+       "file": "Cohesive.Adapters.AspNet.0.1.0-eval.b0af008.nupkg",
+       "sha256": "bbd437fba3ade30544b805e373b19b3fadefe52ae5e697ff6818c960b4e4b9ea"
+     },
++    {
++      "file": "Cohesive.Adapters.AzureStorage.0.1.0-eval.b0af008.nupkg",
++      "sha256": "86d7c3eeeeb5523a82a6155cac0494e187ca8bb0362bc042f073896f340c2242"
++    },
++    {
++      "file": "Cohesive.Adapters.DurableTask.0.1.0-eval.b0af008.nupkg",
++      "sha256": "b898f710a02ee66010acb1d731439e3c04d315ce1d3eebcd5577859755dbc57b"
++    },
+     {
+       "file": "Cohesive.Adapters.Postgres.0.1.0-eval.b0af008.nupkg",
+       "sha256": "e5db42df78b6931ad3f531ad2a3712e92c11ea2372f9b01060c7986b9a39de11"
+diff --git a/src/Fulfillment.Application/Contracts.cs b/src/Fulfillment.Application/Contracts.cs
+index 858fecf..9dd61df 100644
+--- a/src/Fulfillment.Application/Contracts.cs
++++ b/src/Fulfillment.Application/Contracts.cs
+@@ -19,7 +19,6 @@ public interface IFulfillmentBackend
+     Task<OrderSummary?> GetOrder(string id);
+     Task<InventoryView?> GetInventory(string sku);
+     Task<OrderDetailsView?> GetDetails(string id);
+-    Task<Completion> Fulfill(string operationId, FulfillmentRequest request);
+     void MapSubmit(WebApplication app);
+ }
+ 
+diff --git a/src/Fulfillment.Application/Fulfillment.Application.csproj b/src/Fulfillment.Application/Fulfillment.Application.csproj
+index 88a4712..fcc36af 100644
+--- a/src/Fulfillment.Application/Fulfillment.Application.csproj
++++ b/src/Fulfillment.Application/Fulfillment.Application.csproj
+@@ -1,5 +1,8 @@
+ <Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup><AssemblyName>Fulfillment.Application</AssemblyName><RootNamespace>Fulfillment.Application</RootNamespace></PropertyGroup><ItemGroup><PackageReference Include="Npgsql" Version="[10.0.3]" /></ItemGroup><ItemGroup>
+ <PackageReference Include="Cohesive.Adapters.Postgres.Services" Version="[0.1.0-eval.b0af008]" />
+ <PackageReference Include="Cohesive.Adapters.AspNet" Version="[0.1.0-eval.b0af008]" />
++<PackageReference Include="Cohesive.Adapters.DurableTask" Version="[0.1.0-eval.b0af008]" />
++<PackageReference Include="Microsoft.DurableTask.Client.AzureManaged" Version="[1.25.0]" />
++<PackageReference Include="Microsoft.DurableTask.Worker.AzureManaged" Version="[1.25.0]" />
+ <PackageReference Include="Cohesive.Analyzers" Version="[0.1.0-eval.b0af008]" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+ </ItemGroup></Project>
+diff --git a/src/Fulfillment.Application/FulfillmentActivityHost.cs b/src/Fulfillment.Application/FulfillmentActivityHost.cs
+new file mode 100644
+index 0000000..acbf0c5
+--- /dev/null
++++ b/src/Fulfillment.Application/FulfillmentActivityHost.cs
+@@ -0,0 +1,70 @@
++using Cohesive.Identity;
++using Cohesive.Prelude;
++using Cohesive.Processes.Execution;
++
++namespace Fulfillment.Application;
++
++internal sealed class FulfillmentActivityHost(IAsyncProcessReferenceHost inner) : IAsyncProcessReferenceHost
++{
++    public async ValueTask<ProcessOperationResult> InvokeTransitionAsync(OperationContext context, ProcessTransitionInvocation invocation)
++    {
++        var point = invocation.Definition.DefinitionId.Value switch
++        {
++            "fulfillment/reserve" => "reserve",
++            "example/order/submit" => "submit",
++            "fulfillment/reservation/create" => "reservation",
++            "fulfillment/release" => "release",
++            _ => null
++        };
++        if (point == "reserve")
++            EvaluationHooks.FailBeforeReserve();
++        var result = await inner.InvokeTransitionAsync(context.WithIdentityContext(FulfillmentDemoIdentity.Context), invocation);
++        // A successfully executed transition may still be a domain rejection.
++        // Match only its applied domain outcome before exposing a post-commit barrier.
++        if (point is not null && EvaluationHooks.Enabled("after-" + point) && result.IsSuccessful
++            && result.Value?.Value is { } output)
++        {
++            var applied = point switch
++            {
++                "reserve" => output.Deserialize<StockResult>()?.Outcome == StockOutcome.Reserved,
++                "submit" => output.Deserialize<SubmitOrderResult>()?.Outcome == SubmissionOutcome.Submitted,
++                "reservation" => output.Deserialize<ReservationCreationOutcome>() == ReservationCreationOutcome.Created,
++                "release" => output.Deserialize<StockResult>()?.Outcome == StockOutcome.Released,
++                _ => false
++            };
++            if (applied) await EvaluationHooks.Block("after-" + point);
++        }
++        return result;
++    }
++
++    public ValueTask<ProcessOperationResult> EvaluateRelationAsync(OperationContext context, ProcessRelationEvaluation evaluation) =>
++        inner.EvaluateRelationAsync(context.WithIdentityContext(FulfillmentDemoIdentity.Context), evaluation);
++
++    public ValueTask<ProcessSignalTargetResult> ResolveSignalTargetAsync(OperationContext context, ProcessSignalTargetResolution resolution) =>
++        inner.ResolveSignalTargetAsync(context.WithIdentityContext(FulfillmentDemoIdentity.Context), resolution);
++}
++
++internal static class EvaluationHooks
++{
++    public static bool Enabled(string point) => Environment.GetEnvironmentVariable("EVAL_CRASH_POINT") == point;
++
++    public static async Task Block(string point)
++    {
++        if (!Enabled(point)) return;
++        var path = Environment.GetEnvironmentVariable("EVAL_CRASH_MARKER") ?? throw new InvalidOperationException("Missing crash marker path.");
++        await File.WriteAllTextAsync(path, point);
++        await Task.Delay(Timeout.InfiniteTimeSpan);
++    }
++
++    public static void FailBeforeReserve()
++    {
++        if (Environment.GetEnvironmentVariable("EVAL_FAIL_POINT") != "before-reserve") return;
++        var path = Environment.GetEnvironmentVariable("EVAL_FAIL_MARKER") ?? throw new InvalidOperationException("Missing failure marker path.");
++        try
++        {
++            using var marker = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
++        }
++        catch (IOException) when (File.Exists(path)) { return; }
++        throw new InvalidOperationException("Injected activity failure before reserve.");
++    }
++}
+diff --git a/src/Fulfillment.Application/FulfillmentBackend.cs b/src/Fulfillment.Application/FulfillmentBackend.cs
+index 111619f..edf38d9 100644
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -1,3 +1,5 @@
++using Cohesive.Adapters.DurableTask;
++using Cohesive.Processes.Execution;
+ using Cohesive.Adapters.Postgres;
+ using Cohesive.Adapters.Postgres.Services;
+ using Cohesive.Adapters.Sql;
+@@ -22,7 +24,10 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+     IEntityRepository<InventoryItem> inventory = null!;
+     IEntityRepository<Reservation> reservations = null!;
+     PostgresQueryReader<string, OrderDetails?> details = null!;
+-    HostedServiceProcess<FulfillOrder, FulfillmentResult> hosted = null!;
++    public PreparedServiceProcess Prepared { get; private set; } = null!;
++    public DurableTaskSequentialProcessPlanCatalog Catalog { get; private set; } = null!;
++    public static readonly InteractionAuthorityScope Authority = new("fulfillment", "local");
++    ExecutionProvenance provenance = null!;
+     static OperationContext Context() => OperationContext.Create().WithIdentityContext(FulfillmentDemoIdentity.Context);
+ 
+     public async Task Initialize()
+@@ -54,11 +59,14 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+         // Adapter decoded-row limits must not reject an otherwise allowed response.
+         details = persistence.Query(new FulfillmentQueries(domain).OrderDetails, maximumRows: int.MaxValue - 1, maximumBytes: long.MaxValue);
+         var process = new FulfillmentProcess(domain);
+-        hosted = Service.Define(new("fulfillment"), new("1"), process.Provenance)
+-            .Use(new ServiceDependencies().Process(process))
+-            .Operation("fulfill").Require(new("fulfillment.write")).Run(process.Definition).ExecuteEphemerally(TimeSpan.FromSeconds(15))
+-            .Bind(process.Definition, RepositoryBindings.Resolve(orders, inventory, reservations))
+-            .Build("fulfillment", new IdentityServiceInvocationAuthorization("demo", new(FulfillmentDomain.PartitionField)));
++        provenance = process.Provenance;
++        var service = Service.Define(new("fulfillment"), new("1"), provenance)
++            .Use(new ServiceDependencies().Process(process));
++        service = service.Operation("fulfill").Require(new("fulfillment.write")).Run(process.Definition).ReturnAfterDurableAdmission();
++        Prepared = service.PrepareProcess(process.Definition, RepositoryBindings.Resolve(orders, inventory, reservations));
++        var realization = DurableTaskProcessRealizationCompiler.CompileExecutable(Prepared.Plan);
++        Catalog = new([realization.Plan ?? throw new InvalidOperationException(
++            string.Join("; ", realization.Realization.Diagnostics.Select(d => d.Message)))]);
+     }
+     public async Task Seed(SeedData data)
+     {
+@@ -100,12 +108,18 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+                 .Conflict(SubmissionOutcome.NotDraft, "Order cannot be submitted", "Order must be Draft.")
+                 .NotRejected(SubmissionOutcome.Submitted)));
+     }
+-    public async Task<Completion> Fulfill(string operationId, FulfillmentRequest request)
++    public DurableTaskSequentialProcessStart Start(string id, DateTimeOffset admitted, FulfillmentRequest request)
+     {
+-        var result = await hosted.Runtime.ExecuteProcessAsync(Context(), "fulfill", new(new(operationId), new("attempt/1")),
++        ProcessInstanceId instance = new(id);
++        ProcessControlCommandContext command = new(new(id), new(id), instance,
++            new("local-demo", Authority, "local-example"), admitted, provenance);
++        var input = PortableValue.Concrete(Prepared.Plan.Definition.Input,
+             ObservationValue.FromObject(new FulfillOrder(request.OrderId, request.Sku, request.Quantity)));
+-        if (result.Kind != ApiResultKind.Success) throw new InvalidOperationException("Process execution did not succeed.");
+-        return ProcessCompletion.Read(result.Outcome?.Decision.State.Terminal);
++        ProcessStartRequest start = new(ProcessStartRequest.CurrentSchemaVersion, Prepared.Plan.DefinitionReference,
++            command, new(instance, new("attempt/1")), input);
++        ProcessActivationContext activation = new(Authority, new(id),
++            new(InteractionDurabilityDemand.Durable, InteractionVisibilityDemand.AfterOriginCommit), provenance);
++        return new(new(start, admitted), activation);
+     }
+ }
+ 
+diff --git a/src/Fulfillment.Application/OperationQueue.cs b/src/Fulfillment.Application/OperationQueue.cs
+index 2f331a4..ca70f67 100644
+--- a/src/Fulfillment.Application/OperationQueue.cs
++++ b/src/Fulfillment.Application/OperationQueue.cs
+@@ -1,74 +1,150 @@
+-using System.Threading.Channels;
++using System.Text;
++using System.Text.Json;
++using Cohesive.Adapters.DurableTask;
++using Microsoft.DurableTask.Client;
++using Npgsql;
+ 
+ namespace Fulfillment.Application;
+ 
+-// Admission and completed results live only for this host lifetime. Execution is
+-// bounded and owned by the host; a client disconnect does not cancel admitted work.
+-public sealed class OperationQueue(IFulfillmentBackend backend, ILogger<OperationQueue> logger) : BackgroundService
++// The admission row is also the dispatch outbox. It is never deleted, so a result
++// remains available independently of provider history once it has been projected.
++public sealed class OperationQueue(NpgsqlDataSource database, FulfillmentBackend backend, DurableTaskClient client,
++    ILogger<OperationQueue> logger) : BackgroundService
+ {
+-    sealed class Entry(FulfillmentRequest request, Admission admission)
++    readonly SemaphoreSlim admissionGate = new(1);
++    sealed record Pending(string Id, DateTimeOffset Accepted, FulfillmentRequest Request);
++
++    public async Task Initialize()
+     {
+-        public FulfillmentRequest Request { get; } = request;
+-        public Admission Admission { get; } = admission;
+-        public Completion? Result { get; set; }
+-        public bool Failed { get; set; }
++        await using var command = database.CreateCommand("""
++            CREATE TABLE IF NOT EXISTS fulfillment_operations (
++                ordinal bigint GENERATED ALWAYS AS IDENTITY UNIQUE,
++                operation_id text COLLATE "C" PRIMARY KEY,
++                request_key bytea NOT NULL,
++                request_body text NOT NULL,
++                accepted_at timestamptz NOT NULL DEFAULT now(),
++                failed boolean NOT NULL DEFAULT false,
++                result_body text
++            )
++            """);
++        await command.ExecuteNonQueryAsync();
+     }
+-    readonly object gate = new();
+-    readonly Dictionary<string, Entry> requests = new(StringComparer.Ordinal);
+-    readonly Dictionary<string, Entry> operations = new(StringComparer.Ordinal);
+-    readonly Channel<Entry> work = Channel.CreateBounded<Entry>(new BoundedChannelOptions(1000)
+-        { SingleReader = true, FullMode = BoundedChannelFullMode.Wait });
+ 
+-    public IResult Admit(FulfillmentRequest request)
++    public async Task<IResult> Admit(FulfillmentRequest request)
+     {
+         if (string.IsNullOrWhiteSpace(request.RequestId) || string.IsNullOrWhiteSpace(request.OrderId)
+             || string.IsNullOrWhiteSpace(request.Sku)) return Results.BadRequest(new ErrorResponse("InvalidRequest"));
+-        lock (gate)
++        // One application host serializes admission, including the capacity check and commit.
++        await admissionGate.WaitAsync();
++        try
+         {
+-            if (requests.TryGetValue(request.RequestId, out var previous))
+-                return previous.Request == request ? Results.Json(previous.Admission, statusCode: 202)
+-                    : Results.Conflict(new ErrorResponse("RequestIdentityConflict"));
+-            // Retain every admitted identity until shutdown; do not evict replay evidence.
+-            if (requests.Count >= 1000) return Results.StatusCode(503);
+-            var id = Guid.NewGuid().ToString("N");
+-            var entry = new Entry(request, new Admission(id, $"/fulfillment/results/{id}"));
+-            requests.Add(request.RequestId, entry);
+-            operations.Add(id, entry);
+-            if (!work.Writer.TryWrite(entry))
++            await using var connection = await database.OpenConnectionAsync();
++            await using var transaction = await connection.BeginTransactionAsync();
++            var key = Encoding.UTF8.GetBytes(request.RequestId);
++            await using (var lookup = new NpgsqlCommand(
++                "SELECT operation_id, request_body FROM fulfillment_operations WHERE request_key = $1", connection, transaction))
+             {
+-                requests.Remove(request.RequestId); operations.Remove(id);
+-                return Results.StatusCode(503);
++                lookup.Parameters.AddWithValue(key);
++                await using var reader = await lookup.ExecuteReaderAsync();
++                if (await reader.ReadAsync())
++                    return JsonSerializer.Deserialize<FulfillmentRequest>(reader.GetString(1)) == request
++                        ? Accepted(reader.GetString(0)) : Results.Conflict(new ErrorResponse("RequestIdentityConflict"));
+             }
+-            return Results.Json(entry.Admission, statusCode: 202);
++            await using var count = new NpgsqlCommand("SELECT count(*) FROM fulfillment_operations", connection, transaction);
++            if ((long)(await count.ExecuteScalarAsync())! >= 1000) return Results.StatusCode(503);
++            var id = Guid.NewGuid().ToString("N");
++            await using var insert = new NpgsqlCommand("""
++                INSERT INTO fulfillment_operations (operation_id, request_key, request_body) VALUES ($1, $2, $3)
++                """, connection, transaction);
++            insert.Parameters.AddWithValue(id);
++            insert.Parameters.AddWithValue(key);
++            insert.Parameters.AddWithValue(JsonSerializer.Serialize(request));
++            await insert.ExecuteNonQueryAsync();
++            await EvaluationHooks.Block("before-admission-commit");
++            await transaction.CommitAsync();
++            await EvaluationHooks.Block("after-admission-commit");
++            return Accepted(id);
+         }
++        finally { admissionGate.Release(); }
+     }
+-    public IResult Result(string id)
++
++    static IResult Accepted(string id) => Results.Json(new Admission(id, $"/fulfillment/results/{id}"), statusCode: 202);
++
++    public async Task<IResult> Result(string id)
+     {
+-        lock (gate)
++        await using var command = database.CreateCommand("SELECT failed, result_body FROM fulfillment_operations WHERE operation_id = $1");
++        command.Parameters.AddWithValue(id);
++        await using var reader = await command.ExecuteReaderAsync();
++        if (!await reader.ReadAsync()) return Results.NotFound();
++        if (reader.GetBoolean(0)) return Results.Json(new ErrorResponse("ExecutionFailed"), statusCode: 500);
++        return reader.IsDBNull(1) ? Results.StatusCode(202) : Results.Ok(JsonSerializer.Deserialize<Completion>(reader.GetString(1)));
++    }
++
++    async Task<Pending?> Next(CancellationToken stop)
++    {
++        await admissionGate.WaitAsync(stop);
++        try
+         {
+-            if (!operations.TryGetValue(id, out var entry)) return Results.NotFound();
+-            if (entry.Failed) return Results.Json(new ErrorResponse("ExecutionFailed"), statusCode: 500);
+-            return entry.Result is { } result ? Results.Ok(result) : Results.StatusCode(202);
++            await using var command = database.CreateCommand("""
++                SELECT operation_id, accepted_at, request_body FROM fulfillment_operations
++                WHERE result_body IS NULL AND NOT failed ORDER BY ordinal LIMIT 1
++                """);
++            await using var reader = await command.ExecuteReaderAsync(stop);
++            return await reader.ReadAsync(stop) ? new(reader.GetString(0), reader.GetFieldValue<DateTimeOffset>(1),
++                JsonSerializer.Deserialize<FulfillmentRequest>(reader.GetString(2))!) : null;
+         }
++        finally { admissionGate.Release(); }
+     }
++
+     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+     {
+-        try
++        while (!stoppingToken.IsCancellationRequested)
+         {
+-            await foreach (var entry in work.Reader.ReadAllAsync(stoppingToken))
++            try
++            {
++                if (await Next(stoppingToken) is { } item) await Dispatch(item, stoppingToken);
++                else await Task.Delay(100, stoppingToken);
++            }
++            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
++            catch (Exception ex)
+             {
+-                try
+-                {
+-                    var result = await backend.Fulfill(entry.Admission.OperationId, entry.Request);
+-                    lock (gate) entry.Result = result;
+-                }
+-                catch (Exception ex)
+-                {
+-                    logger.LogError(ex, "Fulfillment execution failed: {OperationId}", entry.Admission.OperationId);
+-                    lock (gate) entry.Failed = true;
+-                }
++                // Uncertain scheduler/DB communication never proves a business or engine failure.
++                logger.LogError(ex, "Could not reconcile pending fulfillment");
++                await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+             }
+         }
+-        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
++    }
++
++    async Task Dispatch(Pending item, CancellationToken stop)
++    {
++        var physical = DurableTaskProcessExecutionIdentity.GetPhysicalInstanceId(FulfillmentBackend.Authority, new(item.Id));
++        var instance = await client.GetInstanceAsync(physical, getInputsAndOutputs: true, cancellation: stop);
++        if (instance is null)
++        {
++            await EvaluationHooks.Block("before-dispatch");
++            await client.ScheduleCohesiveProcessAsync(backend.Start(item.Id, item.Accepted, item.Request), stop);
++        }
++        if (instance?.IsCompleted != true)
++            instance = await client.WaitForInstanceCompletionAsync(physical, getInputsAndOutputs: true, cancellation: stop);
++        Completion? result = null;
++        if (instance.RuntimeStatus == OrchestrationRuntimeStatus.Completed)
++        {
++            var execution = instance.ReadOutputAs<DurableTaskSequentialProcessResult>();
++            if (execution?.State.Terminal?.Kind == Cohesive.Execution.ExecutionTerminalOutcomeKind.Completed)
++                result = ProcessCompletion.Read(execution.State.Terminal);
++        }
++
++        await using var connection = await database.OpenConnectionAsync(stop);
++        await using var transaction = await connection.BeginTransactionAsync(stop);
++        await using var save = new NpgsqlCommand("""
++            UPDATE fulfillment_operations SET failed = $2, result_body = $3 WHERE operation_id = $1
++            """, connection, transaction);
++        save.Parameters.AddWithValue(item.Id);
++        save.Parameters.AddWithValue(result is null);
++        save.Parameters.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Text,
++            Value = result is null ? DBNull.Value : JsonSerializer.Serialize(result) });
++        await save.ExecuteNonQueryAsync(stop);
++        await EvaluationHooks.Block("before-result-commit");
++        await transaction.CommitAsync(stop);
+     }
+ }
+diff --git a/src/Fulfillment.Application/Program.cs b/src/Fulfillment.Application/Program.cs
+index ce221e9..c3dac2c 100644
+--- a/src/Fulfillment.Application/Program.cs
++++ b/src/Fulfillment.Application/Program.cs
+@@ -1,5 +1,11 @@
+ using Fulfillment.Application;
+ using Npgsql;
++using Cohesive.Adapters.DurableTask;
++using Cohesive.Processes.Execution;
++using Microsoft.DurableTask.Worker;
++using Microsoft.DurableTask.Client;
++using Microsoft.DurableTask.Client.AzureManaged;
++using Microsoft.DurableTask.Worker.AzureManaged;
+ using System.Text.Json.Serialization;
+ 
+ var builder = WebApplication.CreateBuilder(args);
+@@ -11,9 +17,28 @@ builder.Services.ConfigureHttpJsonOptions(options =>
+     options.SerializerOptions.RespectRequiredConstructorParameters = true;
+ });
+ builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(connection));
+-builder.Services.AddSingleton<IFulfillmentBackend, FulfillmentBackend>();
+-builder.Services.AddSingleton<OperationQueue>();
+-builder.Services.AddHostedService(provider => provider.GetRequiredService<OperationQueue>());
++builder.Services.AddSingleton<FulfillmentBackend>();
++builder.Services.AddSingleton<IFulfillmentBackend>(provider => provider.GetRequiredService<FulfillmentBackend>());
++if (builder.Configuration["seed"] is null)
++{
++    var scheduler = Environment.GetEnvironmentVariable("DURABLE_TASK_CONNECTION")
++        ?? throw new InvalidOperationException("Set DURABLE_TASK_CONNECTION to the scheduler connection string.");
++    builder.Services.AddSingleton<IAsyncProcessReferenceHost>(provider =>
++        new FulfillmentActivityHost(provider.GetRequiredService<FulfillmentBackend>().Prepared.Host));
++    builder.Services.AddDurableTaskClient(client =>
++    {
++        client.UseDurableTaskScheduler(scheduler);
++        client.Configure(options => options.DataConverter = DurableTaskProcessDataConverter.Create());
++    });
++    builder.Services.AddDurableTaskWorker(worker =>
++    {
++        worker.UseDurableTaskScheduler(scheduler);
++        worker.Configure(options => options.DataConverter = DurableTaskProcessDataConverter.Create());
++        worker.AddCohesiveSequentialProcesses(provider => provider.GetRequiredService<FulfillmentBackend>().Catalog);
++    });
++    builder.Services.AddSingleton<OperationQueue>();
++    builder.Services.AddHostedService(provider => provider.GetRequiredService<OperationQueue>());
++}
+ HostSetup.Configure(builder.Services);
+ var app = builder.Build();
+ await app.Services.GetRequiredService<IFulfillmentBackend>().Initialize();
+@@ -29,6 +54,7 @@ if (builder.Configuration["seed"] is { } seedFile)
+     await app.DisposeAsync();
+     return;
+ }
++await app.Services.GetRequiredService<OperationQueue>().Initialize();
+ HostSetup.Configure(app);
+ // The local fixture has one host-provided identity/scope. It exposes no seed,
+ // reset or arbitrary SQL route, and never derives identity from request JSON.
+diff --git a/src/Fulfillment.Application/packages.lock.json b/src/Fulfillment.Application/packages.lock.json
+index 1bfeb4e..947010d 100644
+--- a/src/Fulfillment.Application/packages.lock.json
++++ b/src/Fulfillment.Application/packages.lock.json
+@@ -19,6 +19,23 @@
+           "Cohesive.Storage": "0.1.0-eval.b0af008"
+         }
+       },
++      "Cohesive.Adapters.DurableTask": {
++        "type": "Direct",
++        "requested": "[0.1.0-eval.b0af008, 0.1.0-eval.b0af008]",
++        "resolved": "0.1.0-eval.b0af008",
++        "contentHash": "GRoG0bEXO6DC/0/dm/wVrPbsrxVJmIZKEmTbBzaqymQQqtQ3Bt7bHFkYtKgjar/uUJxppBCzx0YXvFEMnx6f9Q==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.b0af008",
++          "Cohesive.Adapters.AzureStorage": "0.1.0-eval.b0af008",
++          "Cohesive.Api.Execution": "0.1.0-eval.b0af008",
++          "Cohesive.Processes": "0.1.0-eval.b0af008",
++          "Microsoft.Azure.DurableTask.AzureStorage": "2.9.1",
++          "Microsoft.Azure.DurableTask.Core": "3.9.0",
++          "Microsoft.DurableTask.Client.AzureManaged": "1.25.0",
++          "Microsoft.DurableTask.Worker.AzureManaged": "1.25.0",
++          "System.Linq.Async": "6.0.1"
++        }
++      },
+       "Cohesive.Adapters.Postgres.Services": {
+         "type": "Direct",
+         "requested": "[0.1.0-eval.b0af008, 0.1.0-eval.b0af008]",
+@@ -35,12 +52,94 @@
+         "resolved": "0.1.0-eval.b0af008",
+         "contentHash": "kysgeKYzUxnNLQuq4+q5hu4xxXZ6PqCpG2ICU0xuPT4Ln/9OakIW0LB6pzzBzY6pEiMTLp2HDmu5BwRcH0Phrw=="
+       },
++      "Microsoft.DurableTask.Client.AzureManaged": {
++        "type": "Direct",
++        "requested": "[1.25.0, 1.25.0]",
++        "resolved": "1.25.0",
++        "contentHash": "edNP1DOyW8H8T30hwcHUFSiCsMlwDLQFxBTRQAd6S4NbTUVtfDvjnLlwwym58HZWCa4UuvVlhVQQh7JaMzuZQg==",
++        "dependencies": {
++          "Azure.Identity": "1.21.0",
++          "Grpc.Net.Client": "2.80.0",
++          "Microsoft.DurableTask.Client.Grpc": "1.25.0"
++        }
++      },
++      "Microsoft.DurableTask.Worker.AzureManaged": {
++        "type": "Direct",
++        "requested": "[1.25.0, 1.25.0]",
++        "resolved": "1.25.0",
++        "contentHash": "tegVSulbEd9yuwze03HQt6maAyU8SqUltGD9HNN0ZT+AG6uZ50JWFBbXd6QygAYwcDPd4goUiZ7BY/EZ7BdrMw==",
++        "dependencies": {
++          "Azure.Identity": "1.21.0",
++          "Grpc.Net.Client": "2.80.0",
++          "Microsoft.DurableTask.Worker.Grpc": "1.25.0"
++        }
++      },
+       "Npgsql": {
+         "type": "Direct",
+         "requested": "[10.0.3, 10.0.3]",
+         "resolved": "10.0.3",
+         "contentHash": "7nb5YzXuvWWJxB0J8DiyL3we+X4FOctZrt0fIBnucOIaIevFEEwGQVZKtiu9olXdlNAK1eNgqSral6r/jlhI4w=="
+       },
++      "Azure.Core": {
++        "type": "Transitive",
++        "resolved": "1.53.0",
++        "contentHash": "x9c/toFMOtRrlTdFuE7rlGCVAduQzWVfKmLz5juj41zJAXEhYD5hluiUyyAEzJ6OxpBnKtiaBztzwpZITAVjtg==",
++        "dependencies": {
++          "Microsoft.Bcl.AsyncInterfaces": "10.0.3",
++          "Microsoft.Identity.Client": "4.83.1",
++          "Microsoft.Identity.Client.Extensions.Msal": "4.83.1",
++          "System.ClientModel": "1.10.0",
++          "System.Memory.Data": "10.0.3"
++        }
++      },
++      "Azure.Data.Tables": {
++        "type": "Transitive",
++        "resolved": "12.11.0",
++        "contentHash": "MabH2HegMvZA1ocaMhEfW/idyTa3CoH64s43/V9/KFRGdVqEj0EETvd3ItDe6Bbs2teiR40KE9Kz9NLDc5DJJw==",
++        "dependencies": {
++          "Azure.Core": "1.44.1"
++        }
++      },
++      "Azure.Identity": {
++        "type": "Transitive",
++        "resolved": "1.21.0",
++        "contentHash": "GeFv8sGwRKvDKwI2WFy8r0mhmlxEVZg24Sit2NogTjiSO8RVjllWM65OT6e1sKjOvG8V74y7hAbaELUUPjZQSw==",
++        "dependencies": {
++          "Azure.Core": "1.53.0"
++        }
++      },
++      "Azure.Storage.Blobs": {
++        "type": "Transitive",
++        "resolved": "12.27.0",
++        "contentHash": "zI5rg1tTtnA8T2g2/21l+1iIUdDjpEQQ0FI1BabJVEQJ1JUyTQKrc41eNabAHs0SBHprl6pu/6OqIMK9Ve+4tQ==",
++        "dependencies": {
++          "Azure.Core": "1.50.0",
++          "Azure.Storage.Common": "12.26.0"
++        }
++      },
++      "Azure.Storage.Common": {
++        "type": "Transitive",
++        "resolved": "12.26.0",
++        "contentHash": "XaT6CDcSshZb7KaCTwc6m4EouZbLBg7ciOEpsJSdJCvkNsZJQCvPKw7V5TtXno19AA1NpwtsZriYque8mzbQVg==",
++        "dependencies": {
++          "Azure.Core": "1.50.0",
++          "System.IO.Hashing": "10.0.1"
++        }
++      },
++      "Azure.Storage.Queues": {
++        "type": "Transitive",
++        "resolved": "12.22.0",
++        "contentHash": "HPQgOlfH+rJ4CL4V8ePFnsT/KKnvLU35ytxC3fsTTqOazhQ0593C0aPVu258DRN8bQCbx4OpNpjtiO9czDy3VQ==",
++        "dependencies": {
++          "Azure.Storage.Common": "12.23.0",
++          "System.Memory.Data": "6.0.1"
++        }
++      },
++      "Castle.Core": {
++        "type": "Transitive",
++        "resolved": "5.2.1",
++        "contentHash": "wHARzQA695jwwKreOzNsq54KiGqKP38tv8hi8e2FXDEC/sA6BtrX90tVPDkOfVu13PbEzr00TCV8coikl+D1Iw=="
++      },
+       "Cohesive": {
+         "type": "Transitive",
+         "resolved": "0.1.0-eval.b0af008",
+@@ -49,6 +148,16 @@
+           "Microsoft.Extensions.AsyncState": "10.0.0"
+         }
+       },
++      "Cohesive.Adapters.AzureStorage": {
++        "type": "Transitive",
++        "resolved": "0.1.0-eval.b0af008",
++        "contentHash": "RxQH9a6dQhZzzhTVF0D8MLZMJAiUTI1dt6QBitenZr8lvCSiyrvJOvK87z7QUeFMj1c6n5McpC2/2etlxM3wsA==",
++        "dependencies": {
++          "Azure.Storage.Blobs": "12.24.0",
++          "Cohesive.AI": "0.1.0-eval.b0af008",
++          "Microsoft.Extensions.Azure": "1.13.1"
++        }
++      },
+       "Cohesive.Adapters.Postgres": {
+         "type": "Transitive",
+         "resolved": "0.1.0-eval.b0af008",
+@@ -78,6 +187,14 @@
+           "Cohesive": "0.1.0-eval.b0af008"
+         }
+       },
++      "Cohesive.AI": {
++        "type": "Transitive",
++        "resolved": "0.1.0-eval.b0af008",
++        "contentHash": "BOJZFiynj/AopYt13IxsbnelylNkJy6vBsQTnakGmBsffJcqqLsxOAAE0AppMg1pZiIq8uzESTiLt3r3CU6FUA==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.b0af008"
++        }
++      },
+       "Cohesive.Api": {
+         "type": "Transitive",
+         "resolved": "0.1.0-eval.b0af008",
+@@ -220,6 +337,117 @@
+           "Cohesive.Relations": "0.1.0-eval.b0af008"
+         }
+       },
++      "Google.Protobuf": {
++        "type": "Transitive",
++        "resolved": "3.33.5",
++        "contentHash": "XEzLpCTosZb5I6eGSPn7rAES0VfkJkn3Cqydh0W39POdZwkdhPhOmAROTFJF9g0ardst4ulNXRm/q/iXwNu+Qw=="
++      },
++      "Grpc.Core.Api": {
++        "type": "Transitive",
++        "resolved": "2.80.0",
++        "contentHash": "i/8s+MOrYa6n7BmZ5bilcbHk+EMJDQHm2MKLhwGAT+urQqlZ6cpjvSivYvuULjebuX+UKieLYZbLRCmVQxFRkw=="
++      },
++      "Grpc.Net.Client": {
++        "type": "Transitive",
++        "resolved": "2.80.0",
++        "contentHash": "I1Aa24nTRMHqx0pmQfvthFsOpejquDjiJV6092KBqjw6EEr3wA9CMXlrdkoEgHartOiJrpKyZiQRl7n0NVlfBg==",
++        "dependencies": {
++          "Grpc.Net.Common": "2.80.0"
++        }
++      },
++      "Grpc.Net.Common": {
++        "type": "Transitive",
++        "resolved": "2.80.0",
++        "contentHash": "E2ERsx+9IXlry4yjBl8btx0XMIKzymGNSvX5jmBS/uSwYyYDoKIDcIREyLqFLvd8vcJdcoRlycpvn9YRXutFpQ==",
++        "dependencies": {
++          "Grpc.Core.Api": "2.80.0"
++        }
++      },
++      "Microsoft.Azure.DurableTask.AzureStorage": {
++        "type": "Transitive",
++        "resolved": "2.9.1",
++        "contentHash": "lfCjGsc6KRRnYC1NZNmdpDJyyNqO4VgnwpUG3qIIhZbAhdLdjwQiMGAIe2qdb6WTRgPlA6vMPfrT857YH83KiA==",
++        "dependencies": {
++          "Azure.Data.Tables": "12.11.0",
++          "Azure.Storage.Blobs": "12.27.0",
++          "Azure.Storage.Queues": "12.22.0",
++          "Microsoft.Azure.DurableTask.Core": "3.9.0",
++          "Microsoft.Bcl.AsyncInterfaces": "8.0.0",
++          "System.Linq.Async": "6.0.1"
++        }
++      },
++      "Microsoft.Azure.DurableTask.Core": {
++        "type": "Transitive",
++        "resolved": "3.9.0",
++        "contentHash": "wnB/MYS/qlYM87O1JMbIdhQW5qtFx4VEpVQ95l7D5NZSku9upjelHJ3jlmuhdIwpInMqVaPGcCd8E3fmmmgV5w==",
++        "dependencies": {
++          "Castle.Core": "5.2.1",
++          "Newtonsoft.Json": "13.0.1",
++          "System.Reactive.Compatibility": "4.4.1",
++          "System.Reactive.Core": "4.4.1"
++        }
++      },
++      "Microsoft.Bcl.AsyncInterfaces": {
++        "type": "Transitive",
++        "resolved": "10.0.3",
++        "contentHash": "TV62UsrJZPX6gbt3c4WrtXh7bmaDIcMqf9uft1cc4L6gJXOU07hDGEh+bFQh/L2Az0R1WVOkiT66lFqS6G2NmA=="
++      },
++      "Microsoft.DurableTask.Abstractions": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "vpIRvPSQ0jvtjsDGo7k84IWIRfXn1yMvLe1KpJzG8CoHRS2N1Mx+WaOGRhPcBmf1631GgEL9FKkRNQumSnEAkw==",
++        "dependencies": {
++          "Microsoft.Azure.DurableTask.Core": "3.9.0",
++          "Microsoft.Bcl.AsyncInterfaces": "9.0.1"
++        }
++      },
++      "Microsoft.DurableTask.Client": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "u+iQqStb+y1CGTCOPR7K0zp3QRF1qXCJx+GtI+AJP8Y5/ovimrkxWOe7Gq4GPr2oGtkSzQ5MLh8txuE86o4UQA==",
++        "dependencies": {
++          "Microsoft.DurableTask.Abstractions": "1.25.0"
++        }
++      },
++      "Microsoft.DurableTask.Client.Grpc": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "eor0bQZuafVMtQ0ypZWuWJsh3b2iI1y++b3D9KzcLmLd/XVxmlx2x5PBYnR19ZEJQgNW3CkbNbeYor3dNdGYeg==",
++        "dependencies": {
++          "Microsoft.DurableTask.Client": "1.25.0",
++          "Microsoft.DurableTask.Grpc": "1.25.0"
++        }
++      },
++      "Microsoft.DurableTask.Grpc": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "38+XB7btms8Ig9uLAWl5TQ20ohLa1AYKKh4OWVS+HKODBCqbfiPkdp8E+DbWxkGUvOBKgvo9sRjYGoOiIYfipQ==",
++        "dependencies": {
++          "Google.Protobuf": "3.33.5",
++          "Grpc.Net.Client": "2.80.0"
++        }
++      },
++      "Microsoft.DurableTask.Worker": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "+z6IjInPsREORXYKbYRaYzoESjeT+IpuHGjir4edKvDSdaFErW3zpN2b8PLXBiaEqflAVp/pL0N+7HG44ImOWg==",
++        "dependencies": {
++          "Microsoft.DurableTask.Abstractions": "1.25.0"
++        }
++      },
++      "Microsoft.DurableTask.Worker.Grpc": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "beweVPbC1IQnkVgy6a8UINlfV142eAJ/SssIB+DEZPQ8W/K+/TdFbAA54hADCBct+V4ZDruXjyo49nd+4LuKdg==",
++        "dependencies": {
++          "Google.Protobuf": "3.33.5",
++          "Grpc.Net.Client": "2.80.0",
++          "Microsoft.Azure.DurableTask.Core": "3.9.0",
++          "Microsoft.DurableTask.Abstractions": "1.25.0",
++          "Microsoft.DurableTask.Grpc": "1.25.0",
++          "Microsoft.DurableTask.Worker": "1.25.0"
++        }
++      },
+       "Microsoft.Extensions.AsyncState": {
+         "type": "Transitive",
+         "resolved": "10.0.0",
+@@ -228,15 +456,139 @@
+           "Microsoft.Extensions.DependencyInjection.AutoActivation": "10.0.0"
+         }
+       },
++      "Microsoft.Extensions.Azure": {
++        "type": "Transitive",
++        "resolved": "1.13.1",
++        "contentHash": "AIP7ud1rcQTRfzgne5Jw0P+zjx8ojGawwRuBVrYWgA/a+TKW3CaoQK/sYUcrbxYSVv6FT8rSwTlMecC0MwEbOQ==",
++        "dependencies": {
++          "Azure.Core": "1.50.0",
++          "Azure.Identity": "1.17.1"
++        }
++      },
+       "Microsoft.Extensions.DependencyInjection.AutoActivation": {
+         "type": "Transitive",
+         "resolved": "10.0.0",
+         "contentHash": "5t17Z77ysTmEla9/xUiOJLYLc8/9OyzlZJRxjTaSyiCi0mEroR0PwldKZsfwFLUOMSaNP6vngptYFbw7stO0rw=="
+       },
++      "Microsoft.Identity.Client": {
++        "type": "Transitive",
++        "resolved": "4.83.1",
++        "contentHash": "jOLIrZ3cynoqHLLO1cXplFFabrhrMEYs/EuKHvmCyrOm1axqiVFT6nCSnHxk7w5+d2BeQfCdM12Yf/0X7OeS1g==",
++        "dependencies": {
++          "Microsoft.IdentityModel.Abstractions": "8.14.0"
++        }
++      },
++      "Microsoft.Identity.Client.Extensions.Msal": {
++        "type": "Transitive",
++        "resolved": "4.83.1",
++        "contentHash": "I3k4J4Hj4KbLEFanjeUzzDOVecukETaTgEkJ7h2pP/Yazs6SLp6TVUTo/Eo+ptPXMwvc+iX7rBFtMSUrA7R+Mg==",
++        "dependencies": {
++          "Microsoft.Identity.Client": "4.83.1",
++          "System.Security.Cryptography.ProtectedData": "4.5.0"
++        }
++      },
++      "Microsoft.IdentityModel.Abstractions": {
++        "type": "Transitive",
++        "resolved": "8.14.0",
++        "contentHash": "iwbCpSjD3ehfTwBhtSNEtKPK0ICun6ov7Ibx6ISNA9bfwIyzI2Siwyi9eJFCJBwxowK9xcA1mj+jBWiigeqgcQ=="
++      },
++      "Newtonsoft.Json": {
++        "type": "Transitive",
++        "resolved": "13.0.1",
++        "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
++      },
++      "System.ClientModel": {
++        "type": "Transitive",
++        "resolved": "1.10.0",
++        "contentHash": "lBEWs54F5Y5pZ9hC+8z4S/X76957ex+DPk7WecRHlbIHtrPfbRMMlOgI3iDn4Jpb3bSxvBnKaaHoD59auFjlBA==",
++        "dependencies": {
++          "System.Memory.Data": "10.0.3"
++        }
++      },
+       "System.CommandLine": {
+         "type": "Transitive",
+         "resolved": "2.0.5",
+         "contentHash": "2XtWAPk1G6arpe3OCFNrYYuf6iIboznxs2elJSGgd8e0euou7LfGYFon6hBEfDWNtOLr0M3+oUVgy1a5EGa41A=="
++      },
++      "System.IO.Hashing": {
++        "type": "Transitive",
++        "resolved": "10.0.1",
++        "contentHash": "Dy6ULPb2S0GmNndjKrEIpfibNsc8+FTOoZnqygtFDuyun8vWboQbfMpQtKUXpgTxokR5E4zFHETpNnGfeWY6NA=="
++      },
++      "System.Linq.Async": {
++        "type": "Transitive",
++        "resolved": "6.0.1",
++        "contentHash": "0YhHcaroWpQ9UCot3Pizah7ryAzQhNvobLMSxeDIGmnXfkQn8u5owvpOH0K6EVB+z9L7u6Cc4W17Br/+jyttEQ==",
++        "dependencies": {
++          "Microsoft.Bcl.AsyncInterfaces": "6.0.0"
++        }
++      },
++      "System.Memory.Data": {
++        "type": "Transitive",
++        "resolved": "10.0.3",
++        "contentHash": "MaGhRfGunmrj/nHjtsi9XkhlYJ/ERGWrbA+BiSKNtGnAjc9XlG5EhAvak6VRcX5LYzPF6pBO8nJ613dTgzabig=="
++      },
++      "System.Reactive": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "iSTPeWR9HJhGoNV4WhVlvofuiTjpok1i4E3LPgMdbMqf3jKhFlT9HAlO32lb52NLppWC/4dZQFfUzTytvyXBmw=="
++      },
++      "System.Reactive.Compatibility": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "Ad2/TBOBV0/45pzccpbQj2vo3S85uipF/PfqkbQUnH0vOtBqrXd1eqWtky5YTXq/WIRU1HF62HFSOdXiNC+E4A==",
++        "dependencies": {
++          "System.Reactive.Core": "4.4.1",
++          "System.Reactive.Interfaces": "4.4.1",
++          "System.Reactive.Linq": "4.4.1",
++          "System.Reactive.PlatformServices": "4.4.1",
++          "System.Reactive.Providers": "4.4.1"
++        }
++      },
++      "System.Reactive.Core": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "YQHJOt8hZvwFelIIfs19t8Jhz5P6NS1ZZccbVUuE1LFyoFZjaUecdYIYykgXzpyj5Rl40XC3xkyuuhHRaAln2w==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Reactive.Interfaces": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "Pk++rL2lxe6yhBEzgc9eJWR57YxYxtAmcz9U0JdKyHEzTLqba3B7MhhYrpN2ToTPVRyJJzxMdPdLieIJvlsACg==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Reactive.Linq": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "wyOVuUyHmPV667REPwcZjFjOlRLX6qSGVcXMye0qUqBAWFB3bu1RO1XLGWZTnf0d67DQHV69kw7tAtTh+4EYyQ==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Reactive.PlatformServices": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "jVF40bEwEES1DpDxI8pRcVEkH/TztFCOSToMYIK6TNE5QojsQljfvZd6jaDG4jRZ9hkoMYyUbkeSDYG/1ldPDg==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Reactive.Providers": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "K9RDgMHsuceX8QTk5ALCgYpexA9qcMsIi4K97Eigqcz9hD6fa4Smrjy8F/m6YdVJZFsBGaZ3uwj+d0loAdMfbA==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Security.Cryptography.ProtectedData": {
++        "type": "Transitive",
++        "resolved": "4.5.0",
++        "contentHash": "wLBKzFnDCxP12VL9ANydSYhk59fC4cvOr9ypYQLPnAj48NQIhqnjdD2yhP8yEKyBJEjERWS9DisKL7rX5eU25Q=="
+       }
+     }
+   }
