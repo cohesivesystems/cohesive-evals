@@ -38,6 +38,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--condition',choices=['conventional','cohesive'])
     parser.add_argument('--point',choices=POINTS)
+    parser.add_argument('--test-host', action='store_true', help='Launch the separately built crash-test host')
     parser.add_argument('--reject',action='store_true')
     parser.add_argument('--references',type=Path,default=CASE/'artifacts/durable-reference')
     parser.add_argument('--output',type=Path,default=CASE/'artifacts/durability')
@@ -60,6 +61,7 @@ def main():
         for condition in ([args.condition] if args.condition else ['conventional','cohesive']):
             folder=args.references.resolve()/condition
             executable=folder/'src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.dll'
+            host_executable = folder/'tests/Fulfillment.TestHost/bin/Debug/net10.0/Fulfillment.TestHost.dll' if args.test_host else executable
             for index, point in enumerate([args.point] if args.point else POINTS):
                 database=f'{condition}_{index}'
                 run('docker','exec',pg,'psql','-U','postgres','-c',f'CREATE DATABASE {database}')
@@ -83,7 +85,7 @@ def main():
                             if terminal: current.update(EVAL_FAIL_POINT="before-reserve",EVAL_FAIL_MARKER=str(marker))
                             else: current.update(EVAL_CRASH_POINT=point,EVAL_CRASH_MARKER=str(marker))
                         offset=log.tell()
-                        process=subprocess.Popen(['dotnet',str(executable),'--urls','http://127.0.0.1:0'],cwd=folder,env=current,stdout=log,stderr=log)
+                        process=subprocess.Popen(['dotnet',str(host_executable),'--urls','http://127.0.0.1:0'],cwd=folder,env=current,stdout=log,stderr=log)
                         client=suite.Client(kestrel_url(process,evidence/'host.log',offset))
                         def ready():
                             if process.poll() is not None:raise RuntimeError('Host exited; see '+str(evidence/'host.log'))

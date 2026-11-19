@@ -1,5 +1,5 @@
 diff --git a/CONTRACT.md b/CONTRACT.md
-index 9f20a53..c94eb39 100644
+index 9f20a53..da180fb 100644
 --- a/CONTRACT.md
 +++ b/CONTRACT.md
 @@ -39,9 +39,9 @@ database-memory or streaming bound.
@@ -14,7 +14,7 @@ index 9f20a53..c94eb39 100644
  admitted requests; additional new identities receive 503 without admission.
  Existing identities remain replayable at capacity.
  
-@@ -67,11 +67,13 @@ preserved. Replayed results do not depend on later state changes.
+@@ -67,11 +67,11 @@ preserved. Replayed results do not depend on later state changes.
  
  ## Execution and setup
  
@@ -24,17 +24,26 @@ index 9f20a53..c94eb39 100644
 -PostgreSQL; the whole sequence is not one transaction. Independent-intent races
 -and crash recovery are outside this application's declared guarantees.
 +Admission and result retention survive abrupt host termination. A caller that
-+did not receive an admission response may replay the same request. A single
-+background worker recovers pending admissions without a client retry, including
-+when the process ended before the result was recorded. The Durable Task
-+scheduler retains workflow progress and each mutation and its process-step
++did not receive an admission response may replay the same request. Durable Task recovers admitted work without a client retry. The scheduler
++retains workflow progress and terminal execution evidence and each mutation and its process-step
 +receipt commit together in PostgreSQL. Recovery assumes one host, sequential
 +independent intents, and a continuously available database and scheduler.
  
  Inventory and preexisting records can be provisioned before the host starts with
  --seed FILE and FULFILLMENT_SETUP=1, against a dedicated empty database. The file
+diff --git a/Fulfillment.slnx b/Fulfillment.slnx
+index 147dbba..72ceaa8 100644
+--- a/Fulfillment.slnx
++++ b/Fulfillment.slnx
+@@ -1 +1,5 @@
+-<Solution><Project Path="src/Fulfillment.Application/Fulfillment.Application.csproj" /></Solution>
++<Solution>
++  <Folder Name="/src/" />
++  <Folder Name="/tests/">
++    <Project Path="tests/Fulfillment.TestHost/Fulfillment.TestHost.csproj" />
++  </Folder><Project Path="src/Fulfillment.Application/Fulfillment.Application.csproj" /></Solution>
 diff --git a/README.md b/README.md
-index 7339d14..d187640 100644
+index 7339d14..d2205cd 100644
 --- a/README.md
 +++ b/README.md
 @@ -1,6 +1,6 @@
@@ -53,7 +62,7 @@ index 7339d14..d187640 100644
  dotnet run --no-build --project src/Fulfillment.Application -- --urls http://127.0.0.1:5080
  ```
  
-@@ -15,10 +16,9 @@ With that fresh host running, execute `python3 tests/contract_tests.py http://12
+@@ -15,10 +16,7 @@ With that fresh host running, execute `python3 tests/contract_tests.py http://12
  The checks mutate data; use a new database for every complete test run.
  `CONTRACT.md` describes the public behavior. `schemas.json` specifies wire shapes.
  
@@ -64,12 +73,10 @@ index 7339d14..d187640 100644
 -`OperationQueue.cs` implement transport and admission. Domain and backend files
 -own submission, inventory and workflow behavior. Read projections return current
 -persisted facts. There is no implicit rollback of the whole fulfillment sequence.
-+PostgreSQL stores each admitted request before the host returns HTTP 202. The
-+background worker recovers outstanding rows in admission order, starts or
-+reattaches to their stable scheduler instances, and records terminal outcomes.
-+The Durable Task realization runs the canonical fulfillment process. Its
-+PostgreSQL transitions commit each business mutation and replay receipt together.
-+Restart with the same database and task hub to resume outstanding work.
++The linked accepted-process API submits to Durable Task and reads retained
++results from the same scheduler. PostgreSQL stores quota membership and atomic
++transition receipts. Restart with the same database and task hub. The separate
++Fulfillment.TestHost executable adds worker crash barriers for the recovery grader.
 diff --git a/dependency-manifest.json b/dependency-manifest.json
 index b4215cc..22a28e8 100644
 --- a/dependency-manifest.json
@@ -122,84 +129,8 @@ index 88a4712..fcc36af 100644
 +<PackageReference Include="Microsoft.DurableTask.Worker.AzureManaged" Version="[1.25.0]" />
  <PackageReference Include="Cohesive.Analyzers" Version="[0.1.0-eval.b0af008]" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
  </ItemGroup></Project>
-diff --git a/src/Fulfillment.Application/FulfillmentActivityHost.cs b/src/Fulfillment.Application/FulfillmentActivityHost.cs
-new file mode 100644
-index 0000000..acbf0c5
---- /dev/null
-+++ b/src/Fulfillment.Application/FulfillmentActivityHost.cs
-@@ -0,0 +1,70 @@
-+using Cohesive.Identity;
-+using Cohesive.Prelude;
-+using Cohesive.Processes.Execution;
-+
-+namespace Fulfillment.Application;
-+
-+internal sealed class FulfillmentActivityHost(IAsyncProcessReferenceHost inner) : IAsyncProcessReferenceHost
-+{
-+    public async ValueTask<ProcessOperationResult> InvokeTransitionAsync(OperationContext context, ProcessTransitionInvocation invocation)
-+    {
-+        var point = invocation.Definition.DefinitionId.Value switch
-+        {
-+            "fulfillment/reserve" => "reserve",
-+            "example/order/submit" => "submit",
-+            "fulfillment/reservation/create" => "reservation",
-+            "fulfillment/release" => "release",
-+            _ => null
-+        };
-+        if (point == "reserve")
-+            EvaluationHooks.FailBeforeReserve();
-+        var result = await inner.InvokeTransitionAsync(context.WithIdentityContext(FulfillmentDemoIdentity.Context), invocation);
-+        // A successfully executed transition may still be a domain rejection.
-+        // Match only its applied domain outcome before exposing a post-commit barrier.
-+        if (point is not null && EvaluationHooks.Enabled("after-" + point) && result.IsSuccessful
-+            && result.Value?.Value is { } output)
-+        {
-+            var applied = point switch
-+            {
-+                "reserve" => output.Deserialize<StockResult>()?.Outcome == StockOutcome.Reserved,
-+                "submit" => output.Deserialize<SubmitOrderResult>()?.Outcome == SubmissionOutcome.Submitted,
-+                "reservation" => output.Deserialize<ReservationCreationOutcome>() == ReservationCreationOutcome.Created,
-+                "release" => output.Deserialize<StockResult>()?.Outcome == StockOutcome.Released,
-+                _ => false
-+            };
-+            if (applied) await EvaluationHooks.Block("after-" + point);
-+        }
-+        return result;
-+    }
-+
-+    public ValueTask<ProcessOperationResult> EvaluateRelationAsync(OperationContext context, ProcessRelationEvaluation evaluation) =>
-+        inner.EvaluateRelationAsync(context.WithIdentityContext(FulfillmentDemoIdentity.Context), evaluation);
-+
-+    public ValueTask<ProcessSignalTargetResult> ResolveSignalTargetAsync(OperationContext context, ProcessSignalTargetResolution resolution) =>
-+        inner.ResolveSignalTargetAsync(context.WithIdentityContext(FulfillmentDemoIdentity.Context), resolution);
-+}
-+
-+internal static class EvaluationHooks
-+{
-+    public static bool Enabled(string point) => Environment.GetEnvironmentVariable("EVAL_CRASH_POINT") == point;
-+
-+    public static async Task Block(string point)
-+    {
-+        if (!Enabled(point)) return;
-+        var path = Environment.GetEnvironmentVariable("EVAL_CRASH_MARKER") ?? throw new InvalidOperationException("Missing crash marker path.");
-+        await File.WriteAllTextAsync(path, point);
-+        await Task.Delay(Timeout.InfiniteTimeSpan);
-+    }
-+
-+    public static void FailBeforeReserve()
-+    {
-+        if (Environment.GetEnvironmentVariable("EVAL_FAIL_POINT") != "before-reserve") return;
-+        var path = Environment.GetEnvironmentVariable("EVAL_FAIL_MARKER") ?? throw new InvalidOperationException("Missing failure marker path.");
-+        try
-+        {
-+            using var marker = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
-+        }
-+        catch (IOException) when (File.Exists(path)) { return; }
-+        throw new InvalidOperationException("Injected activity failure before reserve.");
-+    }
-+}
 diff --git a/src/Fulfillment.Application/FulfillmentBackend.cs b/src/Fulfillment.Application/FulfillmentBackend.cs
-index 111619f..edf38d9 100644
+index 111619f..1a7e950 100644
 --- a/src/Fulfillment.Application/FulfillmentBackend.cs
 +++ b/src/Fulfillment.Application/FulfillmentBackend.cs
 @@ -1,3 +1,5 @@
@@ -208,19 +139,32 @@ index 111619f..edf38d9 100644
  using Cohesive.Adapters.Postgres;
  using Cohesive.Adapters.Postgres.Services;
  using Cohesive.Adapters.Sql;
-@@ -22,7 +24,10 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+@@ -15,18 +17,22 @@ using Npgsql;
+ 
+ namespace Fulfillment.Application;
+ 
+-public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillmentBackend
++public sealed partial class FulfillmentBackend(NpgsqlDataSource database) : IFulfillmentBackend
+ {
+     readonly FulfillmentDomain domain = new();
+     IEntityRepository<Order> orders = null!;
      IEntityRepository<InventoryItem> inventory = null!;
      IEntityRepository<Reservation> reservations = null!;
      PostgresQueryReader<string, OrderDetails?> details = null!;
 -    HostedServiceProcess<FulfillOrder, FulfillmentResult> hosted = null!;
 +    public PreparedServiceProcess Prepared { get; private set; } = null!;
 +    public DurableTaskSequentialProcessPlanCatalog Catalog { get; private set; } = null!;
-+    public static readonly InteractionAuthorityScope Authority = new("fulfillment", "local");
-+    ExecutionProvenance provenance = null!;
++    internal static readonly InteractionAuthorityScope Authority = new("fulfillment", "local");
++    ServiceAcceptedProcessApi<FulfillmentRequest, FulfillmentResult> api = null!;
      static OperationContext Context() => OperationContext.Create().WithIdentityContext(FulfillmentDemoIdentity.Context);
  
      public async Task Initialize()
-@@ -54,11 +59,14 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+     {
++        await AdmissionCapacity.Initialize(database);
+         var mappings = new FulfillmentPostgresMappings(domain);
+         var bindings = PostgresPersistenceBindings.Define(new("orders"), storage =>
+         {
+@@ -54,11 +60,17 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
          // Adapter decoded-row limits must not reject an otherwise allowed response.
          details = persistence.Query(new FulfillmentQueries(domain).OrderDetails, maximumRows: int.MaxValue - 1, maximumBytes: long.MaxValue);
          var process = new FulfillmentProcess(domain);
@@ -229,101 +173,109 @@ index 111619f..edf38d9 100644
 -            .Operation("fulfill").Require(new("fulfillment.write")).Run(process.Definition).ExecuteEphemerally(TimeSpan.FromSeconds(15))
 -            .Bind(process.Definition, RepositoryBindings.Resolve(orders, inventory, reservations))
 -            .Build("fulfillment", new IdentityServiceInvocationAuthorization("demo", new(FulfillmentDomain.PartitionField)));
-+        provenance = process.Provenance;
-+        var service = Service.Define(new("fulfillment"), new("1"), provenance)
++
++        var service = Service.Define(new("fulfillment"), new("1"), process.Provenance)
 +            .Use(new ServiceDependencies().Process(process));
-+        service = service.Operation("fulfill").Require(new("fulfillment.write")).Run(process.Definition).ReturnAfterDurableAdmission();
++        service = service.Operation("fulfill").Require(new("fulfillment.write")).Run(process.Definition).ReturnAfterDurableAdmission()
++            .Operation("result").Require(new("fulfillment.read")).ReadResultOf(process.Definition);
++        api = service.AcceptedApi<FulfillmentRequest, FulfillmentResult>("fulfill", "result", "/fulfillment", "/fulfillment/results/{instanceId}");
 +        Prepared = service.PrepareProcess(process.Definition, RepositoryBindings.Resolve(orders, inventory, reservations));
 +        var realization = DurableTaskProcessRealizationCompiler.CompileExecutable(Prepared.Plan);
-+        Catalog = new([realization.Plan ?? throw new InvalidOperationException(
-+            string.Join("; ", realization.Realization.Diagnostics.Select(d => d.Message)))]);
++        if (!realization.IsSuccessful)
++            throw new InvalidOperationException(string.Join("; ", realization.Realization.Diagnostics.Select(d => d.Message)));
++        Catalog = new([realization.Plan!]);
      }
      public async Task Seed(SeedData data)
      {
-@@ -100,12 +108,18 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+@@ -100,20 +112,19 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
                  .Conflict(SubmissionOutcome.NotDraft, "Order cannot be submitted", "Order must be Draft.")
                  .NotRejected(SubmissionOutcome.Submitted)));
      }
 -    public async Task<Completion> Fulfill(string operationId, FulfillmentRequest request)
-+    public DurableTaskSequentialProcessStart Start(string id, DateTimeOffset admitted, FulfillmentRequest request)
-     {
+-    {
 -        var result = await hosted.Runtime.ExecuteProcessAsync(Context(), "fulfill", new(new(operationId), new("attempt/1")),
-+        ProcessInstanceId instance = new(id);
-+        ProcessControlCommandContext command = new(new(id), new(id), instance,
-+            new("local-demo", Authority, "local-example"), admitted, provenance);
-+        var input = PortableValue.Concrete(Prepared.Plan.Definition.Input,
-             ObservationValue.FromObject(new FulfillOrder(request.OrderId, request.Sku, request.Quantity)));
+-            ObservationValue.FromObject(new FulfillOrder(request.OrderId, request.Sku, request.Quantity)));
 -        if (result.Kind != ApiResultKind.Success) throw new InvalidOperationException("Process execution did not succeed.");
 -        return ProcessCompletion.Read(result.Outcome?.Decision.State.Terminal);
-+        ProcessStartRequest start = new(ProcessStartRequest.CurrentSchemaVersion, Prepared.Plan.DefinitionReference,
-+            command, new(instance, new("attempt/1")), input);
-+        ProcessActivationContext activation = new(Authority, new(id),
-+            new(InteractionDurabilityDemand.Durable, InteractionVisibilityDemand.AfterOriginCommit), provenance);
-+        return new(new(start, admitted), activation);
-     }
+-    }
++
  }
  
-diff --git a/src/Fulfillment.Application/OperationQueue.cs b/src/Fulfillment.Application/OperationQueue.cs
-index 2f331a4..ca70f67 100644
---- a/src/Fulfillment.Application/OperationQueue.cs
-+++ b/src/Fulfillment.Application/OperationQueue.cs
-@@ -1,74 +1,150 @@
--using System.Threading.Channels;
-+using System.Text;
-+using System.Text.Json;
-+using Cohesive.Adapters.DurableTask;
-+using Microsoft.DurableTask.Client;
-+using Npgsql;
+ public static class HostSetup
+ {
+     public static void Configure(IServiceCollection services)
+     {
+-        services.AddAuthorization();
++        services.AddAuthorization(options =>
++        {
++            foreach (var capability in new[] { "fulfillment.write", "fulfillment.read" })
++                options.AddPolicy(capability, policy => policy.RequireAssertion(_ =>
++                    FulfillmentDemoIdentity.Context.Grants.Any(grant => grant.Capabilities.Contains(capability))));
++        });
+         services.AddRequestOperationContext();
+         services.AddFixedRequestIdentity(FulfillmentDemoIdentity.Context);
+     }
+diff --git a/src/Fulfillment.Application/FulfillmentDemoIdentity.cs b/src/Fulfillment.Application/FulfillmentDemoIdentity.cs
+index ba3f22e..c7ebe86 100644
+--- a/src/Fulfillment.Application/FulfillmentDemoIdentity.cs
++++ b/src/Fulfillment.Application/FulfillmentDemoIdentity.cs
+@@ -1,14 +1,22 @@
+ using Cohesive.Identity;
++using Cohesive.Execution;
+ using Cohesive.Prelude;
  
  namespace Fulfillment.Application;
  
+ /// <summary>Explicit synthetic local identity and grants. This is not authentication.</summary>
+-public static class FulfillmentDemoIdentity
++public sealed class FulfillmentDemoIdentity : IInteractionAuthorityOperationContextProjector
+ {
+     /// <summary>Prepared once for this demo; production must supply authenticated identities and grants.</summary>
+     public static IdentityContext Context { get; } = Create();
+ 
++    public OperationContext Project(OperationContext context, InteractionAuthorityScope authority)
++    {
++        if (authority != FulfillmentBackend.Authority)
++            throw new UnauthorizedAccessException("Unexpected worker authority.");
++        return context.WithIdentityContext(Context);
++    }
++
+     static IdentityContext Create()
+     {
+         var actor = new PrincipalRef("local-demo", PrincipalKind.User);
+diff --git a/src/Fulfillment.Application/OperationQueue.cs b/src/Fulfillment.Application/OperationQueue.cs
+deleted file mode 100644
+index 2f331a4..0000000
+--- a/src/Fulfillment.Application/OperationQueue.cs
++++ /dev/null
+@@ -1,74 +0,0 @@
+-using System.Threading.Channels;
+-
+-namespace Fulfillment.Application;
+-
 -// Admission and completed results live only for this host lifetime. Execution is
 -// bounded and owned by the host; a client disconnect does not cancel admitted work.
 -public sealed class OperationQueue(IFulfillmentBackend backend, ILogger<OperationQueue> logger) : BackgroundService
-+// The admission row is also the dispatch outbox. It is never deleted, so a result
-+// remains available independently of provider history once it has been projected.
-+public sealed class OperationQueue(NpgsqlDataSource database, FulfillmentBackend backend, DurableTaskClient client,
-+    ILogger<OperationQueue> logger) : BackgroundService
- {
+-{
 -    sealed class Entry(FulfillmentRequest request, Admission admission)
-+    readonly SemaphoreSlim admissionGate = new(1);
-+    sealed record Pending(string Id, DateTimeOffset Accepted, FulfillmentRequest Request);
-+
-+    public async Task Initialize()
-     {
+-    {
 -        public FulfillmentRequest Request { get; } = request;
 -        public Admission Admission { get; } = admission;
 -        public Completion? Result { get; set; }
 -        public bool Failed { get; set; }
-+        await using var command = database.CreateCommand("""
-+            CREATE TABLE IF NOT EXISTS fulfillment_operations (
-+                ordinal bigint GENERATED ALWAYS AS IDENTITY UNIQUE,
-+                operation_id text COLLATE "C" PRIMARY KEY,
-+                request_key bytea NOT NULL,
-+                request_body text NOT NULL,
-+                accepted_at timestamptz NOT NULL DEFAULT now(),
-+                failed boolean NOT NULL DEFAULT false,
-+                result_body text
-+            )
-+            """);
-+        await command.ExecuteNonQueryAsync();
-     }
+-    }
 -    readonly object gate = new();
 -    readonly Dictionary<string, Entry> requests = new(StringComparer.Ordinal);
 -    readonly Dictionary<string, Entry> operations = new(StringComparer.Ordinal);
 -    readonly Channel<Entry> work = Channel.CreateBounded<Entry>(new BoundedChannelOptions(1000)
 -        { SingleReader = true, FullMode = BoundedChannelFullMode.Wait });
- 
+-
 -    public IResult Admit(FulfillmentRequest request)
-+    public async Task<IResult> Admit(FulfillmentRequest request)
-     {
-         if (string.IsNullOrWhiteSpace(request.RequestId) || string.IsNullOrWhiteSpace(request.OrderId)
-             || string.IsNullOrWhiteSpace(request.Sku)) return Results.BadRequest(new ErrorResponse("InvalidRequest"));
+-    {
+-        if (string.IsNullOrWhiteSpace(request.RequestId) || string.IsNullOrWhiteSpace(request.OrderId)
+-            || string.IsNullOrWhiteSpace(request.Sku)) return Results.BadRequest(new ErrorResponse("InvalidRequest"));
 -        lock (gate)
-+        // One application host serializes admission, including the capacity check and commit.
-+        await admissionGate.WaitAsync();
-+        try
-         {
+-        {
 -            if (requests.TryGetValue(request.RequestId, out var previous))
 -                return previous.Request == request ? Results.Json(previous.Admission, statusCode: 202)
 -                    : Results.Conflict(new ErrorResponse("RequestIdentityConflict"));
@@ -334,86 +286,28 @@ index 2f331a4..ca70f67 100644
 -            requests.Add(request.RequestId, entry);
 -            operations.Add(id, entry);
 -            if (!work.Writer.TryWrite(entry))
-+            await using var connection = await database.OpenConnectionAsync();
-+            await using var transaction = await connection.BeginTransactionAsync();
-+            var key = Encoding.UTF8.GetBytes(request.RequestId);
-+            await using (var lookup = new NpgsqlCommand(
-+                "SELECT operation_id, request_body FROM fulfillment_operations WHERE request_key = $1", connection, transaction))
-             {
+-            {
 -                requests.Remove(request.RequestId); operations.Remove(id);
 -                return Results.StatusCode(503);
-+                lookup.Parameters.AddWithValue(key);
-+                await using var reader = await lookup.ExecuteReaderAsync();
-+                if (await reader.ReadAsync())
-+                    return JsonSerializer.Deserialize<FulfillmentRequest>(reader.GetString(1)) == request
-+                        ? Accepted(reader.GetString(0)) : Results.Conflict(new ErrorResponse("RequestIdentityConflict"));
-             }
+-            }
 -            return Results.Json(entry.Admission, statusCode: 202);
-+            await using var count = new NpgsqlCommand("SELECT count(*) FROM fulfillment_operations", connection, transaction);
-+            if ((long)(await count.ExecuteScalarAsync())! >= 1000) return Results.StatusCode(503);
-+            var id = Guid.NewGuid().ToString("N");
-+            await using var insert = new NpgsqlCommand("""
-+                INSERT INTO fulfillment_operations (operation_id, request_key, request_body) VALUES ($1, $2, $3)
-+                """, connection, transaction);
-+            insert.Parameters.AddWithValue(id);
-+            insert.Parameters.AddWithValue(key);
-+            insert.Parameters.AddWithValue(JsonSerializer.Serialize(request));
-+            await insert.ExecuteNonQueryAsync();
-+            await EvaluationHooks.Block("before-admission-commit");
-+            await transaction.CommitAsync();
-+            await EvaluationHooks.Block("after-admission-commit");
-+            return Accepted(id);
-         }
-+        finally { admissionGate.Release(); }
-     }
+-        }
+-    }
 -    public IResult Result(string id)
-+
-+    static IResult Accepted(string id) => Results.Json(new Admission(id, $"/fulfillment/results/{id}"), statusCode: 202);
-+
-+    public async Task<IResult> Result(string id)
-     {
+-    {
 -        lock (gate)
-+        await using var command = database.CreateCommand("SELECT failed, result_body FROM fulfillment_operations WHERE operation_id = $1");
-+        command.Parameters.AddWithValue(id);
-+        await using var reader = await command.ExecuteReaderAsync();
-+        if (!await reader.ReadAsync()) return Results.NotFound();
-+        if (reader.GetBoolean(0)) return Results.Json(new ErrorResponse("ExecutionFailed"), statusCode: 500);
-+        return reader.IsDBNull(1) ? Results.StatusCode(202) : Results.Ok(JsonSerializer.Deserialize<Completion>(reader.GetString(1)));
-+    }
-+
-+    async Task<Pending?> Next(CancellationToken stop)
-+    {
-+        await admissionGate.WaitAsync(stop);
-+        try
-         {
+-        {
 -            if (!operations.TryGetValue(id, out var entry)) return Results.NotFound();
 -            if (entry.Failed) return Results.Json(new ErrorResponse("ExecutionFailed"), statusCode: 500);
 -            return entry.Result is { } result ? Results.Ok(result) : Results.StatusCode(202);
-+            await using var command = database.CreateCommand("""
-+                SELECT operation_id, accepted_at, request_body FROM fulfillment_operations
-+                WHERE result_body IS NULL AND NOT failed ORDER BY ordinal LIMIT 1
-+                """);
-+            await using var reader = await command.ExecuteReaderAsync(stop);
-+            return await reader.ReadAsync(stop) ? new(reader.GetString(0), reader.GetFieldValue<DateTimeOffset>(1),
-+                JsonSerializer.Deserialize<FulfillmentRequest>(reader.GetString(2))!) : null;
-         }
-+        finally { admissionGate.Release(); }
-     }
-+
-     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-     {
+-        }
+-    }
+-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+-    {
 -        try
-+        while (!stoppingToken.IsCancellationRequested)
-         {
+-        {
 -            await foreach (var entry in work.Reader.ReadAllAsync(stoppingToken))
-+            try
-+            {
-+                if (await Next(stoppingToken) is { } item) await Dispatch(item, stoppingToken);
-+                else await Task.Delay(100, stoppingToken);
-+            }
-+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
-+            catch (Exception ex)
-             {
+-            {
 -                try
 -                {
 -                    var result = await backend.Fulfill(entry.Admission.OperationId, entry.Request);
@@ -424,103 +318,171 @@ index 2f331a4..ca70f67 100644
 -                    logger.LogError(ex, "Fulfillment execution failed: {OperationId}", entry.Admission.OperationId);
 -                    lock (gate) entry.Failed = true;
 -                }
-+                // Uncertain scheduler/DB communication never proves a business or engine failure.
-+                logger.LogError(ex, "Could not reconcile pending fulfillment");
-+                await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
-             }
-         }
+-            }
+-        }
 -        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
-+    }
-+
-+    async Task Dispatch(Pending item, CancellationToken stop)
-+    {
-+        var physical = DurableTaskProcessExecutionIdentity.GetPhysicalInstanceId(FulfillmentBackend.Authority, new(item.Id));
-+        var instance = await client.GetInstanceAsync(physical, getInputsAndOutputs: true, cancellation: stop);
-+        if (instance is null)
-+        {
-+            await EvaluationHooks.Block("before-dispatch");
-+            await client.ScheduleCohesiveProcessAsync(backend.Start(item.Id, item.Accepted, item.Request), stop);
-+        }
-+        if (instance?.IsCompleted != true)
-+            instance = await client.WaitForInstanceCompletionAsync(physical, getInputsAndOutputs: true, cancellation: stop);
-+        Completion? result = null;
-+        if (instance.RuntimeStatus == OrchestrationRuntimeStatus.Completed)
-+        {
-+            var execution = instance.ReadOutputAs<DurableTaskSequentialProcessResult>();
-+            if (execution?.State.Terminal?.Kind == Cohesive.Execution.ExecutionTerminalOutcomeKind.Completed)
-+                result = ProcessCompletion.Read(execution.State.Terminal);
-+        }
-+
-+        await using var connection = await database.OpenConnectionAsync(stop);
-+        await using var transaction = await connection.BeginTransactionAsync(stop);
-+        await using var save = new NpgsqlCommand("""
-+            UPDATE fulfillment_operations SET failed = $2, result_body = $3 WHERE operation_id = $1
-+            """, connection, transaction);
-+        save.Parameters.AddWithValue(item.Id);
-+        save.Parameters.AddWithValue(result is null);
-+        save.Parameters.Add(new NpgsqlParameter { NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Text,
-+            Value = result is null ? DBNull.Value : JsonSerializer.Serialize(result) });
-+        await save.ExecuteNonQueryAsync(stop);
-+        await EvaluationHooks.Block("before-result-commit");
-+        await transaction.CommitAsync(stop);
-     }
- }
+-    }
+-}
+diff --git a/src/Fulfillment.Application/ProcessCompletion.cs b/src/Fulfillment.Application/ProcessCompletion.cs
+deleted file mode 100644
+index 277abe2..0000000
+--- a/src/Fulfillment.Application/ProcessCompletion.cs
++++ /dev/null
+@@ -1,14 +0,0 @@
+-using Cohesive.Execution;
+-using Cohesive.Model;
+-
+-namespace Fulfillment.Application;
+-
+-public static class ProcessCompletion
+-{
+-    public static Completion Read(ExecutionTerminalOutcome? terminal)
+-    {
+-        var output = terminal?.Detail?.Value?.Value
+-            ?? throw new InvalidOperationException("Process returned no public result.");
+-        return new(output.GetProperty("Status").GetRequiredString(), output.GetProperty("Outcome").GetRequiredString());
+-    }
+-}
 diff --git a/src/Fulfillment.Application/Program.cs b/src/Fulfillment.Application/Program.cs
-index ce221e9..c3dac2c 100644
+index ce221e9..e5e136e 100644
 --- a/src/Fulfillment.Application/Program.cs
 +++ b/src/Fulfillment.Application/Program.cs
-@@ -1,5 +1,11 @@
+@@ -1,53 +1,88 @@
  using Fulfillment.Application;
  using Npgsql;
 +using Cohesive.Adapters.DurableTask;
 +using Cohesive.Processes.Execution;
++using Cohesive.Execution;
 +using Microsoft.DurableTask.Worker;
 +using Microsoft.DurableTask.Client;
 +using Microsoft.DurableTask.Client.AzureManaged;
 +using Microsoft.DurableTask.Worker.AzureManaged;
  using System.Text.Json.Serialization;
  
- var builder = WebApplication.CreateBuilder(args);
-@@ -11,9 +17,28 @@ builder.Services.ConfigureHttpJsonOptions(options =>
-     options.SerializerOptions.RespectRequiredConstructorParameters = true;
- });
- builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(connection));
+-var builder = WebApplication.CreateBuilder(args);
+-var connection = builder.Configuration.GetConnectionString("Orders")
+-    ?? throw new InvalidOperationException("Set ConnectionStrings__Orders to a dedicated PostgreSQL database.");
+-builder.Services.ConfigureHttpJsonOptions(options =>
+-{
+-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+-    options.SerializerOptions.RespectRequiredConstructorParameters = true;
+-});
+-builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(connection));
 -builder.Services.AddSingleton<IFulfillmentBackend, FulfillmentBackend>();
 -builder.Services.AddSingleton<OperationQueue>();
 -builder.Services.AddHostedService(provider => provider.GetRequiredService<OperationQueue>());
-+builder.Services.AddSingleton<FulfillmentBackend>();
-+builder.Services.AddSingleton<IFulfillmentBackend>(provider => provider.GetRequiredService<FulfillmentBackend>());
-+if (builder.Configuration["seed"] is null)
-+{
-+    var scheduler = Environment.GetEnvironmentVariable("DURABLE_TASK_CONNECTION")
-+        ?? throw new InvalidOperationException("Set DURABLE_TASK_CONNECTION to the scheduler connection string.");
-+    builder.Services.AddSingleton<IAsyncProcessReferenceHost>(provider =>
-+        new FulfillmentActivityHost(provider.GetRequiredService<FulfillmentBackend>().Prepared.Host));
-+    builder.Services.AddDurableTaskClient(client =>
+-HostSetup.Configure(builder.Services);
+-var app = builder.Build();
+-await app.Services.GetRequiredService<IFulfillmentBackend>().Initialize();
+-if (builder.Configuration["seed"] is { } seedFile)
++await FulfillmentApp.Run(args);
++
++public static class FulfillmentApp
+ {
+-    if (Environment.GetEnvironmentVariable("FULFILLMENT_SETUP") != "1")
+-        throw new InvalidOperationException("Seeding requires FULFILLMENT_SETUP=1 and a dedicated database.");
+-    var data = System.Text.Json.JsonSerializer.Deserialize<SeedData>(await File.ReadAllTextAsync(seedFile),
+-        new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))
+-        ?? throw new InvalidOperationException("Missing seed data.");
+-    data.Validate();
+-    await app.Services.GetRequiredService<IFulfillmentBackend>().Seed(data);
+-    await app.DisposeAsync();
+-    return;
++    public static async Task Run(string[] args, Action<IServiceCollection>? configureHost = null)
 +    {
-+        client.UseDurableTaskScheduler(scheduler);
-+        client.Configure(options => options.DataConverter = DurableTaskProcessDataConverter.Create());
-+    });
-+    builder.Services.AddDurableTaskWorker(worker =>
-+    {
-+        worker.UseDurableTaskScheduler(scheduler);
-+        worker.Configure(options => options.DataConverter = DurableTaskProcessDataConverter.Create());
-+        worker.AddCohesiveSequentialProcesses(provider => provider.GetRequiredService<FulfillmentBackend>().Catalog);
-+    });
-+    builder.Services.AddSingleton<OperationQueue>();
-+    builder.Services.AddHostedService(provider => provider.GetRequiredService<OperationQueue>());
-+}
- HostSetup.Configure(builder.Services);
- var app = builder.Build();
- await app.Services.GetRequiredService<IFulfillmentBackend>().Initialize();
-@@ -29,6 +54,7 @@ if (builder.Configuration["seed"] is { } seedFile)
-     await app.DisposeAsync();
-     return;
++        var builder = WebApplication.CreateBuilder(args);
++        var connection = builder.Configuration.GetConnectionString("Orders")
++            ?? throw new InvalidOperationException("Set ConnectionStrings__Orders to a dedicated PostgreSQL database.");
++        builder.Services.ConfigureHttpJsonOptions(options =>
++        {
++            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
++            options.SerializerOptions.RespectRequiredConstructorParameters = true;
++        });
++        builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(connection));
++        builder.Services.AddSingleton<FulfillmentBackend>();
++        builder.Services.AddSingleton<IFulfillmentBackend>(provider => provider.GetRequiredService<FulfillmentBackend>());
++        if (builder.Configuration["seed"] is null)
++        {
++            var scheduler = Environment.GetEnvironmentVariable("DURABLE_TASK_CONNECTION")
++                ?? throw new InvalidOperationException("Set DURABLE_TASK_CONNECTION to the scheduler connection string.");
++            builder.Services.AddSingleton<IInteractionAuthorityOperationContextProjector, FulfillmentDemoIdentity>();
++            builder.Services.AddSingleton<IAsyncProcessReferenceHost>(provider =>
++                provider.GetRequiredService<FulfillmentBackend>().Prepared.Host);
++            builder.Services.AddDurableTaskClient(client =>
++            {
++                client.UseDurableTaskScheduler(scheduler);
++                client.Configure(options => options.DataConverter = DurableTaskProcessDataConverter.Create());
++            });
++            builder.Services.AddDurableTaskWorker(worker =>
++            {
++                worker.UseDurableTaskScheduler(scheduler);
++                worker.Configure(options => options.DataConverter = DurableTaskProcessDataConverter.Create());
++                worker.AddCohesiveSequentialProcesses(provider => provider.GetRequiredService<FulfillmentBackend>().Catalog);
++            });
++            builder.Services.AddCohesiveDurableTaskProcessExecutionRepository(sp => new(sp.GetRequiredService<DurableTaskClient>()));
++            configureHost?.Invoke(builder.Services);
++        }
++        HostSetup.Configure(builder.Services);
++        var app = builder.Build();
++        await app.Services.GetRequiredService<IFulfillmentBackend>().Initialize();
++        if (builder.Configuration["seed"] is { } seedFile)
++        {
++            if (Environment.GetEnvironmentVariable("FULFILLMENT_SETUP") != "1")
++                throw new InvalidOperationException("Seeding requires FULFILLMENT_SETUP=1 and a dedicated database.");
++            var data = System.Text.Json.JsonSerializer.Deserialize<SeedData>(await File.ReadAllTextAsync(seedFile),
++                new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))
++                ?? throw new InvalidOperationException("Missing seed data.");
++            data.Validate();
++            await app.Services.GetRequiredService<IFulfillmentBackend>().Seed(data);
++            await app.DisposeAsync();
++            return;
++        }
++
++        HostSetup.Configure(app);
++        // The local fixture has one host-provided identity/scope. It exposes no seed,
++        // reset or arbitrary SQL route, and never derives identity from request JSON.
++        app.MapPost("/orders", async (IFulfillmentBackend backend) =>
++        {
++            var created = await backend.CreateOrder();
++            return Results.Created($"/orders/{created.Id}", created);
++        });
++        app.MapGet("/orders/{id}", async (string id, IFulfillmentBackend backend) =>
++            await backend.GetOrder(id) is { } order ? Results.Ok(order) : Results.NotFound());
++        app.MapGet("/inventory/{sku}", async (string sku, IFulfillmentBackend backend) =>
++            await backend.GetInventory(sku) is { } item ? Results.Ok(item) : Results.NotFound());
++        app.MapGet("/orders/{id}/details", async (string id, IFulfillmentBackend backend) =>
++            await backend.GetDetails(id) is { } details ? ReadResults.Reply(details, details.Reservations.Count) : Results.NotFound());
++        app.MapGet("/orders/{id}/availability", async (string id, IFulfillmentBackend backend) =>
++            await backend.GetDetails(id) is { } details
++                ? ReadResults.Reply(details.Reservations.Select(r => new AvailabilityView(r.Id, r.Sku, r.Quantity, r.AvailableStock)).ToArray(), details.Reservations.Count)
++                : Results.NotFound());
++        app.Services.GetRequiredService<FulfillmentBackend>().MapFulfillment(app);
++        app.Services.GetRequiredService<IFulfillmentBackend>().MapSubmit(app);
++        await app.RunAsync();
++    }
  }
-+await app.Services.GetRequiredService<OperationQueue>().Initialize();
- HostSetup.Configure(app);
- // The local fixture has one host-provided identity/scope. It exposes no seed,
- // reset or arbitrary SQL route, and never derives identity from request JSON.
+-HostSetup.Configure(app);
+-// The local fixture has one host-provided identity/scope. It exposes no seed,
+-// reset or arbitrary SQL route, and never derives identity from request JSON.
+-app.MapPost("/orders", async (IFulfillmentBackend backend) =>
+-{
+-    var created = await backend.CreateOrder();
+-    return Results.Created($"/orders/{created.Id}", created);
+-});
+-app.MapGet("/orders/{id}", async (string id, IFulfillmentBackend backend) =>
+-    await backend.GetOrder(id) is { } order ? Results.Ok(order) : Results.NotFound());
+-app.MapGet("/inventory/{sku}", async (string sku, IFulfillmentBackend backend) =>
+-    await backend.GetInventory(sku) is { } item ? Results.Ok(item) : Results.NotFound());
+-app.MapGet("/orders/{id}/details", async (string id, IFulfillmentBackend backend) =>
+-    await backend.GetDetails(id) is { } details ? ReadResults.Reply(details, details.Reservations.Count) : Results.NotFound());
+-app.MapGet("/orders/{id}/availability", async (string id, IFulfillmentBackend backend) =>
+-    await backend.GetDetails(id) is { } details
+-        ? ReadResults.Reply(details.Reservations.Select(r => new AvailabilityView(r.Id, r.Sku, r.Quantity, r.AvailableStock)).ToArray(), details.Reservations.Count)
+-        : Results.NotFound());
+-app.MapPost("/fulfillment", (FulfillmentRequest request, OperationQueue queue) => queue.Admit(request));
+-app.MapGet("/fulfillment/results/{operationId}", (string operationId, OperationQueue queue) => queue.Result(operationId));
+-app.Services.GetRequiredService<IFulfillmentBackend>().MapSubmit(app);
+-await app.RunAsync();
 diff --git a/src/Fulfillment.Application/packages.lock.json b/src/Fulfillment.Application/packages.lock.json
 index 1bfeb4e..947010d 100644
 --- a/src/Fulfillment.Application/packages.lock.json
