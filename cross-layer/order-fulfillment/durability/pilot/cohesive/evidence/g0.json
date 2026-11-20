@@ -141,7 +141,7 @@
   "postgresImage": "postgres:17.10-alpine3.24",
   "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
   "sdk": "10.0.402",
-  "cohesiveSourceRevision": "141ffd184c018ecd1a23f55c789682f24d5c3424",
+  "cohesiveSourceRevision": "b27c9a08ceadb4ea59b37cbead43debe2630ea45",
   "limitations": [
     "G0 only",
     "Visible suite plus maintainer invariant checks; full hidden oracle not qualified",
