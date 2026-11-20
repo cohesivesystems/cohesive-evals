@@ -15,11 +15,22 @@ The [conventional submission](conventional/submission.patch) moves fulfillment d
 
 The [Cohesive binding](cohesive/overlay/src/Fulfillment.Application/AcceptedFulfillment.cs) pairs `ReturnAfterDurableAdmission()` with `ReadResultOf(process)`. The native dispatcher owns replay, conflict detection and scheduling. The Durable Task execution repository serves the retained result. The existing fulfillment process runs unchanged. PostgreSQL transition receipts protect its effects. The service declaration links submit and poll to the same process and declares a separate authorization requirement for each. The HTTP declaration specifies the public receipt and error bodies, a bodyless 503 at capacity, and bodyless 202 and 404 polling responses. The SDK uses those mappings for routing and OpenAPI.
 
-The [published SDK](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-b27c9a08) meters admission through `maximumRetainedInstances: 1000` on the worker catalog. The admission orchestrator resolves replay and conflict before checking capacity. It locks the quota for the authority, tenant and process definition, then commits quota consumption and the scheduling action in one durable entity turn. The first admission pins the worker policy in a durable entity. Every start checks it, including starts on workers configured for unlimited retention. Completed identities still occupy a slot because they remain replayable. The app supplies its request ID through `AcceptedProcessIntent.FromRequestId`. The SDK derives stable retry identities. Verified terminal failures map to the declared execution error. PostgreSQL continues to store the order data and effect receipts.
+The [published SDK](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-c638995e) meters admission through `maximumRetainedInstances: 1000` on the worker catalog. The admission orchestrator resolves replay and conflict before checking capacity. It locks the quota for the authority, tenant and process definition, then commits quota consumption and the scheduling action in one durable entity turn. The first admission pins the worker policy in a durable entity. Every start checks it, including starts on workers configured for unlimited retention. Completed identities still occupy a slot because they remain replayable. The app supplies its request ID through `AcceptedProcessIntent.FromRequestId`. The SDK derives stable retry identities. Verified terminal failures map to the declared execution error. PostgreSQL continues to store the order data and effect receipts.
 
 The production app registers the SDK's worker authority projector for the fixture identity. All deliberate failures and crash barriers live in a [separate test host](cohesive/overlay/tests/Fulfillment.TestHost). Its transition decorator pauses after a committed reserve, submit, reservation or release. Its scheduler interceptor observes the worker RPC that commits the native quota entity's increment-and-schedule action, on either side of acknowledgement. The test host holds the HTTP response for the post-commit crash. Because native admission schedules the process in the same action, the acknowledged `before-dispatch` scenario stops before dispatch of the first business activity. The result barrier stops the process worker before its terminal completion reaches the scheduler.
 
 The recovery grader launches that test host. Capacity and G0 launch the ordinary app. Both use the same application assembly, pinned durable scheduler emulator, and PostgreSQL. [Conventional evidence](conventional/evidence) · [Guided Cohesive evidence](cohesive/evidence) · [Known-good controls](control.json)
+
+## Unmetered admission latency
+
+This local emulator check measured POST-to-202 latency before worker-policy pinning (SDK `141ffd18`) and after it (`b27c9a08`). Both builds used unlimited retention. Each cell gives the median and p95 in milliseconds across 200 distinct submissions to one scope.
+
+| Concurrent clients | Before, median / p95 | After, median / p95 |
+|---:|---:|---:|
+| 1 | 16.1 / 23.6 | 17.8 / 23.6 |
+| 8 | 50.5 / 131.7 | 54.8 / 136.8 |
+
+For reproduction, materialize eval commits `0eb6c36` and `517f064` respectively, omit `maximumRetainedInstances: 1000` from each worker catalog and build both apps in Debug. From the repo root run `PYTHONPATH=. python3 cross-layer/order-fulfillment/durability/pilot/admission_latency.py BEFORE_DLL AFTER_DLL FRESH_DIR`. For each concurrency level the script runs before/after/after/before, with a fresh database and scheduler per trial and 16 warm-up submissions. The figures include HTTP, scheduling and concurrent fulfillment work. [Raw samples](cohesive/evidence/unmetered-latency.json)
 
 ## Reproduce
 
