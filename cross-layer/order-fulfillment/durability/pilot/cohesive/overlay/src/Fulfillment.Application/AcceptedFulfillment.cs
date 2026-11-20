@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Cohesive.Api;
 using Cohesive.Processes.Runtime;
 using Cohesive.Adapters.AspNet.Services;
 using Cohesive.Adapters.DurableTask;
@@ -22,14 +21,10 @@ public sealed partial class FulfillmentBackend
         var start = client.CreateCohesiveProcessStartDispatcher((_, request, invocation) =>
             new(invocation.Authorization.AuthorityScope, new(request.Context.CommandId.Value),
                 new(InteractionDurabilityDemand.Durable, InteractionVisibilityDemand.AfterOriginCommit),
-                plan.Document.Metadata.Provenance));
+                plan.Document.Metadata.Provenance), maximumRetainedInstances: 1000);
         var values = app.Services.GetRequiredService<IProcessExecutionValueRepository>();
         var runtime = new ServiceRuntime(api.Declaration,
-            [new ServiceProcessBinding("fulfill", plan, "fulfillment", async (context, request, invocation) =>
-            {
-                await AdmissionCapacity.Reserve(database, request.Context.CommandId.Value, context.CancellationToken);
-                return await start(context, request, invocation);
-            }),
+            [new ServiceProcessBinding("fulfill", plan, "fulfillment", start),
              new ServiceProcessResultBinding("result", plan, "fulfillment", values)],
             new IdentityServiceInvocationAuthorization("demo", new("Partition")));
         var routes = app.MapGroup("").AddEndpointFilter(async (context, next) =>
@@ -38,10 +33,6 @@ public sealed partial class FulfillmentBackend
             try
             {
                 response = await next(context);
-            }
-            catch (AdmissionCapacity.CapacityExceededException)
-            {
-                return Results.StatusCode(503);
             }
             catch (BadHttpRequestException) when (HttpMethods.IsGet(context.HttpContext.Request.Method))
             {
@@ -57,28 +48,12 @@ public sealed partial class FulfillmentBackend
             }
             return response switch
             {
-                IValueHttpResult { Value: ServiceProcessReceipt receipt } =>
-                    Results.Json(new Admission(receipt.ResultLocation.Split('/')[^1], receipt.ResultLocation), statusCode: 202),
                 IStatusCodeHttpResult { StatusCode: 409 } => Results.Conflict(new ErrorResponse("RequestIdentityConflict")),
-                IValueHttpResult { Value: ApiProblem { Code: "services.process.notCompleted" } } => Results.Json(new ErrorResponse("ExecutionFailed"), statusCode: 500),
-                IValueHttpResult { Value: ApiProblem { Code: "services.process.evidenceUnavailable" } }
-                    when await EngineFailed(context.HttpContext) => Results.Json(new ErrorResponse("ExecutionFailed"), statusCode: 500),
-                IStatusCodeHttpResult { StatusCode: 202 } => Results.StatusCode(202),
+                IStatusCodeHttpResult { StatusCode: 202 } when HttpMethods.IsGet(context.HttpContext.Request.Method) => Results.StatusCode(202),
                 IStatusCodeHttpResult { StatusCode: 404 } => Results.NotFound(),
                 _ => response
             };
         });
-        // The native reader reports missing terminal evidence for a failed worker
-        // activity. Distinguish that retained engine failure from a storage error.
-        async Task<bool> EngineFailed(HttpContext http)
-        {
-            var token = (string)http.Request.RouteValues["instanceId"]!;
-            var id = Encoding.UTF8.GetString(Microsoft.AspNetCore.WebUtilities.WebEncoders.Base64UrlDecode(token));
-            var physical = DurableTaskProcessExecutionIdentity.GetPhysicalInstanceId(Authority, new(id));
-            var metadata = await client.GetInstanceAsync(physical, cancellation: http.RequestAborted);
-            return metadata?.RuntimeStatus is OrchestrationRuntimeStatus.Failed or OrchestrationRuntimeStatus.Terminated;
-        }
-
         routes.MapServiceAcceptedProcess(api, runtime, (_, request) =>
         {
             if (string.IsNullOrWhiteSpace(request.RequestId) || string.IsNullOrWhiteSpace(request.OrderId)
@@ -87,6 +62,8 @@ public sealed partial class FulfillmentBackend
             var id = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(request.RequestId)));
             return (new(id), new(id), new(new(id), new("attempt/1")),
                 ObservationValue.FromObject(new FulfillOrder(request.OrderId, request.Sku, request.Quantity)));
-        }, value => value.Value!.Value.Deserialize<FulfillmentResult>()!, (_, requirement) => requirement.Id);
+        }, value => value.Value!.Value.Deserialize<FulfillmentResult>()!, (_, requirement) => requirement.Id,
+            projectReceipt: receipt => Results.Json(new Admission(receipt.ResultToken, receipt.ResultLocation), statusCode: 202),
+            projectFailure: _ => Results.Json(new ErrorResponse("ExecutionFailed"), statusCode: 500));
     }
 }
