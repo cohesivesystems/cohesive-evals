@@ -19,7 +19,7 @@ public sealed partial class FulfillmentBackend
         var start = client.CreateCohesiveProcessStartDispatcher((_, request, invocation) =>
             new(invocation.Authorization.AuthorityScope, new(request.Context.CommandId.Value),
                 new(InteractionDurabilityDemand.Durable, InteractionVisibilityDemand.AfterOriginCommit),
-                plan.Document.Metadata.Provenance), maximumRetainedInstances: 1000);
+                plan.Document.Metadata.Provenance));
         var values = app.Services.GetRequiredService<IProcessExecutionValueRepository>();
         var runtime = new ServiceRuntime(api.Declaration,
             [new ServiceProcessBinding("fulfill", plan, "fulfillment", start),
