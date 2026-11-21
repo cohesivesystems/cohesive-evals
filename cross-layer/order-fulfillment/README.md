@@ -7,6 +7,8 @@ The conventional condition uses domain methods and explicit Npgsql persistence.
 The Cohesive condition uses entity transitions, a process definition, query models,
 and the native PostgreSQL and ASP.NET adapters.
 
+The visible Python tests use the shared HTTP client. When copying a condition out of the repo, dereference test symlinks (the fixture builders use `shutil.copytree` with its default settings).
+
 ## Run and verify
 
 Each condition contains its own setup README, public contract, schemas, package

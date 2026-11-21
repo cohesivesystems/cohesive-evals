@@ -16,8 +16,13 @@ def input_hashes(folder):
 
 
 def artifact_hashes(folder):
-    output=folder/'src/Fulfillment.Application/bin/Debug/net10.0'
-    return {str(p.relative_to(folder)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(output.rglob('*')) if p.is_file()}
+    """Fingerprint the production app and the optional separately built crash-test host."""
+    outputs = [folder/'src/Fulfillment.Application/bin/Debug/net10.0']
+    host = folder/'tests/Fulfillment.TestHost'
+    if (host/'Fulfillment.TestHost.csproj').exists():
+        outputs.append(host/'bin/Debug/net10.0')
+    return {str(p.relative_to(folder)):hashlib.sha256(p.read_bytes()).hexdigest()
+            for output in outputs for p in sorted(output.rglob('*')) if p.is_file()}
 
 
 def reference_fingerprint(folder):

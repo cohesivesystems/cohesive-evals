@@ -1,0 +1,14 @@
+{
+  "base": "6a2b6c4d480b3dd79356767e2d1468ccf1781207",
+  "trees": {
+    "conventional": "a24a1998a0778628f53e41d763fe210e04261265",
+    "cohesive": "34a2c3449f3a37e276d1d6093717a1d5f6dc89cf"
+  },
+  "promptSha256": "145d8f104d6ff2bebe39bd590ba9472ea6b798341412097cbd02e6c659e5b1b4",
+  "model": "gpt-6.2-astra",
+  "reasoning": "medium",
+  "sessionsPerCondition": 1,
+  "minutesPerSession": 60,
+  "feedback": "Local build and visible tests only; evaluator grades frozen outputs.",
+  "budget": "Same elapsed-time cap; no separately enforced token or dollar cap. Unscored calibration."
+}

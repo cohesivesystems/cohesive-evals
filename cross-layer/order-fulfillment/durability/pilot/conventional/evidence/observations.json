@@ -1,0 +1,391 @@
+[
+  {
+    "check": "empty details",
+    "status": 200,
+    "body": {
+      "id": "success",
+      "status": "Draft",
+      "reservations": []
+    }
+  },
+  {
+    "check": "empty availability",
+    "status": 200,
+    "body": []
+  },
+  {
+    "check": "not found /orders/unknown",
+    "status": 404,
+    "body": null
+  },
+  {
+    "check": "not found /orders/unknown/details",
+    "status": 404,
+    "body": null
+  },
+  {
+    "check": "not found /orders/unknown/availability",
+    "status": 404,
+    "body": null
+  },
+  {
+    "check": "not found /inventory/unknown",
+    "status": 404,
+    "body": null
+  },
+  {
+    "check": "not found /fulfillment/results/unknown",
+    "status": 404,
+    "body": null
+  },
+  {
+    "check": "missing direct submit",
+    "status": 404,
+    "body": null
+  },
+  {
+    "check": "direct submit",
+    "status": 200,
+    "body": {
+      "id": "direct",
+      "status": "Submitted"
+    }
+  },
+  {
+    "check": "direct reject",
+    "status": 409,
+    "body": {
+      "code": "OrderNotDraft"
+    }
+  },
+  {
+    "check": "direct no reservation",
+    "status": 200,
+    "body": []
+  },
+  {
+    "check": "case sensitive id",
+    "status": 200,
+    "body": {
+      "id": "case-A",
+      "status": "Submitted"
+    }
+  },
+  {
+    "check": "other case preserved",
+    "status": 200,
+    "body": {
+      "id": "case-a",
+      "status": "Draft"
+    }
+  },
+  {
+    "check": "create",
+    "status": 201,
+    "body": {
+      "id": "<created>"
+    }
+  },
+  {
+    "check": "empty request",
+    "status": 400,
+    "body": {
+      "code": "InvalidRequest"
+    }
+  },
+  {
+    "check": "empty order",
+    "status": 400,
+    "body": {
+      "code": "InvalidRequest"
+    }
+  },
+  {
+    "check": "null sku",
+    "status": 400,
+    "body": {
+      "code": "InvalidRequest"
+    }
+  },
+  {
+    "check": "malformed and missing quantities",
+    "status": 400
+  },
+  {
+    "check": "unknown-precedence",
+    "status": 200,
+    "body": {
+      "status": "Rejected",
+      "outcome": "OrderMissing"
+    }
+  },
+  {
+    "check": "missing-inventory-precedence",
+    "status": 200,
+    "body": {
+      "status": "Rejected",
+      "outcome": "InventoryMissing"
+    }
+  },
+  {
+    "check": "invalid-zero",
+    "status": 200,
+    "body": {
+      "status": "Rejected",
+      "outcome": "InvalidQuantity"
+    }
+  },
+  {
+    "check": "invalid-negative",
+    "status": 200,
+    "body": {
+      "status": "Rejected",
+      "outcome": "InvalidQuantity"
+    }
+  },
+  {
+    "check": "insufficient",
+    "status": 200,
+    "body": {
+      "status": "Rejected",
+      "outcome": "InsufficientStock"
+    }
+  },
+  {
+    "check": "submitted-stock-precedence",
+    "status": 200,
+    "body": {
+      "status": "Rejected",
+      "outcome": "InsufficientStock"
+    }
+  },
+  {
+    "check": "submitted-compensation",
+    "status": 200,
+    "body": {
+      "status": "Rejected",
+      "outcome": "OrderRejected"
+    }
+  },
+  {
+    "check": "existing-match",
+    "status": 200,
+    "body": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    }
+  },
+  {
+    "check": "existing-conflict-precedence",
+    "status": 200,
+    "body": {
+      "status": "Rejected",
+      "outcome": "ReservationConflict"
+    }
+  },
+  {
+    "check": "success-request",
+    "status": 200,
+    "body": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    }
+  },
+  {
+    "check": "same-intent-new-request",
+    "status": 200,
+    "body": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    }
+  },
+  {
+    "check": "changed request identity",
+    "status": 409,
+    "body": {
+      "code": "RequestIdentityConflict"
+    }
+  },
+  {
+    "check": "success stock",
+    "status": 200,
+    "body": {
+      "sku": "success-sku",
+      "available": 3
+    }
+  },
+  {
+    "check": "compensated stock",
+    "status": 200,
+    "body": {
+      "sku": "submitted-sku",
+      "available": 5
+    }
+  },
+  {
+    "check": "rejected reservations",
+    "status": 200,
+    "body": []
+  },
+  {
+    "check": "success details",
+    "status": 200,
+    "body": {
+      "id": "success",
+      "status": "Submitted",
+      "reservations": [
+        {
+          "id": "success",
+          "sku": "success-sku",
+          "quantity": 2,
+          "availableStock": 3
+        }
+      ]
+    }
+  },
+  {
+    "check": "success availability",
+    "status": 200,
+    "body": [
+      {
+        "reservationId": "success",
+        "sku": "success-sku",
+        "quantity": 2,
+        "availableStock": 3
+      }
+    ]
+  },
+  {
+    "check": "preserved invalid-sku",
+    "status": 200,
+    "body": {
+      "sku": "invalid-sku",
+      "available": 5
+    }
+  },
+  {
+    "check": "preserved insufficient-sku",
+    "status": 200,
+    "body": {
+      "sku": "insufficient-sku",
+      "available": 5
+    }
+  },
+  {
+    "check": "preserved matched-sku",
+    "status": 200,
+    "body": {
+      "sku": "matched-sku",
+      "available": 5
+    }
+  },
+  {
+    "check": "preserved conflict-sku",
+    "status": 200,
+    "body": {
+      "sku": "conflict-sku",
+      "available": 5
+    }
+  },
+  {
+    "check": "preserved unrelated-sku",
+    "status": 200,
+    "body": {
+      "sku": "unrelated-sku",
+      "available": 5
+    }
+  },
+  {
+    "check": "unrelated order",
+    "status": 200,
+    "body": {
+      "id": "unrelated",
+      "status": "Draft"
+    }
+  },
+  {
+    "check": "unicode details",
+    "status": 200,
+    "body": {
+      "id": "unicode",
+      "status": "Submitted",
+      "reservations": [
+        {
+          "id": "\ud800\udc00",
+          "sku": "unrelated-sku",
+          "quantity": 1,
+          "availableStock": 5
+        },
+        {
+          "id": "\ue000",
+          "sku": "unrelated-sku",
+          "quantity": 1,
+          "availableStock": 5
+        }
+      ]
+    }
+  },
+  {
+    "check": "row limit accepted details",
+    "status": 200,
+    "count": 1000
+  },
+  {
+    "check": "row limit exceeded details",
+    "status": 422,
+    "body": {
+      "code": "ReadResultTooLarge"
+    }
+  },
+  {
+    "check": "unicode availability",
+    "status": 200,
+    "body": [
+      {
+        "reservationId": "\ud800\udc00",
+        "sku": "unrelated-sku",
+        "quantity": 1,
+        "availableStock": 5
+      },
+      {
+        "reservationId": "\ue000",
+        "sku": "unrelated-sku",
+        "quantity": 1,
+        "availableStock": 5
+      }
+    ]
+  },
+  {
+    "check": "row limit accepted availability",
+    "status": 200,
+    "count": 1000
+  },
+  {
+    "check": "row limit exceeded availability",
+    "status": 422,
+    "body": {
+      "code": "ReadResultTooLarge"
+    }
+  },
+  {
+    "check": "bytes-details-1000000",
+    "status": 200
+  },
+  {
+    "check": "bytes-details-1000001",
+    "status": 422
+  },
+  {
+    "check": "bytes-availability-1000000",
+    "status": 200
+  },
+  {
+    "check": "bytes-availability-1000001",
+    "status": 422
+  },
+  {
+    "check": "seed not on listener",
+    "status": 404,
+    "body": null
+  }
+]

@@ -1,0 +1,133 @@
+{
+  "after-admission-commit": {
+    "condition": "conventional",
+    "point": "after-admission-commit",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    },
+    "acknowledgedBeforeRestart": false
+  },
+  "after-release": {
+    "condition": "conventional",
+    "point": "after-release",
+    "passed": true,
+    "completion": {
+      "status": "Rejected",
+      "outcome": "OrderRejected"
+    },
+    "physical": {
+      "count": 0,
+      "quantity": 0
+    }
+  },
+  "after-reservation": {
+    "condition": "conventional",
+    "point": "after-reservation",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    }
+  },
+  "after-reserve": {
+    "condition": "conventional",
+    "point": "after-reserve",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    }
+  },
+  "after-submit": {
+    "condition": "conventional",
+    "point": "after-submit",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    }
+  },
+  "before-admission-commit": {
+    "condition": "conventional",
+    "point": "before-admission-commit",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    },
+    "acknowledgedBeforeRestart": false
+  },
+  "before-dispatch": {
+    "condition": "conventional",
+    "point": "before-dispatch",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    }
+  },
+  "before-result-commit": {
+    "condition": "conventional",
+    "point": "before-result-commit",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    }
+  },
+  "none": {
+    "condition": "conventional",
+    "point": "none",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    }
+  },
+  "terminal-failure": {
+    "condition": "conventional",
+    "point": "terminal-failure",
+    "passed": true,
+    "completion": {
+      "code": "ExecutionFailed"
+    },
+    "physical": {
+      "count": 1,
+      "quantity": 5
+    }
+  }
+}

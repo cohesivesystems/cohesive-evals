@@ -1,0 +1,133 @@
+{
+  "after-admission-commit": {
+    "condition": "cohesive",
+    "point": "after-admission-commit",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    },
+    "acknowledgedBeforeRestart": false
+  },
+  "after-release": {
+    "condition": "cohesive",
+    "point": "after-release",
+    "passed": true,
+    "completion": {
+      "status": "Rejected",
+      "outcome": "OrderRejected"
+    },
+    "physical": {
+      "count": 0,
+      "quantity": 0
+    }
+  },
+  "after-reservation": {
+    "condition": "cohesive",
+    "point": "after-reservation",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    }
+  },
+  "after-reserve": {
+    "condition": "cohesive",
+    "point": "after-reserve",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    }
+  },
+  "after-submit": {
+    "condition": "cohesive",
+    "point": "after-submit",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    }
+  },
+  "before-admission-commit": {
+    "condition": "cohesive",
+    "point": "before-admission-commit",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    },
+    "acknowledgedBeforeRestart": false
+  },
+  "before-dispatch": {
+    "condition": "cohesive",
+    "point": "before-dispatch",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    }
+  },
+  "before-result-commit": {
+    "condition": "cohesive",
+    "point": "before-result-commit",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    }
+  },
+  "none": {
+    "condition": "cohesive",
+    "point": "none",
+    "passed": true,
+    "completion": {
+      "status": "Submitted",
+      "outcome": "ReservedAndSubmitted"
+    },
+    "physical": {
+      "count": 2,
+      "quantity": 5
+    }
+  },
+  "terminal-failure": {
+    "condition": "cohesive",
+    "point": "terminal-failure",
+    "passed": true,
+    "completion": {
+      "code": "ExecutionFailed"
+    },
+    "physical": {
+      "count": 1,
+      "quantity": 5
+    }
+  }
+}

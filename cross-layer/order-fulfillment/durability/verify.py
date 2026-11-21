@@ -6,18 +6,20 @@ import importlib.util
 import json
 import os
 from pathlib import Path
-import socket
+from contextlib import ExitStack
 import subprocess
 import sys
 import time
 import uuid
-import urllib.error
-import urllib.request
 
 ROOT=Path(__file__).resolve().parent
 CASE=ROOT.parent
 sys.path.insert(0,str(CASE/'verification'))
-from verify import run, free_port, IMAGE
+sys.path.insert(0,str(CASE.parents[1]))
+from cohesive_evals.http_client import ConnectionDropped
+from cohesive_evals.errors import AdapterError
+from cohesive_evals.runtime import durable_task_scheduler, kestrel_url
+from verify import run, IMAGE
 from build import reference_fingerprint, verify_build
 spec=importlib.util.spec_from_file_location('contract_tests',CASE/'conditions/conventional/tests/contract_tests.py')
 suite=importlib.util.module_from_spec(spec);spec.loader.exec_module(suite)
@@ -32,10 +34,22 @@ def wait_until(test, seconds, label):
     raise AssertionError('Deadline exceeded: '+label)
 
 
+def acknowledged_receipt(pending):
+    """Keep the original 202 receipt after a kill. Only a dropped connection permits retry."""
+    try:
+        status, receipt = pending.result(timeout=5)
+    except ConnectionDropped:
+        return None
+    if status != 202 or not suite.valid_receipt(receipt):
+        raise AssertionError(f"admission at crash barrier: expected a 202 receipt, got {(status, receipt)!r}")
+    return receipt
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--condition',choices=['conventional','cohesive'])
     parser.add_argument('--point',choices=POINTS)
+    parser.add_argument('--test-host', action='store_true', help='Launch the separately built crash-test host')
     parser.add_argument('--reject',action='store_true')
     parser.add_argument('--references',type=Path,default=CASE/'artifacts/durable-reference')
     parser.add_argument('--output',type=Path,default=CASE/'artifacts/durability')
@@ -44,24 +58,21 @@ def main():
     (output/'assertion-failure.json').unlink(missing_ok=True)
     (output/'report.json').unlink(missing_ok=True)
     manifest=json.loads((ROOT/'dependency-manifest.json').read_text())
-    suffix=uuid.uuid4().hex[:10];pg='order-recovery-pg-'+suffix;dts='order-recovery-dts-'+suffix
-    owned=[];process=None;records=[]
+    suffix=uuid.uuid4().hex[:10];pg='order-recovery-pg-'+suffix
+    services=ExitStack()
+    process=None;records=[]
     condition=None;point=None
     build_manifests={c:verify_build(args.references.resolve()/c) for c in ([args.condition] if args.condition else ['conventional','cohesive'])}
     try:
-        run('docker','run','-d','--name',pg,'-e','POSTGRES_PASSWORD=fixture-only','-p','127.0.0.1::5432',IMAGE);owned.append(pg)
-        run('docker','run','-d','--name',dts,'-p','127.0.0.1::8080',manifest['schedulerImage']);owned.append(dts)
+        run('docker','run','-d','--name',pg,'-e','POSTGRES_PASSWORD=fixture-only','-p','127.0.0.1::5432',IMAGE)
+        services.callback(run,'docker','rm','-f',pg)
+        connection=services.enter_context(durable_task_scheduler(manifest['schedulerImage']))
         wait_until(lambda:subprocess.run(['docker','exec',pg,'pg_isready','-h','127.0.0.1','-U','postgres'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0,30,'PostgreSQL ready')
         dbport=run('docker','port',pg,'5432/tcp').rsplit(':',1)[1]
-        dtsport=run('docker','port',dts,'8080/tcp').rsplit(':',1)[1]
-        def scheduler_ready():
-            try:
-                with socket.create_connection(('127.0.0.1',int(dtsport)),timeout=.5): return True
-            except OSError:return False
-        wait_until(scheduler_ready,30,'scheduler ready')
         for condition in ([args.condition] if args.condition else ['conventional','cohesive']):
             folder=args.references.resolve()/condition
             executable=folder/'src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.dll'
+            host_executable = folder/'tests/Fulfillment.TestHost/bin/Debug/net10.0/Fulfillment.TestHost.dll' if args.test_host else executable
             for index, point in enumerate([args.point] if args.point else POINTS):
                 database=f'{condition}_{index}'
                 run('docker','exec',pg,'psql','-U','postgres','-c',f'CREATE DATABASE {database}')
@@ -73,21 +84,26 @@ def main():
                       'inventory':[{'sku':'stock','available':5},{'sku':'untouched','available':9}], 'reservations':[]}
                 seed_path=evidence/'seed.json';seed_path.write_text(json.dumps(seed))
                 env=dict(os.environ,ConnectionStrings__Orders=f'Host=127.0.0.1;Port={dbport};Database={database};Username=postgres;Password=fixture-only',
-                         DURABLE_TASK_CONNECTION=f'Endpoint=http://127.0.0.1:{dtsport};TaskHub=default;Authentication=None', ASPNETCORE_ENVIRONMENT='Production')
+                         DURABLE_TASK_CONNECTION=connection, ASPNETCORE_ENVIRONMENT='Production')
                 with (evidence/'host.log').open('w') as log:
                     subprocess.run(['dotnet',str(executable),'--seed',str(seed_path)],cwd=folder,env=dict(env,FULFILLMENT_SETUP='1'),stdout=log,stderr=log,check=True,timeout=60)
-                    port=free_port();url=f'http://127.0.0.1:{port}';client=suite.Client(url)
+                    client=None
                     def start(crash):
-                        nonlocal process
+                        """Launch with optional fault injection and bind the client to this host."""
+                        nonlocal process,client
                         current=dict(env)
                         if crash:
                             if terminal: current.update(EVAL_FAIL_POINT="before-reserve",EVAL_FAIL_MARKER=str(marker))
                             else: current.update(EVAL_CRASH_POINT=point,EVAL_CRASH_MARKER=str(marker))
-                        process=subprocess.Popen(['dotnet',str(executable),'--urls',url],cwd=folder,env=current,stdout=log,stderr=log)
+                        offset=log.tell()
+                        process=subprocess.Popen(['dotnet',str(host_executable),'--urls','http://127.0.0.1:0'],cwd=folder,env=current,stdout=log,stderr=log)
+                        client=suite.Client(kestrel_url(process,evidence/'host.log',offset))
                         def ready():
                             if process.poll() is not None:raise RuntimeError('Host exited; see '+str(evidence/'host.log'))
                             try:return client.request('GET','/orders/a')[0]==200
-                            except (urllib.error.URLError,ConnectionError):return False
+                            except AdapterError as error:
+                                if error.category == "infrastructure": return False
+                                raise
                         wait_until(ready,30,'host ready')
                     start(point!='none')
                     request={'requestId':'request-a','orderId':'a','sku':'stock','quantity':3}
@@ -97,18 +113,20 @@ def main():
                             pending=pool.submit(client.request,'POST','/fulfillment',request)
                             wait_until(marker.exists,30,point)
                             process.kill();process.wait(timeout=10);process=None
-                            try: pending.result(timeout=5)
-                            except (OSError,TimeoutError):pass
+                            receipt = acknowledged_receipt(pending)
                     else:
-                        status,receipt=client.request('POST','/fulfillment',request);assert status==202,(status,receipt)
+                        status,receipt=client.request('POST','/fulfillment',request)
+                        assert status == 202 and suite.valid_receipt(receipt), (status, receipt)
                         if point not in ['none','terminal-failure']:
                             wait_until(marker.exists,60,point)
                             process.kill();process.wait(timeout=10);process=None
                     if point not in ['none','terminal-failure']:start(False)
                     # Ambiguous unacknowledged admission may require retry. An acknowledged
                     # admission must recover autonomously through its original result URL.
+                    acknowledged_before_restart = receipt is not None
                     if receipt is None:
-                        status,receipt=client.request('POST','/fulfillment',request);assert status==202
+                        status,receipt=client.request('POST','/fulfillment',request)
+                        assert status == 202 and suite.valid_receipt(receipt), (status, receipt)
                     outcome='OrderRejected' if rejecting else 'ReservedAndSubmitted'
                     expected={'code':'ExecutionFailed'} if terminal else {'status':'Rejected' if rejecting else 'Submitted','outcome':outcome}
                     expected_status=500 if terminal else 200
@@ -141,6 +159,8 @@ def main():
                     assert client.request('GET',receipt['resultUrl'])==(expected_status,expected)
                     process.kill();process.wait(timeout=10);process=None
                     record={'condition':condition,'point':point,'passed':True,'completion':expected,'physical':physical}
+                    if point in ['before-admission-commit', 'after-admission-commit']:
+                        record['acknowledgedBeforeRestart'] = acknowledged_before_restart
                     records.append(record);(evidence/'result.json').write_text(json.dumps(record,indent=2)+'\n')
                     print(condition,point,'passed',flush=True)
         assert build_manifests=={c:verify_build(args.references.resolve()/c) for c in build_manifests}, 'Build changed during verification'
@@ -153,6 +173,6 @@ def main():
         raise
     finally:
         if process is not None:process.kill();process.wait(timeout=10)
-        for container in reversed(owned):subprocess.run(['docker','rm','-f',container],stdout=subprocess.DEVNULL,check=True)
+        services.close()
 
 if __name__=='__main__':main()

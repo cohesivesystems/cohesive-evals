@@ -1,0 +1,17 @@
+{
+  "startTree": "a24a1998a0778628f53e41d763fe210e04261265",
+  "submittedTree": "eb1569aa1c5f469b700611adcbd8c8c97af864e9",
+  "numstat": [
+    "12\t6\tCONTRACT.md",
+    "7\t8\tREADME.md",
+    "0\t1\tsrc/Fulfillment.Application/Contracts.cs",
+    "33\t0\tsrc/Fulfillment.Application/EvaluationHooks.cs",
+    "11\t1\tsrc/Fulfillment.Application/Fulfillment.Application.csproj",
+    "1\t32\tsrc/Fulfillment.Application/FulfillmentBackend.cs",
+    "109\t0\tsrc/Fulfillment.Application/FulfillmentWorkflow.cs",
+    "149\t47\tsrc/Fulfillment.Application/OperationQueue.cs",
+    "9\t0\tsrc/Fulfillment.Application/OrderStore.cs",
+    "9\t4\tsrc/Fulfillment.Application/Program.cs",
+    "247\t0\tsrc/Fulfillment.Application/packages.lock.json"
+  ]
+}

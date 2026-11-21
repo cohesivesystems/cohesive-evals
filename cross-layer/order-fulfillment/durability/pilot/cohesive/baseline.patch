@@ -1,0 +1,1316 @@
+diff --git a/CONTRACT.md b/CONTRACT.md
+index 9f20a53..a830770 100644
+--- a/CONTRACT.md
++++ b/CONTRACT.md
+@@ -39,9 +39,9 @@ database-memory or streaming bound.
+ ## Fulfillment behavior
+ 
+ Exact duplicate requestId and input return the original admission and retained
+-result for the lifetime of this host. A reused requestId with different input
++result across host restarts. A reused requestId with different input
+ returns 409 {code: "RequestIdentityConflict"} and starts no work. No failed
+-operation is retried under the same identity. The host retains at most 1000
++operation is retried under the same identity. The admission authority retains at most 1000
+ admitted requests; additional new identities receive 503 without admission.
+ Existing identities remain replayable at capacity.
+ 
+@@ -67,11 +67,11 @@ preserved. Replayed results do not depend on later state changes.
+ 
+ ## Execution and setup
+ 
+-Admission and result retention last only for this host. Client disconnection
+-cannot cancel admitted work. A single bounded host worker executes admitted
+-operations. Each mutation and its process-step receipt commit together in
+-PostgreSQL; the whole sequence is not one transaction. Independent-intent races
+-and crash recovery are outside this application's declared guarantees.
++Admission and result retention survive abrupt host termination. A caller that
++did not receive an admission response may replay the same request. Durable Task recovers admitted work without a client retry. The scheduler
++retains workflow progress and terminal execution evidence and each mutation and its process-step
++receipt commit together in PostgreSQL. Recovery assumes one host, sequential
++independent intents, and a continuously available database and scheduler.
+ 
+ Inventory and preexisting records can be provisioned before the host starts with
+ --seed FILE and FULFILLMENT_SETUP=1, against a dedicated empty database. The file
+diff --git a/Fulfillment.slnx b/Fulfillment.slnx
+index 147dbba..72ceaa8 100644
+--- a/Fulfillment.slnx
++++ b/Fulfillment.slnx
+@@ -1 +1,5 @@
+-<Solution><Project Path="src/Fulfillment.Application/Fulfillment.Application.csproj" /></Solution>
++<Solution>
++  <Folder Name="/src/" />
++  <Folder Name="/tests/">
++    <Project Path="tests/Fulfillment.TestHost/Fulfillment.TestHost.csproj" />
++  </Folder><Project Path="src/Fulfillment.Application/Fulfillment.Application.csproj" /></Solution>
+diff --git a/README.md b/README.md
+index 7339d14..77bb18c 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # Fulfillment service
+ 
+-Requires .NET SDK 10.0.402, Python 3.9+ for the HTTP checks, and PostgreSQL 17.
++Requires .NET SDK 10.0.402, Python 3.9+ for the HTTP checks, PostgreSQL 17, and a Durable Task Scheduler task hub.
+ 
+ ```sh
+ dotnet restore Fulfillment.slnx --locked-mode
+@@ -8,6 +8,7 @@ dotnet build Fulfillment.slnx --no-restore
+ export ConnectionStrings__Orders='Host=127.0.0.1;Database=orders;Username=postgres;Password=local-password'
+ python3 tests/contract_tests.py --seed > /tmp/fulfillment-seed.json
+ FULFILLMENT_SETUP=1 dotnet run --no-build --project src/Fulfillment.Application -- --seed /tmp/fulfillment-seed.json
++export DURABLE_TASK_CONNECTION='Endpoint=http://127.0.0.1:8080;Authentication=None;TaskHub=default'
+ dotnet run --no-build --project src/Fulfillment.Application -- --urls http://127.0.0.1:5080
+ ```
+ 
+@@ -15,10 +16,6 @@ With that fresh host running, execute `python3 tests/contract_tests.py http://12
+ The checks mutate data; use a new database for every complete test run.
+ `CONTRACT.md` describes the public behavior. `schemas.json` specifies wire shapes.
+ 
+-The application separates HTTP and host-lifetime admission from domain decisions,
+-execution and persistence. The host owns its database pool and background worker.
+-Request results and replay identities remain private to that host; PostgreSQL owns
+-entity state and mutation receipts. `Program.cs`, `Contracts.cs` and
+-`OperationQueue.cs` implement transport and admission. Domain and backend files
+-own submission, inventory and workflow behavior. Read projections return current
+-persisted facts. There is no implicit rollback of the whole fulfillment sequence.
++The linked accepted-process API submits to Durable Task and reads retained
++results from the same scheduler. Durable Task meters retained identities; PostgreSQL stores atomic transition receipts. Restart with the same database and task hub. The separate
++Fulfillment.TestHost executable adds worker crash barriers for the recovery grader.
+diff --git a/dependency-manifest.json b/dependency-manifest.json
+index b4215cc..ba8da79 100644
+--- a/dependency-manifest.json
++++ b/dependency-manifest.json
+@@ -1,90 +1,103 @@
+ {
+-  "sourceRevision": "b0af008d85871ad8866d7d4311707ecd926529de",
+-  "packageVersion": "0.1.0-eval.b0af008",
++  "sourceRevision": "3fa9fad4a1f0728053158e8420230c8defdce9b2",
++  "packageVersion": "0.1.0-eval.3fa9fad4",
++  "publication": "https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-3fa9fad4",
+   "packages": [
+     {
+-      "file": "Cohesive.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "9fd5f2eb851d68188b960b990f1b87c74819c1b627487c8b83c551bd9a3094eb"
++      "file": "Cohesive.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "6222a2d221d88b389fa63989ccd1a0e803afe14fd8cd8711b55ff0ddb6f2eedd"
+     },
+     {
+-      "file": "Cohesive.Adapters.AspNet.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "bbd437fba3ade30544b805e373b19b3fadefe52ae5e697ff6818c960b4e4b9ea"
++      "file": "Cohesive.AI.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "490dce444cb6dd82dbea9a9defd73931ece776f1c23b8fbb2d7702c51eabc72b"
+     },
+     {
+-      "file": "Cohesive.Adapters.Postgres.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "e5db42df78b6931ad3f531ad2a3712e92c11ea2372f9b01060c7986b9a39de11"
++      "file": "Cohesive.Adapters.AspNet.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "d18d27dbad43ea8f102e00ee9778d931e63a7d3e0f1af3eaf668a7cd6ccb03c4"
+     },
+     {
+-      "file": "Cohesive.Adapters.Postgres.Infra.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "16198a98c103beae3820757c5b9ccedf1ac2d3b9c5f5c4f6fce33a2b7e01196b"
++      "file": "Cohesive.Adapters.AzureStorage.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "efcdb7682d70e1fd1b2a2a46f247e43a995efc71d459aadebbe25eb88221da35"
+     },
+     {
+-      "file": "Cohesive.Adapters.Postgres.Services.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "e779af3f03507c7eeb9258948a483f99d59cd4da4b2dac4e3a2bad2f945e0176"
++      "file": "Cohesive.Adapters.DurableTask.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "ec0aaefc8026a1f04754bb2e6c1eec6dea608515e183c1eb0381ed345ad1c47e"
+     },
+     {
+-      "file": "Cohesive.Adapters.Sql.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "89135e0ef314e99c41e8b77fd806d09ae0b270bca90a9c903f9632ac8bcf007b"
++      "file": "Cohesive.Adapters.Postgres.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "0d11d032725a9978c02580583cae00a2d8edfffae33fd0aaf19f9daaa48cb07f"
+     },
+     {
+-      "file": "Cohesive.Analyzers.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "d1db1e000aff8705ed0d493f5bae4acc625e5d7021839f2691990cb7ca10ade3"
++      "file": "Cohesive.Adapters.Postgres.Infra.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "0e37e2895fdacd1561e2f834dcbc181a41f2592a009f053b8725e4eff3c61fd1"
+     },
+     {
+-      "file": "Cohesive.Api.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "36654d9a44b4a589ed108c0e6d595306686a25ac4fc507bb14c9ace887034ae8"
++      "file": "Cohesive.Adapters.Postgres.Services.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "34fd7872f8964437ec272c5fade11ea90ce6b1ce205632bd66a842016d7c087b"
+     },
+     {
+-      "file": "Cohesive.Api.Execution.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "eff290f8b8e93f9e82be52b06e2fe453e161490a762ad35e6537e5878ffd2381"
++      "file": "Cohesive.Adapters.Sql.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "1defda205fa8b1906531db0602b2587f9f5920289749d996c14cb137c0498677"
+     },
+     {
+-      "file": "Cohesive.Application.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "37b7b8c21f75ae50cab9df4c2aaae32b108397e70cac3b9c15938003454ba1bf"
++      "file": "Cohesive.Analyzers.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "c6d1dd202f0aad6260b15555890f18ecede8bb8f77f425d6751b182a8185d45f"
+     },
+     {
+-      "file": "Cohesive.Cli.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "9ab7ed11b3bdec8e51a4b8f58a6a1af506602163a6ba47df36d2a38b57e8a96f"
++      "file": "Cohesive.Api.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "7de8c5e1d27922f965c245f4d66daf3619824ae087098e3f35984812f8790582"
+     },
+     {
+-      "file": "Cohesive.Configuration.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "e1ec1ebc0c775ce8742d86b075cb19110a5cc913c05c46de8a0e22827eeaf014"
++      "file": "Cohesive.Api.Execution.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "ee0185340cdb69476c3fddd315a84714e145f0d19802f8eaae27e37e85d7d1d5"
+     },
+     {
+-      "file": "Cohesive.Host.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "442beff6d4dc79fc2ab79eebbc1a0edeb85b8c42583f3e9097e14888e42cb347"
++      "file": "Cohesive.Application.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "bb7044292c7bc49141a38fd0d99a3806d099796ef6ad2f2b0425df0990aa6555"
+     },
+     {
+-      "file": "Cohesive.Identity.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "194c5ef3e1bce99038d82cc2d82cb4b875bd3d983cf30a9a57d0191f1cecd541"
++      "file": "Cohesive.Cli.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "471d7dc7a868d0f59867fcbe21e3c2213d39d008563e3831e712ca7751d5392c"
+     },
+     {
+-      "file": "Cohesive.Infra.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "914f0838d49d00818757904bb466476e5d1b0b332443cb62f1674a714f8443a8"
++      "file": "Cohesive.Configuration.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "3bd460f6b7efd3e3eb1a550d4c360137e41283720a65c1a1f0f07b320ee6e8e2"
+     },
+     {
+-      "file": "Cohesive.Processes.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "a06dfdd46b2d04b23a3b33fa8d10bd0a2bca9bcf8f1060db15054a5eb99c32b4"
++      "file": "Cohesive.Host.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "e349b71879ba4d2eb7969144d7208f81086550f9181a5850241220cc36e2f1c6"
+     },
+     {
+-      "file": "Cohesive.Processes.Distribution.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "058ebc3a635c31df0a9bb4995f9406dbd4e663889e2f8dfca0df5e8a02d8a7d4"
++      "file": "Cohesive.Identity.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "606831cf2693c9d29a46ce82abb835c7e4a287bdb83b692e1fdc1969ada42672"
+     },
+     {
+-      "file": "Cohesive.Relations.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "c6f39df6ecadea5ca40e224f7e9a1c78446b43e0ffcabb2841a23269291f05d4"
++      "file": "Cohesive.Infra.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "1bd64fed81fd4ae71c41a6a8c06de495d003d449b1b87fb55c538a0a328ee49b"
+     },
+     {
+-      "file": "Cohesive.Relations.Infra.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "9fb8bdcf2e375a0e4ef228c2a954b329ef7532375cce88cb605f7eb432310786"
++      "file": "Cohesive.Processes.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "be5b04d0c64a73b51490540f0e8a4deefdd427f57755c90a21ab54965ee300d4"
+     },
+     {
+-      "file": "Cohesive.Storage.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "800bea899aa150c5f62e8e78dedc8531bc8cde6dbee298c31226fdd2e0b55a74"
++      "file": "Cohesive.Processes.Distribution.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "f9fea0392a8df330c0a8c966be3d42b7dab3473cbfccc9f6e257e371f989ac6c"
+     },
+     {
+-      "file": "Cohesive.Transitions.0.1.0-eval.b0af008.nupkg",
+-      "sha256": "9b90ccf0289b80ce95f29da2b86c7ad9d2474944b829060303b2d03a6094681b"
++      "file": "Cohesive.Relations.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "9b1d63c4461d94690c60b10afcc5e220d6d37f1c53e725d09dc07e58d163d285"
++    },
++    {
++      "file": "Cohesive.Relations.Infra.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "bf438c2a42fe233581830c7c8b912f860ae6c87032b5617385a159b29b7574a5"
++    },
++    {
++      "file": "Cohesive.Storage.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "7c9040ce6826c94be59cb026256afbef4876624841fdccdb2545b012c37a32a5"
++    },
++    {
++      "file": "Cohesive.Transitions.0.1.0-eval.3fa9fad4.nupkg",
++      "sha256": "55faef5094dd99ec5e2a63c595f446e76f815bc38a9793d67242ae74ff39f7ff"
+     }
+   ]
+ }
+diff --git a/src/Fulfillment.Application/Contracts.cs b/src/Fulfillment.Application/Contracts.cs
+index 858fecf..9dd61df 100644
+--- a/src/Fulfillment.Application/Contracts.cs
++++ b/src/Fulfillment.Application/Contracts.cs
+@@ -19,7 +19,6 @@ public interface IFulfillmentBackend
+     Task<OrderSummary?> GetOrder(string id);
+     Task<InventoryView?> GetInventory(string sku);
+     Task<OrderDetailsView?> GetDetails(string id);
+-    Task<Completion> Fulfill(string operationId, FulfillmentRequest request);
+     void MapSubmit(WebApplication app);
+ }
+ 
+diff --git a/src/Fulfillment.Application/Fulfillment.Application.csproj b/src/Fulfillment.Application/Fulfillment.Application.csproj
+index 88a4712..f2d8daf 100644
+--- a/src/Fulfillment.Application/Fulfillment.Application.csproj
++++ b/src/Fulfillment.Application/Fulfillment.Application.csproj
+@@ -1,5 +1,8 @@
+ <Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup><AssemblyName>Fulfillment.Application</AssemblyName><RootNamespace>Fulfillment.Application</RootNamespace></PropertyGroup><ItemGroup><PackageReference Include="Npgsql" Version="[10.0.3]" /></ItemGroup><ItemGroup>
+-<PackageReference Include="Cohesive.Adapters.Postgres.Services" Version="[0.1.0-eval.b0af008]" />
+-<PackageReference Include="Cohesive.Adapters.AspNet" Version="[0.1.0-eval.b0af008]" />
+-<PackageReference Include="Cohesive.Analyzers" Version="[0.1.0-eval.b0af008]" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
++<PackageReference Include="Cohesive.Adapters.Postgres.Services" Version="[0.1.0-eval.3fa9fad4]" />
++<PackageReference Include="Cohesive.Adapters.AspNet" Version="[0.1.0-eval.3fa9fad4]" />
++<PackageReference Include="Cohesive.Adapters.DurableTask" Version="[0.1.0-eval.3fa9fad4]" />
++<PackageReference Include="Microsoft.DurableTask.Client.AzureManaged" Version="[1.25.0]" />
++<PackageReference Include="Microsoft.DurableTask.Worker.AzureManaged" Version="[1.25.0]" />
++<PackageReference Include="Cohesive.Analyzers" Version="[0.1.0-eval.3fa9fad4]" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+ </ItemGroup></Project>
+diff --git a/src/Fulfillment.Application/FulfillmentBackend.cs b/src/Fulfillment.Application/FulfillmentBackend.cs
+index 111619f..f63d95c 100644
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -1,3 +1,5 @@
++using Cohesive.Adapters.DurableTask;
++using Cohesive.Processes.Execution;
+ using Cohesive.Adapters.Postgres;
+ using Cohesive.Adapters.Postgres.Services;
+ using Cohesive.Adapters.Sql;
+@@ -15,14 +17,17 @@ using Npgsql;
+ 
+ namespace Fulfillment.Application;
+ 
+-public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillmentBackend
++public sealed partial class FulfillmentBackend(NpgsqlDataSource database) : IFulfillmentBackend
+ {
+     readonly FulfillmentDomain domain = new();
+     IEntityRepository<Order> orders = null!;
+     IEntityRepository<InventoryItem> inventory = null!;
+     IEntityRepository<Reservation> reservations = null!;
+     PostgresQueryReader<string, OrderDetails?> details = null!;
+-    HostedServiceProcess<FulfillOrder, FulfillmentResult> hosted = null!;
++    public PreparedServiceProcess Prepared { get; private set; } = null!;
++    public DurableTaskSequentialProcessPlanCatalog Catalog { get; private set; } = null!;
++    internal static readonly InteractionAuthorityScope Authority = new("fulfillment", "local");
++    ServiceAcceptedProcessApi<FulfillmentRequest, FulfillmentResult, Admission> api = null!;
+     static OperationContext Context() => OperationContext.Create().WithIdentityContext(FulfillmentDemoIdentity.Context);
+ 
+     public async Task Initialize()
+@@ -54,11 +59,28 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+         // Adapter decoded-row limits must not reject an otherwise allowed response.
+         details = persistence.Query(new FulfillmentQueries(domain).OrderDetails, maximumRows: int.MaxValue - 1, maximumBytes: long.MaxValue);
+         var process = new FulfillmentProcess(domain);
+-        hosted = Service.Define(new("fulfillment"), new("1"), process.Provenance)
+-            .Use(new ServiceDependencies().Process(process))
+-            .Operation("fulfill").Require(new("fulfillment.write")).Run(process.Definition).ExecuteEphemerally(TimeSpan.FromSeconds(15))
+-            .Bind(process.Definition, RepositoryBindings.Resolve(orders, inventory, reservations))
+-            .Build("fulfillment", new IdentityServiceInvocationAuthorization("demo", new(FulfillmentDomain.PartitionField)));
++
++        var service = Service.Define(new("fulfillment"), new("1"), process.Provenance)
++            .Use(new ServiceDependencies().Process(process));
++        service = service.Operation("fulfill").Require(new("fulfillment.write")).Run(process.Definition).ReturnAfterDurableAdmission()
++            .Operation("result").Require(new("fulfillment.read")).ReadResultOf(process.Definition);
++        api = service.AcceptedApi<FulfillmentRequest, FulfillmentResult, Admission>("fulfill", "result", "/fulfillment", "/fulfillment/results/{instanceId}",
++            outcomes: AcceptedProcessResponses
++                .Receipt(link => new Admission(link.ResultToken, link.ResultLocation))
++                .InvalidRequest(400, new ErrorResponse("InvalidRequest"))
++                .IdentityConflict(409, new ErrorResponse("RequestIdentityConflict"))
++                .AtCapacity(503)
++                .QuotaPolicyMismatch(503)
++                .Pending(202)
++                .Missing(404)
++                .ExecutionFailed(500, new ErrorResponse("ExecutionFailed"))
++                .ResultFailures(500, engineFailed: new ErrorResponse("ExecutionFailed"),
++                    infrastructureError: new ErrorResponse("ResultUnavailable")));
++        Prepared = service.PrepareProcess(process.Definition, RepositoryBindings.Resolve(orders, inventory, reservations));
++        var realization = DurableTaskProcessRealizationCompiler.CompileExecutable(Prepared.Plan);
++        if (!realization.IsSuccessful)
++            throw new InvalidOperationException(string.Join("; ", realization.Realization.Diagnostics.Select(d => d.Message)));
++        Catalog = new([realization.Plan!], maximumRetainedInstances: 1000);
+     }
+     public async Task Seed(SeedData data)
+     {
+@@ -100,20 +122,19 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+                 .Conflict(SubmissionOutcome.NotDraft, "Order cannot be submitted", "Order must be Draft.")
+                 .NotRejected(SubmissionOutcome.Submitted)));
+     }
+-    public async Task<Completion> Fulfill(string operationId, FulfillmentRequest request)
+-    {
+-        var result = await hosted.Runtime.ExecuteProcessAsync(Context(), "fulfill", new(new(operationId), new("attempt/1")),
+-            ObservationValue.FromObject(new FulfillOrder(request.OrderId, request.Sku, request.Quantity)));
+-        if (result.Kind != ApiResultKind.Success) throw new InvalidOperationException("Process execution did not succeed.");
+-        return ProcessCompletion.Read(result.Outcome?.Decision.State.Terminal);
+-    }
++
+ }
+ 
+ public static class HostSetup
+ {
+     public static void Configure(IServiceCollection services)
+     {
+-        services.AddAuthorization();
++        services.AddAuthorization(options =>
++        {
++            foreach (var capability in new[] { "fulfillment.write", "fulfillment.read" })
++                options.AddPolicy(capability, policy => policy.RequireAssertion(_ =>
++                    FulfillmentDemoIdentity.Context.Grants.Any(grant => grant.Capabilities.Contains(capability))));
++        });
+         services.AddRequestOperationContext();
+         services.AddFixedRequestIdentity(FulfillmentDemoIdentity.Context);
+     }
+diff --git a/src/Fulfillment.Application/FulfillmentDemoIdentity.cs b/src/Fulfillment.Application/FulfillmentDemoIdentity.cs
+index ba3f22e..c7ebe86 100644
+--- a/src/Fulfillment.Application/FulfillmentDemoIdentity.cs
++++ b/src/Fulfillment.Application/FulfillmentDemoIdentity.cs
+@@ -1,14 +1,22 @@
+ using Cohesive.Identity;
++using Cohesive.Execution;
+ using Cohesive.Prelude;
+ 
+ namespace Fulfillment.Application;
+ 
+ /// <summary>Explicit synthetic local identity and grants. This is not authentication.</summary>
+-public static class FulfillmentDemoIdentity
++public sealed class FulfillmentDemoIdentity : IInteractionAuthorityOperationContextProjector
+ {
+     /// <summary>Prepared once for this demo; production must supply authenticated identities and grants.</summary>
+     public static IdentityContext Context { get; } = Create();
+ 
++    public OperationContext Project(OperationContext context, InteractionAuthorityScope authority)
++    {
++        if (authority != FulfillmentBackend.Authority)
++            throw new UnauthorizedAccessException("Unexpected worker authority.");
++        return context.WithIdentityContext(Context);
++    }
++
+     static IdentityContext Create()
+     {
+         var actor = new PrincipalRef("local-demo", PrincipalKind.User);
+diff --git a/src/Fulfillment.Application/OperationQueue.cs b/src/Fulfillment.Application/OperationQueue.cs
+deleted file mode 100644
+index 2f331a4..0000000
+--- a/src/Fulfillment.Application/OperationQueue.cs
++++ /dev/null
+@@ -1,74 +0,0 @@
+-using System.Threading.Channels;
+-
+-namespace Fulfillment.Application;
+-
+-// Admission and completed results live only for this host lifetime. Execution is
+-// bounded and owned by the host; a client disconnect does not cancel admitted work.
+-public sealed class OperationQueue(IFulfillmentBackend backend, ILogger<OperationQueue> logger) : BackgroundService
+-{
+-    sealed class Entry(FulfillmentRequest request, Admission admission)
+-    {
+-        public FulfillmentRequest Request { get; } = request;
+-        public Admission Admission { get; } = admission;
+-        public Completion? Result { get; set; }
+-        public bool Failed { get; set; }
+-    }
+-    readonly object gate = new();
+-    readonly Dictionary<string, Entry> requests = new(StringComparer.Ordinal);
+-    readonly Dictionary<string, Entry> operations = new(StringComparer.Ordinal);
+-    readonly Channel<Entry> work = Channel.CreateBounded<Entry>(new BoundedChannelOptions(1000)
+-        { SingleReader = true, FullMode = BoundedChannelFullMode.Wait });
+-
+-    public IResult Admit(FulfillmentRequest request)
+-    {
+-        if (string.IsNullOrWhiteSpace(request.RequestId) || string.IsNullOrWhiteSpace(request.OrderId)
+-            || string.IsNullOrWhiteSpace(request.Sku)) return Results.BadRequest(new ErrorResponse("InvalidRequest"));
+-        lock (gate)
+-        {
+-            if (requests.TryGetValue(request.RequestId, out var previous))
+-                return previous.Request == request ? Results.Json(previous.Admission, statusCode: 202)
+-                    : Results.Conflict(new ErrorResponse("RequestIdentityConflict"));
+-            // Retain every admitted identity until shutdown; do not evict replay evidence.
+-            if (requests.Count >= 1000) return Results.StatusCode(503);
+-            var id = Guid.NewGuid().ToString("N");
+-            var entry = new Entry(request, new Admission(id, $"/fulfillment/results/{id}"));
+-            requests.Add(request.RequestId, entry);
+-            operations.Add(id, entry);
+-            if (!work.Writer.TryWrite(entry))
+-            {
+-                requests.Remove(request.RequestId); operations.Remove(id);
+-                return Results.StatusCode(503);
+-            }
+-            return Results.Json(entry.Admission, statusCode: 202);
+-        }
+-    }
+-    public IResult Result(string id)
+-    {
+-        lock (gate)
+-        {
+-            if (!operations.TryGetValue(id, out var entry)) return Results.NotFound();
+-            if (entry.Failed) return Results.Json(new ErrorResponse("ExecutionFailed"), statusCode: 500);
+-            return entry.Result is { } result ? Results.Ok(result) : Results.StatusCode(202);
+-        }
+-    }
+-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+-    {
+-        try
+-        {
+-            await foreach (var entry in work.Reader.ReadAllAsync(stoppingToken))
+-            {
+-                try
+-                {
+-                    var result = await backend.Fulfill(entry.Admission.OperationId, entry.Request);
+-                    lock (gate) entry.Result = result;
+-                }
+-                catch (Exception ex)
+-                {
+-                    logger.LogError(ex, "Fulfillment execution failed: {OperationId}", entry.Admission.OperationId);
+-                    lock (gate) entry.Failed = true;
+-                }
+-            }
+-        }
+-        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
+-    }
+-}
+diff --git a/src/Fulfillment.Application/ProcessCompletion.cs b/src/Fulfillment.Application/ProcessCompletion.cs
+deleted file mode 100644
+index 277abe2..0000000
+--- a/src/Fulfillment.Application/ProcessCompletion.cs
++++ /dev/null
+@@ -1,14 +0,0 @@
+-using Cohesive.Execution;
+-using Cohesive.Model;
+-
+-namespace Fulfillment.Application;
+-
+-public static class ProcessCompletion
+-{
+-    public static Completion Read(ExecutionTerminalOutcome? terminal)
+-    {
+-        var output = terminal?.Detail?.Value?.Value
+-            ?? throw new InvalidOperationException("Process returned no public result.");
+-        return new(output.GetProperty("Status").GetRequiredString(), output.GetProperty("Outcome").GetRequiredString());
+-    }
+-}
+diff --git a/src/Fulfillment.Application/Program.cs b/src/Fulfillment.Application/Program.cs
+index ce221e9..e5e136e 100644
+--- a/src/Fulfillment.Application/Program.cs
++++ b/src/Fulfillment.Application/Program.cs
+@@ -1,53 +1,88 @@
+ using Fulfillment.Application;
+ using Npgsql;
++using Cohesive.Adapters.DurableTask;
++using Cohesive.Processes.Execution;
++using Cohesive.Execution;
++using Microsoft.DurableTask.Worker;
++using Microsoft.DurableTask.Client;
++using Microsoft.DurableTask.Client.AzureManaged;
++using Microsoft.DurableTask.Worker.AzureManaged;
+ using System.Text.Json.Serialization;
+ 
+-var builder = WebApplication.CreateBuilder(args);
+-var connection = builder.Configuration.GetConnectionString("Orders")
+-    ?? throw new InvalidOperationException("Set ConnectionStrings__Orders to a dedicated PostgreSQL database.");
+-builder.Services.ConfigureHttpJsonOptions(options =>
+-{
+-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+-    options.SerializerOptions.RespectRequiredConstructorParameters = true;
+-});
+-builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(connection));
+-builder.Services.AddSingleton<IFulfillmentBackend, FulfillmentBackend>();
+-builder.Services.AddSingleton<OperationQueue>();
+-builder.Services.AddHostedService(provider => provider.GetRequiredService<OperationQueue>());
+-HostSetup.Configure(builder.Services);
+-var app = builder.Build();
+-await app.Services.GetRequiredService<IFulfillmentBackend>().Initialize();
+-if (builder.Configuration["seed"] is { } seedFile)
++await FulfillmentApp.Run(args);
++
++public static class FulfillmentApp
+ {
+-    if (Environment.GetEnvironmentVariable("FULFILLMENT_SETUP") != "1")
+-        throw new InvalidOperationException("Seeding requires FULFILLMENT_SETUP=1 and a dedicated database.");
+-    var data = System.Text.Json.JsonSerializer.Deserialize<SeedData>(await File.ReadAllTextAsync(seedFile),
+-        new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))
+-        ?? throw new InvalidOperationException("Missing seed data.");
+-    data.Validate();
+-    await app.Services.GetRequiredService<IFulfillmentBackend>().Seed(data);
+-    await app.DisposeAsync();
+-    return;
++    public static async Task Run(string[] args, Action<IServiceCollection>? configureHost = null)
++    {
++        var builder = WebApplication.CreateBuilder(args);
++        var connection = builder.Configuration.GetConnectionString("Orders")
++            ?? throw new InvalidOperationException("Set ConnectionStrings__Orders to a dedicated PostgreSQL database.");
++        builder.Services.ConfigureHttpJsonOptions(options =>
++        {
++            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
++            options.SerializerOptions.RespectRequiredConstructorParameters = true;
++        });
++        builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(connection));
++        builder.Services.AddSingleton<FulfillmentBackend>();
++        builder.Services.AddSingleton<IFulfillmentBackend>(provider => provider.GetRequiredService<FulfillmentBackend>());
++        if (builder.Configuration["seed"] is null)
++        {
++            var scheduler = Environment.GetEnvironmentVariable("DURABLE_TASK_CONNECTION")
++                ?? throw new InvalidOperationException("Set DURABLE_TASK_CONNECTION to the scheduler connection string.");
++            builder.Services.AddSingleton<IInteractionAuthorityOperationContextProjector, FulfillmentDemoIdentity>();
++            builder.Services.AddSingleton<IAsyncProcessReferenceHost>(provider =>
++                provider.GetRequiredService<FulfillmentBackend>().Prepared.Host);
++            builder.Services.AddDurableTaskClient(client =>
++            {
++                client.UseDurableTaskScheduler(scheduler);
++                client.Configure(options => options.DataConverter = DurableTaskProcessDataConverter.Create());
++            });
++            builder.Services.AddDurableTaskWorker(worker =>
++            {
++                worker.UseDurableTaskScheduler(scheduler);
++                worker.Configure(options => options.DataConverter = DurableTaskProcessDataConverter.Create());
++                worker.AddCohesiveSequentialProcesses(provider => provider.GetRequiredService<FulfillmentBackend>().Catalog);
++            });
++            builder.Services.AddCohesiveDurableTaskProcessExecutionRepository(sp => new(sp.GetRequiredService<DurableTaskClient>()));
++            configureHost?.Invoke(builder.Services);
++        }
++        HostSetup.Configure(builder.Services);
++        var app = builder.Build();
++        await app.Services.GetRequiredService<IFulfillmentBackend>().Initialize();
++        if (builder.Configuration["seed"] is { } seedFile)
++        {
++            if (Environment.GetEnvironmentVariable("FULFILLMENT_SETUP") != "1")
++                throw new InvalidOperationException("Seeding requires FULFILLMENT_SETUP=1 and a dedicated database.");
++            var data = System.Text.Json.JsonSerializer.Deserialize<SeedData>(await File.ReadAllTextAsync(seedFile),
++                new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))
++                ?? throw new InvalidOperationException("Missing seed data.");
++            data.Validate();
++            await app.Services.GetRequiredService<IFulfillmentBackend>().Seed(data);
++            await app.DisposeAsync();
++            return;
++        }
++
++        HostSetup.Configure(app);
++        // The local fixture has one host-provided identity/scope. It exposes no seed,
++        // reset or arbitrary SQL route, and never derives identity from request JSON.
++        app.MapPost("/orders", async (IFulfillmentBackend backend) =>
++        {
++            var created = await backend.CreateOrder();
++            return Results.Created($"/orders/{created.Id}", created);
++        });
++        app.MapGet("/orders/{id}", async (string id, IFulfillmentBackend backend) =>
++            await backend.GetOrder(id) is { } order ? Results.Ok(order) : Results.NotFound());
++        app.MapGet("/inventory/{sku}", async (string sku, IFulfillmentBackend backend) =>
++            await backend.GetInventory(sku) is { } item ? Results.Ok(item) : Results.NotFound());
++        app.MapGet("/orders/{id}/details", async (string id, IFulfillmentBackend backend) =>
++            await backend.GetDetails(id) is { } details ? ReadResults.Reply(details, details.Reservations.Count) : Results.NotFound());
++        app.MapGet("/orders/{id}/availability", async (string id, IFulfillmentBackend backend) =>
++            await backend.GetDetails(id) is { } details
++                ? ReadResults.Reply(details.Reservations.Select(r => new AvailabilityView(r.Id, r.Sku, r.Quantity, r.AvailableStock)).ToArray(), details.Reservations.Count)
++                : Results.NotFound());
++        app.Services.GetRequiredService<FulfillmentBackend>().MapFulfillment(app);
++        app.Services.GetRequiredService<IFulfillmentBackend>().MapSubmit(app);
++        await app.RunAsync();
++    }
+ }
+-HostSetup.Configure(app);
+-// The local fixture has one host-provided identity/scope. It exposes no seed,
+-// reset or arbitrary SQL route, and never derives identity from request JSON.
+-app.MapPost("/orders", async (IFulfillmentBackend backend) =>
+-{
+-    var created = await backend.CreateOrder();
+-    return Results.Created($"/orders/{created.Id}", created);
+-});
+-app.MapGet("/orders/{id}", async (string id, IFulfillmentBackend backend) =>
+-    await backend.GetOrder(id) is { } order ? Results.Ok(order) : Results.NotFound());
+-app.MapGet("/inventory/{sku}", async (string sku, IFulfillmentBackend backend) =>
+-    await backend.GetInventory(sku) is { } item ? Results.Ok(item) : Results.NotFound());
+-app.MapGet("/orders/{id}/details", async (string id, IFulfillmentBackend backend) =>
+-    await backend.GetDetails(id) is { } details ? ReadResults.Reply(details, details.Reservations.Count) : Results.NotFound());
+-app.MapGet("/orders/{id}/availability", async (string id, IFulfillmentBackend backend) =>
+-    await backend.GetDetails(id) is { } details
+-        ? ReadResults.Reply(details.Reservations.Select(r => new AvailabilityView(r.Id, r.Sku, r.Quantity, r.AvailableStock)).ToArray(), details.Reservations.Count)
+-        : Results.NotFound());
+-app.MapPost("/fulfillment", (FulfillmentRequest request, OperationQueue queue) => queue.Admit(request));
+-app.MapGet("/fulfillment/results/{operationId}", (string operationId, OperationQueue queue) => queue.Result(operationId));
+-app.Services.GetRequiredService<IFulfillmentBackend>().MapSubmit(app);
+-await app.RunAsync();
+diff --git a/src/Fulfillment.Application/packages.lock.json b/src/Fulfillment.Application/packages.lock.json
+index 1bfeb4e..c942952 100644
+--- a/src/Fulfillment.Application/packages.lock.json
++++ b/src/Fulfillment.Application/packages.lock.json
+@@ -4,36 +4,75 @@
+     "net10.0": {
+       "Cohesive.Adapters.AspNet": {
+         "type": "Direct",
+-        "requested": "[0.1.0-eval.b0af008, 0.1.0-eval.b0af008]",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "LIXQo4n0rKmKzR1Nh3YAvxRtAHqcCAlJqZstH1T6Wty/2cpIJiWojxrjoUpLHG6jUjIAO/I8EDzjVPG8u8c6Gw==",
++        "requested": "[0.1.0-eval.3fa9fad4, 0.1.0-eval.3fa9fad4]",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "Mo71GtID0mFENadZ53vlnU6sjSoMJrbJyBbnZBnP97MYIHaDVaNPKmceEgH8/TvWcbupO+NH1SZjFFDT4pBHXA==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Api": "0.1.0-eval.b0af008",
+-          "Cohesive.Api.Execution": "0.1.0-eval.b0af008",
+-          "Cohesive.Application": "0.1.0-eval.b0af008",
+-          "Cohesive.Host": "0.1.0-eval.b0af008",
+-          "Cohesive.Identity": "0.1.0-eval.b0af008",
+-          "Cohesive.Processes": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Storage": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Api": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Api.Execution": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Application": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Host": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Identity": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Processes": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Relations": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Storage": "0.1.0-eval.3fa9fad4"
++        }
++      },
++      "Cohesive.Adapters.DurableTask": {
++        "type": "Direct",
++        "requested": "[0.1.0-eval.3fa9fad4, 0.1.0-eval.3fa9fad4]",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "dp1EmIsqY1BNxj0Iju5YyqvP1jgBPUPEGX2KNUATxh70aFz7hGfk0NQySMi081u3BMwXW7p+OkVS656kICtS5g==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Adapters.AzureStorage": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Api.Execution": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Processes": "0.1.0-eval.3fa9fad4",
++          "Microsoft.Azure.DurableTask.AzureStorage": "2.9.1",
++          "Microsoft.Azure.DurableTask.Core": "3.9.0",
++          "Microsoft.DurableTask.Client.AzureManaged": "1.25.0",
++          "Microsoft.DurableTask.Worker.AzureManaged": "1.25.0",
++          "System.Linq.Async": "6.0.1"
+         }
+       },
+       "Cohesive.Adapters.Postgres.Services": {
+         "type": "Direct",
+-        "requested": "[0.1.0-eval.b0af008, 0.1.0-eval.b0af008]",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "jRKBD/LjfgMV3es36NRA3lQ/KItqkuBiHDtiG2JSZwaYLQN4kQ2YhRfl3SzN42iF39FuLv4TBFuIFFoUJfkkuQ==",
++        "requested": "[0.1.0-eval.3fa9fad4, 0.1.0-eval.3fa9fad4]",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "oWmzQjc3tZhX27G8KTkzQwF8u6JRh2FvOqWUSLBU3aLXddVHQCrNijUARLOy2TwxG4QWqrXuMmCc10iYrrf5kw==",
+         "dependencies": {
+-          "Cohesive.Adapters.Postgres.Infra": "0.1.0-eval.b0af008",
+-          "Cohesive.Api.Execution": "0.1.0-eval.b0af008"
++          "Cohesive.Adapters.Postgres.Infra": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Api.Execution": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Analyzers": {
+         "type": "Direct",
+-        "requested": "[0.1.0-eval.b0af008, 0.1.0-eval.b0af008]",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "kysgeKYzUxnNLQuq4+q5hu4xxXZ6PqCpG2ICU0xuPT4Ln/9OakIW0LB6pzzBzY6pEiMTLp2HDmu5BwRcH0Phrw=="
++        "requested": "[0.1.0-eval.3fa9fad4, 0.1.0-eval.3fa9fad4]",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "BkmGU1khJxntZhHSRxZIMZzztK52Qmhz7K9YnZI/D57xHC/RcA/3864Hq135UYIVfmVvIHCu7EfX3FiHQYq7TQ=="
++      },
++      "Microsoft.DurableTask.Client.AzureManaged": {
++        "type": "Direct",
++        "requested": "[1.25.0, 1.25.0]",
++        "resolved": "1.25.0",
++        "contentHash": "edNP1DOyW8H8T30hwcHUFSiCsMlwDLQFxBTRQAd6S4NbTUVtfDvjnLlwwym58HZWCa4UuvVlhVQQh7JaMzuZQg==",
++        "dependencies": {
++          "Azure.Identity": "1.21.0",
++          "Grpc.Net.Client": "2.80.0",
++          "Microsoft.DurableTask.Client.Grpc": "1.25.0"
++        }
++      },
++      "Microsoft.DurableTask.Worker.AzureManaged": {
++        "type": "Direct",
++        "requested": "[1.25.0, 1.25.0]",
++        "resolved": "1.25.0",
++        "contentHash": "tegVSulbEd9yuwze03HQt6maAyU8SqUltGD9HNN0ZT+AG6uZ50JWFBbXd6QygAYwcDPd4goUiZ7BY/EZ7BdrMw==",
++        "dependencies": {
++          "Azure.Identity": "1.21.0",
++          "Grpc.Net.Client": "2.80.0",
++          "Microsoft.DurableTask.Worker.Grpc": "1.25.0"
++        }
+       },
+       "Npgsql": {
+         "type": "Direct",
+@@ -41,183 +80,372 @@
+         "resolved": "10.0.3",
+         "contentHash": "7nb5YzXuvWWJxB0J8DiyL3we+X4FOctZrt0fIBnucOIaIevFEEwGQVZKtiu9olXdlNAK1eNgqSral6r/jlhI4w=="
+       },
++      "Azure.Core": {
++        "type": "Transitive",
++        "resolved": "1.53.0",
++        "contentHash": "x9c/toFMOtRrlTdFuE7rlGCVAduQzWVfKmLz5juj41zJAXEhYD5hluiUyyAEzJ6OxpBnKtiaBztzwpZITAVjtg==",
++        "dependencies": {
++          "Microsoft.Bcl.AsyncInterfaces": "10.0.3",
++          "Microsoft.Identity.Client": "4.83.1",
++          "Microsoft.Identity.Client.Extensions.Msal": "4.83.1",
++          "System.ClientModel": "1.10.0",
++          "System.Memory.Data": "10.0.3"
++        }
++      },
++      "Azure.Data.Tables": {
++        "type": "Transitive",
++        "resolved": "12.11.0",
++        "contentHash": "MabH2HegMvZA1ocaMhEfW/idyTa3CoH64s43/V9/KFRGdVqEj0EETvd3ItDe6Bbs2teiR40KE9Kz9NLDc5DJJw==",
++        "dependencies": {
++          "Azure.Core": "1.44.1"
++        }
++      },
++      "Azure.Identity": {
++        "type": "Transitive",
++        "resolved": "1.21.0",
++        "contentHash": "GeFv8sGwRKvDKwI2WFy8r0mhmlxEVZg24Sit2NogTjiSO8RVjllWM65OT6e1sKjOvG8V74y7hAbaELUUPjZQSw==",
++        "dependencies": {
++          "Azure.Core": "1.53.0"
++        }
++      },
++      "Azure.Storage.Blobs": {
++        "type": "Transitive",
++        "resolved": "12.27.0",
++        "contentHash": "zI5rg1tTtnA8T2g2/21l+1iIUdDjpEQQ0FI1BabJVEQJ1JUyTQKrc41eNabAHs0SBHprl6pu/6OqIMK9Ve+4tQ==",
++        "dependencies": {
++          "Azure.Core": "1.50.0",
++          "Azure.Storage.Common": "12.26.0"
++        }
++      },
++      "Azure.Storage.Common": {
++        "type": "Transitive",
++        "resolved": "12.26.0",
++        "contentHash": "XaT6CDcSshZb7KaCTwc6m4EouZbLBg7ciOEpsJSdJCvkNsZJQCvPKw7V5TtXno19AA1NpwtsZriYque8mzbQVg==",
++        "dependencies": {
++          "Azure.Core": "1.50.0",
++          "System.IO.Hashing": "10.0.1"
++        }
++      },
++      "Azure.Storage.Queues": {
++        "type": "Transitive",
++        "resolved": "12.22.0",
++        "contentHash": "HPQgOlfH+rJ4CL4V8ePFnsT/KKnvLU35ytxC3fsTTqOazhQ0593C0aPVu258DRN8bQCbx4OpNpjtiO9czDy3VQ==",
++        "dependencies": {
++          "Azure.Storage.Common": "12.23.0",
++          "System.Memory.Data": "6.0.1"
++        }
++      },
++      "Castle.Core": {
++        "type": "Transitive",
++        "resolved": "5.2.1",
++        "contentHash": "wHARzQA695jwwKreOzNsq54KiGqKP38tv8hi8e2FXDEC/sA6BtrX90tVPDkOfVu13PbEzr00TCV8coikl+D1Iw=="
++      },
+       "Cohesive": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "3FKv7smqCvQhzyVhUlU/+FkeZtNiMWFt5IPPjmBWQ7iwPHbIz45ah/mSfmeQfFAzrXBRMRMRFVRaJig9ttIaPg==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "8wr2npBbTgV1kOsU90WQhq/123mkdTJEZivxzeFDov3kvjzt7kTFSs0w+xqiWRmDbB9taNfX5MikoWQx1ivzgw==",
+         "dependencies": {
+           "Microsoft.Extensions.AsyncState": "10.0.0"
+         }
+       },
++      "Cohesive.Adapters.AzureStorage": {
++        "type": "Transitive",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "dQDsvL2sIHc9OoycGlzdlrpb2SoweZeddmkyu0gRvZ8Sd2BvtCy4AlNwfjEbVgmP0hoof86ghij+nRKmvLe4LQ==",
++        "dependencies": {
++          "Azure.Storage.Blobs": "12.24.0",
++          "Cohesive.AI": "0.1.0-eval.3fa9fad4",
++          "Microsoft.Extensions.Azure": "1.13.1"
++        }
++      },
+       "Cohesive.Adapters.Postgres": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "Yr+7k4dfApG3lxrmxC0hxqR3Iy4oB9S2d6H3LmPK8Lnn6yPdX+mlEsqDqJC2P2vhvfUPJPLWhimbp5FtrUSaiQ==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "RlgT5utnCIPfj3oBTsq0XVKS78wSv1obP2zSAyqlLg4oLdyadjh1mEQiw6z80MODbttzEzWz1PqXZhEM1Mjmbw==",
+         "dependencies": {
+-          "Cohesive.Adapters.Sql": "0.1.0-eval.b0af008",
+-          "Cohesive.Processes.Distribution": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Storage": "0.1.0-eval.b0af008",
++          "Cohesive.Adapters.Sql": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Processes.Distribution": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Relations": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Storage": "0.1.0-eval.3fa9fad4",
+           "Npgsql": "10.0.3"
+         }
+       },
+       "Cohesive.Adapters.Postgres.Infra": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "x8E053eUSkJBBrsLXTW9E1jYj9rHeI6dw2kmBkh6K3igDMgER/F0Lrjs6YpNOyyHe4MMOGT49V5I2X0+s1BD4Q==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "QOAo5ed/9dG0l7PAX0x86SnG2IzOrdzPBZ/J2dInm/6wePWlS9yD9DCo6HPbJPKlC77Ec74YMrlbyXAyyMiyQA==",
+         "dependencies": {
+-          "Cohesive.Adapters.Postgres": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations.Infra": "0.1.0-eval.b0af008"
++          "Cohesive.Adapters.Postgres": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Relations.Infra": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Adapters.Sql": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "7rTjLFostPg/PZBuDn8dpCRMVmp6viFsVW6gGx+63ooxaeJXXDP6JbgrBz1xzx00pOT/UoYIOr+kJWEal3MBYQ==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "GKnartlY3U60Dg+UEW0S1UMg8vtmyZE5HGrniydsYzYNsLU/usY4k4H5zMb+RmWyIeDl1SNkhHGoBPvmLHAlfA==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.3fa9fad4"
++        }
++      },
++      "Cohesive.AI": {
++        "type": "Transitive",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "pc6Tu/snCf6TwkEDlZQJNrhntiXML+0yHJ/B+lg/Q/Dlq4KeALnZFwniGK4BK5a5vqxixDwrLLsiX7S23yOntw==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Api": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "4q3PnT6xiBqguYmcajjQGZRPDHGzAms2oT5/aAvBe9iO59Pe/Csq/ut+daiZsOQ5vJkjmv0eu/cwozRQE8S+bA==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "fIok/qKLzsZBDTmMLU0R99CJSzk740oVWxdc/pIo7F7a3Zr6+ZNL1C7lDBbF86AbiLGnmA1RSjxSn+LTn0HTCQ==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Transitions": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Relations": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Transitions": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Api.Execution": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "iMWpwkBRciMTVwLz6XUf9dIYwARRLTuQoj4JdJq/jdKyJSM+Apw8M97sgX/E4wci/sf6BGg2E/xUGDBtQ+gWJQ==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "K4wTvi9/vcvCVPpI/Jy1W/65r9zAiXMDHWlb+LQLjT//a1yp2hlN0PisZjGh+H2Wz1Hdyycbj99RYP6wl6jbUg==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Api": "0.1.0-eval.b0af008",
+-          "Cohesive.Identity": "0.1.0-eval.b0af008",
+-          "Cohesive.Processes": "0.1.0-eval.b0af008",
+-          "Cohesive.Storage": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Api": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Identity": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Processes": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Storage": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Application": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "cH6p9+0wuxmDX0Yh4b5Dbg06fZT3TF5v7ZWpXEyY066ZhFYA1TvMUWvsyu6TV1NKoxJft9YDwSHQyq7cWU3mUQ==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "H8DhBMyVz+iyQePIpYaMQ0KTg6WkOSrluaCjueaXOr3ROkRwuOmgMGsZCeqLt6id4eXI3s+7M1PjwMRB14/v+g==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Api.Execution": "0.1.0-eval.b0af008",
+-          "Cohesive.Infra": "0.1.0-eval.b0af008",
+-          "Cohesive.Processes": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Storage": "0.1.0-eval.b0af008",
+-          "Cohesive.Transitions": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Api.Execution": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Infra": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Processes": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Relations": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Storage": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Transitions": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Cli": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "VRFSHojVW7lvqDzoGVgSqsqyq8ueQANpgSOZELGzaoSYrCI9Lc/kbKustyRDD4eZL0IWCp2GHLPssQ1LgE61CA==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "y1T3R1cDOHuC7BTGmzWZRxlMfImtK9wtgmAg4lboD/zvTW4QlyE+0HCGtkPIxWVLT/EXEOf+MIRWQiZvhOr54A==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Configuration": "0.1.0-eval.b0af008",
++          "Cohesive": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Configuration": "0.1.0-eval.3fa9fad4",
+           "System.CommandLine": "2.0.5"
+         }
+       },
+       "Cohesive.Configuration": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "YRDjSBE7sVVSEJjbJ9QkCV8t4NuJlH7XyLv+mBaM6ivCJ5Pf3oiuXOepNOzuqbRpM9vYcXS5llJkbjAilsPl3A==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "tDA5Jf9Fjn4f/E2g0teKVBnnOBL+Oo85Qtved2vGVA2UdoMH5790V0y1KdNlyX51FEO+I+U84NslsVkZ3UWjnw==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Host": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "g5oVxtoOfuILdfw28cHQdf0NwAu2cVNE4bHHZFavEiQyOODgJ/d6h3kTMRAL9/rCPtGPxgCNzqEL0/Lo04adsA==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "Gp31W/tdBqOcSsP8nbHfqk1cv/+ZNTe8nlAIGauG5AnmcyVdpyRfQ0IdRTF/W2lBsVtCbDa9rWE6ausbCmx4xw==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Api.Execution": "0.1.0-eval.b0af008",
+-          "Cohesive.Cli": "0.1.0-eval.b0af008",
+-          "Cohesive.Configuration": "0.1.0-eval.b0af008",
+-          "Cohesive.Processes": "0.1.0-eval.b0af008",
+-          "Cohesive.Storage": "0.1.0-eval.b0af008",
++          "Cohesive": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Api.Execution": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Cli": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Configuration": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Processes": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Storage": "0.1.0-eval.3fa9fad4",
+           "System.CommandLine": "2.0.5"
+         }
+       },
+       "Cohesive.Identity": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "Vc0kxVQJYekVQWFqz9MmTS8npE8hjEoJcdQj7lxUwTYI060BBi335moHobfxrzSWa2w2Qa3sLf/+2tzs0/hLqw==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "tni4Lme8NDvDwuZ+TqM1Ik+DHm8INyURFDS6vW0JzfQmrruxCImi1d8mAxpV2LAZOATDQrhRuKWi2maWXa8lCw==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Storage": "0.1.0-eval.b0af008",
+-          "Cohesive.Transitions": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Relations": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Storage": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Transitions": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Infra": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "4tbLa7p8FWJEkmxKDroEylOQ+nUjIjwpK3AdFrTtCJcMU/PwjHywK636WlKuhxA0Ajpc6vY2UfWonqo/B7biMA==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "MKk3oVfKIftmDfpFvZ3j0fPEX2PxXrajqJfb7i5Wz4k4Byezib5Op82ycUavLs7LqYUpnqKl33sHGipk0Xq3fA==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Processes": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "il35n6UMVbMJuiMsd2EDaB7Ko0GTWnqMfQMqJGVhxCX+Hh1lvlP6dLAoPCe1sWTBiMXMUL1EQu5qB0x+oCmytA==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "XVjedeLJqdQRjl1iG9st8cnTfMzn1yieq3Q4zBqbltJtEDOYtb4TdK+hH1Z2BV4mJiMmNMFfRbsFfnowC+62JA==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Transitions": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Relations": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Transitions": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Processes.Distribution": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "99yVmgbYR0Y81m22UYw4ole0xaXTeioXlQKF1MgojQJVKILpo24k87qCkftG6+tNVfDaQvwDzcPBv4HZGd9jww==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "Uts5/WubX9klPc7T7rDanoMnEn5mbsk2wRig4737sBDnwNMQQabF7RNIudo6SLrJt07IZ8VLF8nx+yfvhIrahA==",
+         "dependencies": {
+-          "Cohesive.Processes": "0.1.0-eval.b0af008"
++          "Cohesive.Processes": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Relations": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "OWbsTLkqUVQZ9E9JXv6oqbB7P3eWXPGGUH9pUUtY/uRNlzL3eaCIsviH1sYk6ii1vKua0txqmFKX5nLadYy68w==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "I9KOxV87OPdBbdjv0x+iJe1/awich/1WRe+FegTDkYbYcazqlsWnJD+0kWEF3hQRk0K/YoQug4Ef6ONA5iqFUg==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Relations.Infra": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "Y68seuJA27rDj+ep25dyBR2ulLjG3gY3UF9dGXjIj4ZwTcpCGDa79XSGHvXNp0l8Bka6Qdvji0HAXczJM0+nFA==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "Zw+tzqDZxoL5QKTuTKHUgbPJ97Nbu0I6bjoswo+letuog51llrAynOEPdfMW4rJUFjkYjiCx/qU3KALwYPh4ag==",
+         "dependencies": {
+-          "Cohesive.Infra": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008"
++          "Cohesive.Infra": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Relations": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Storage": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "VcARJQQmPFT5u3WacE2/0pBvJF7OjanUKzeCv+jr3dERzDCv041qSDS+e3q8PpZDEWgjZ+I+P6THoi8XvAeYfw==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "PhIuHk08W/FPiX+hyThUb6cyyRrjfEfGmy6WG5XHImsUu0VDfaasxE0JM/eYqSfd4CJiCQyWs2EVZ0PaYTeikw==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Processes": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Transitions": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Processes": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Relations": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Transitions": "0.1.0-eval.3fa9fad4"
+         }
+       },
+       "Cohesive.Transitions": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "rL78La0esIAnVGWnxdfNiDStAcqlWcieQnyV1V8Ba/PU7RY6IfarrqRr8dfz7iv0t4jl9IXSsjT3g4hkCZJFtQ==",
++        "resolved": "0.1.0-eval.3fa9fad4",
++        "contentHash": "NLzoLe/nzjImn6pKVumxeqTkIH3TSbaihmIYI+0bD3kskA3JrD4oxZHXWPoIgPP8MSQsLcwyowEMWLH9SxfElg==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.3fa9fad4",
++          "Cohesive.Relations": "0.1.0-eval.3fa9fad4"
++        }
++      },
++      "Google.Protobuf": {
++        "type": "Transitive",
++        "resolved": "3.33.5",
++        "contentHash": "XEzLpCTosZb5I6eGSPn7rAES0VfkJkn3Cqydh0W39POdZwkdhPhOmAROTFJF9g0ardst4ulNXRm/q/iXwNu+Qw=="
++      },
++      "Grpc.Core.Api": {
++        "type": "Transitive",
++        "resolved": "2.80.0",
++        "contentHash": "i/8s+MOrYa6n7BmZ5bilcbHk+EMJDQHm2MKLhwGAT+urQqlZ6cpjvSivYvuULjebuX+UKieLYZbLRCmVQxFRkw=="
++      },
++      "Grpc.Net.Client": {
++        "type": "Transitive",
++        "resolved": "2.80.0",
++        "contentHash": "I1Aa24nTRMHqx0pmQfvthFsOpejquDjiJV6092KBqjw6EEr3wA9CMXlrdkoEgHartOiJrpKyZiQRl7n0NVlfBg==",
++        "dependencies": {
++          "Grpc.Net.Common": "2.80.0"
++        }
++      },
++      "Grpc.Net.Common": {
++        "type": "Transitive",
++        "resolved": "2.80.0",
++        "contentHash": "E2ERsx+9IXlry4yjBl8btx0XMIKzymGNSvX5jmBS/uSwYyYDoKIDcIREyLqFLvd8vcJdcoRlycpvn9YRXutFpQ==",
++        "dependencies": {
++          "Grpc.Core.Api": "2.80.0"
++        }
++      },
++      "Microsoft.Azure.DurableTask.AzureStorage": {
++        "type": "Transitive",
++        "resolved": "2.9.1",
++        "contentHash": "lfCjGsc6KRRnYC1NZNmdpDJyyNqO4VgnwpUG3qIIhZbAhdLdjwQiMGAIe2qdb6WTRgPlA6vMPfrT857YH83KiA==",
++        "dependencies": {
++          "Azure.Data.Tables": "12.11.0",
++          "Azure.Storage.Blobs": "12.27.0",
++          "Azure.Storage.Queues": "12.22.0",
++          "Microsoft.Azure.DurableTask.Core": "3.9.0",
++          "Microsoft.Bcl.AsyncInterfaces": "8.0.0",
++          "System.Linq.Async": "6.0.1"
++        }
++      },
++      "Microsoft.Azure.DurableTask.Core": {
++        "type": "Transitive",
++        "resolved": "3.9.0",
++        "contentHash": "wnB/MYS/qlYM87O1JMbIdhQW5qtFx4VEpVQ95l7D5NZSku9upjelHJ3jlmuhdIwpInMqVaPGcCd8E3fmmmgV5w==",
++        "dependencies": {
++          "Castle.Core": "5.2.1",
++          "Newtonsoft.Json": "13.0.1",
++          "System.Reactive.Compatibility": "4.4.1",
++          "System.Reactive.Core": "4.4.1"
++        }
++      },
++      "Microsoft.Bcl.AsyncInterfaces": {
++        "type": "Transitive",
++        "resolved": "10.0.3",
++        "contentHash": "TV62UsrJZPX6gbt3c4WrtXh7bmaDIcMqf9uft1cc4L6gJXOU07hDGEh+bFQh/L2Az0R1WVOkiT66lFqS6G2NmA=="
++      },
++      "Microsoft.DurableTask.Abstractions": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "vpIRvPSQ0jvtjsDGo7k84IWIRfXn1yMvLe1KpJzG8CoHRS2N1Mx+WaOGRhPcBmf1631GgEL9FKkRNQumSnEAkw==",
++        "dependencies": {
++          "Microsoft.Azure.DurableTask.Core": "3.9.0",
++          "Microsoft.Bcl.AsyncInterfaces": "9.0.1"
++        }
++      },
++      "Microsoft.DurableTask.Client": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "u+iQqStb+y1CGTCOPR7K0zp3QRF1qXCJx+GtI+AJP8Y5/ovimrkxWOe7Gq4GPr2oGtkSzQ5MLh8txuE86o4UQA==",
++        "dependencies": {
++          "Microsoft.DurableTask.Abstractions": "1.25.0"
++        }
++      },
++      "Microsoft.DurableTask.Client.Grpc": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "eor0bQZuafVMtQ0ypZWuWJsh3b2iI1y++b3D9KzcLmLd/XVxmlx2x5PBYnR19ZEJQgNW3CkbNbeYor3dNdGYeg==",
++        "dependencies": {
++          "Microsoft.DurableTask.Client": "1.25.0",
++          "Microsoft.DurableTask.Grpc": "1.25.0"
++        }
++      },
++      "Microsoft.DurableTask.Grpc": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "38+XB7btms8Ig9uLAWl5TQ20ohLa1AYKKh4OWVS+HKODBCqbfiPkdp8E+DbWxkGUvOBKgvo9sRjYGoOiIYfipQ==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008"
++          "Google.Protobuf": "3.33.5",
++          "Grpc.Net.Client": "2.80.0"
++        }
++      },
++      "Microsoft.DurableTask.Worker": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "+z6IjInPsREORXYKbYRaYzoESjeT+IpuHGjir4edKvDSdaFErW3zpN2b8PLXBiaEqflAVp/pL0N+7HG44ImOWg==",
++        "dependencies": {
++          "Microsoft.DurableTask.Abstractions": "1.25.0"
++        }
++      },
++      "Microsoft.DurableTask.Worker.Grpc": {
++        "type": "Transitive",
++        "resolved": "1.25.0",
++        "contentHash": "beweVPbC1IQnkVgy6a8UINlfV142eAJ/SssIB+DEZPQ8W/K+/TdFbAA54hADCBct+V4ZDruXjyo49nd+4LuKdg==",
++        "dependencies": {
++          "Google.Protobuf": "3.33.5",
++          "Grpc.Net.Client": "2.80.0",
++          "Microsoft.Azure.DurableTask.Core": "3.9.0",
++          "Microsoft.DurableTask.Abstractions": "1.25.0",
++          "Microsoft.DurableTask.Grpc": "1.25.0",
++          "Microsoft.DurableTask.Worker": "1.25.0"
+         }
+       },
+       "Microsoft.Extensions.AsyncState": {
+@@ -228,15 +456,139 @@
+           "Microsoft.Extensions.DependencyInjection.AutoActivation": "10.0.0"
+         }
+       },
++      "Microsoft.Extensions.Azure": {
++        "type": "Transitive",
++        "resolved": "1.13.1",
++        "contentHash": "AIP7ud1rcQTRfzgne5Jw0P+zjx8ojGawwRuBVrYWgA/a+TKW3CaoQK/sYUcrbxYSVv6FT8rSwTlMecC0MwEbOQ==",
++        "dependencies": {
++          "Azure.Core": "1.50.0",
++          "Azure.Identity": "1.17.1"
++        }
++      },
+       "Microsoft.Extensions.DependencyInjection.AutoActivation": {
+         "type": "Transitive",
+         "resolved": "10.0.0",
+         "contentHash": "5t17Z77ysTmEla9/xUiOJLYLc8/9OyzlZJRxjTaSyiCi0mEroR0PwldKZsfwFLUOMSaNP6vngptYFbw7stO0rw=="
+       },
++      "Microsoft.Identity.Client": {
++        "type": "Transitive",
++        "resolved": "4.83.1",
++        "contentHash": "jOLIrZ3cynoqHLLO1cXplFFabrhrMEYs/EuKHvmCyrOm1axqiVFT6nCSnHxk7w5+d2BeQfCdM12Yf/0X7OeS1g==",
++        "dependencies": {
++          "Microsoft.IdentityModel.Abstractions": "8.14.0"
++        }
++      },
++      "Microsoft.Identity.Client.Extensions.Msal": {
++        "type": "Transitive",
++        "resolved": "4.83.1",
++        "contentHash": "I3k4J4Hj4KbLEFanjeUzzDOVecukETaTgEkJ7h2pP/Yazs6SLp6TVUTo/Eo+ptPXMwvc+iX7rBFtMSUrA7R+Mg==",
++        "dependencies": {
++          "Microsoft.Identity.Client": "4.83.1",
++          "System.Security.Cryptography.ProtectedData": "4.5.0"
++        }
++      },
++      "Microsoft.IdentityModel.Abstractions": {
++        "type": "Transitive",
++        "resolved": "8.14.0",
++        "contentHash": "iwbCpSjD3ehfTwBhtSNEtKPK0ICun6ov7Ibx6ISNA9bfwIyzI2Siwyi9eJFCJBwxowK9xcA1mj+jBWiigeqgcQ=="
++      },
++      "Newtonsoft.Json": {
++        "type": "Transitive",
++        "resolved": "13.0.1",
++        "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
++      },
++      "System.ClientModel": {
++        "type": "Transitive",
++        "resolved": "1.10.0",
++        "contentHash": "lBEWs54F5Y5pZ9hC+8z4S/X76957ex+DPk7WecRHlbIHtrPfbRMMlOgI3iDn4Jpb3bSxvBnKaaHoD59auFjlBA==",
++        "dependencies": {
++          "System.Memory.Data": "10.0.3"
++        }
++      },
+       "System.CommandLine": {
+         "type": "Transitive",
+         "resolved": "2.0.5",
+         "contentHash": "2XtWAPk1G6arpe3OCFNrYYuf6iIboznxs2elJSGgd8e0euou7LfGYFon6hBEfDWNtOLr0M3+oUVgy1a5EGa41A=="
++      },
++      "System.IO.Hashing": {
++        "type": "Transitive",
++        "resolved": "10.0.1",
++        "contentHash": "Dy6ULPb2S0GmNndjKrEIpfibNsc8+FTOoZnqygtFDuyun8vWboQbfMpQtKUXpgTxokR5E4zFHETpNnGfeWY6NA=="
++      },
++      "System.Linq.Async": {
++        "type": "Transitive",
++        "resolved": "6.0.1",
++        "contentHash": "0YhHcaroWpQ9UCot3Pizah7ryAzQhNvobLMSxeDIGmnXfkQn8u5owvpOH0K6EVB+z9L7u6Cc4W17Br/+jyttEQ==",
++        "dependencies": {
++          "Microsoft.Bcl.AsyncInterfaces": "6.0.0"
++        }
++      },
++      "System.Memory.Data": {
++        "type": "Transitive",
++        "resolved": "10.0.3",
++        "contentHash": "MaGhRfGunmrj/nHjtsi9XkhlYJ/ERGWrbA+BiSKNtGnAjc9XlG5EhAvak6VRcX5LYzPF6pBO8nJ613dTgzabig=="
++      },
++      "System.Reactive": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "iSTPeWR9HJhGoNV4WhVlvofuiTjpok1i4E3LPgMdbMqf3jKhFlT9HAlO32lb52NLppWC/4dZQFfUzTytvyXBmw=="
++      },
++      "System.Reactive.Compatibility": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "Ad2/TBOBV0/45pzccpbQj2vo3S85uipF/PfqkbQUnH0vOtBqrXd1eqWtky5YTXq/WIRU1HF62HFSOdXiNC+E4A==",
++        "dependencies": {
++          "System.Reactive.Core": "4.4.1",
++          "System.Reactive.Interfaces": "4.4.1",
++          "System.Reactive.Linq": "4.4.1",
++          "System.Reactive.PlatformServices": "4.4.1",
++          "System.Reactive.Providers": "4.4.1"
++        }
++      },
++      "System.Reactive.Core": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "YQHJOt8hZvwFelIIfs19t8Jhz5P6NS1ZZccbVUuE1LFyoFZjaUecdYIYykgXzpyj5Rl40XC3xkyuuhHRaAln2w==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Reactive.Interfaces": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "Pk++rL2lxe6yhBEzgc9eJWR57YxYxtAmcz9U0JdKyHEzTLqba3B7MhhYrpN2ToTPVRyJJzxMdPdLieIJvlsACg==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Reactive.Linq": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "wyOVuUyHmPV667REPwcZjFjOlRLX6qSGVcXMye0qUqBAWFB3bu1RO1XLGWZTnf0d67DQHV69kw7tAtTh+4EYyQ==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Reactive.PlatformServices": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "jVF40bEwEES1DpDxI8pRcVEkH/TztFCOSToMYIK6TNE5QojsQljfvZd6jaDG4jRZ9hkoMYyUbkeSDYG/1ldPDg==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Reactive.Providers": {
++        "type": "Transitive",
++        "resolved": "4.4.1",
++        "contentHash": "K9RDgMHsuceX8QTk5ALCgYpexA9qcMsIi4K97Eigqcz9hD6fa4Smrjy8F/m6YdVJZFsBGaZ3uwj+d0loAdMfbA==",
++        "dependencies": {
++          "System.Reactive": "4.4.1"
++        }
++      },
++      "System.Security.Cryptography.ProtectedData": {
++        "type": "Transitive",
++        "resolved": "4.5.0",
++        "contentHash": "wLBKzFnDCxP12VL9ANydSYhk59fC4cvOr9ypYQLPnAj48NQIhqnjdD2yhP8yEKyBJEjERWS9DisKL7rX5eU25Q=="
+       }
+     }
+   }

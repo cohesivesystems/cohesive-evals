@@ -5,6 +5,8 @@ from enum import Enum
 from pathlib import Path
 from typing import ContextManager, Protocol
 
+from .errors import AdapterError
+
 
 class Capability(str, Enum):
     """Independent operations; model support is never required for behavioral grading."""
@@ -13,23 +15,6 @@ class Capability(str, Enum):
     OFFLINE = "offline"
     INSPECT = "model-inspection"
     GENERATE = "input-generation"
-
-
-class AdapterError(RuntimeError):
-    """Nonbehavioral failure with a stable evidence category; never mutation credit."""
-
-    def __init__(self, category: str, detail: str):
-        """Accept only categories defined by adapter/v1."""
-        if category not in {
-            "configuration",
-            "build",
-            "infrastructure",
-            "protocol",
-            "unsupported",
-        }:
-            raise ValueError(category)
-        self.category = category
-        super().__init__(detail)
 
 
 @dataclass(frozen=True)
