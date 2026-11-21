@@ -1,0 +1,243 @@
+{
+  "baseline": "2e57e3c50e97123fc9f36b428b23bfbfe03b5549",
+  "conditions": {
+    "conventional": {
+      "buildManifestSha256": "2d41f430fea0f0d5f1e9cfb3c6927cba46af077f22f91803acad1269c9d1a1c8",
+      "samplePlans": {
+        "A": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.05,
+              "Plan Rows": 1,
+              "Plan Width": 72,
+              "Filter": "(order_id = 'A'::text)"
+            }
+          }
+        ],
+        "B": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.05,
+              "Plan Rows": 1,
+              "Plan Width": 72,
+              "Filter": "(order_id = 'B'::text)"
+            }
+          }
+        ],
+        "missing": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.05,
+              "Plan Rows": 1,
+              "Plan Width": 72,
+              "Filter": "(order_id = 'missing'::text)"
+            }
+          }
+        ]
+      },
+      "settledRows": [
+        [
+          "A",
+          "a1",
+          "X",
+          1,
+          3
+        ],
+        [
+          "B",
+          "B",
+          "X",
+          2,
+          3
+        ],
+        [
+          "U",
+          "u1",
+          "Y",
+          4,
+          7
+        ]
+      ],
+      "controls": {
+        "stale-stock": {
+          "kind": "detected",
+          "assertion": "shared-sku-fanout",
+          "detail": "shared-sku-fanout: observed [['A', 'a1', 'X', 1, 5]], expected [['A', 'a1', 'X', 1, 3]]",
+          "buildManifestSha256": "11daaa1bfb0bf3d7db258434f864ac1fc5d37c76360294ebbf7373cd8744ee4f"
+        },
+        "live-read": {
+          "kind": "detected",
+          "assertion": "projection-only-read",
+          "detail": "projection-only-read: observed {'reservations', 'inventory', 'orders'}, expected {'order_availability'}",
+          "buildManifestSha256": "767a93947e59ee89db14963bf79b9ca81bca57771f7a16227839b0394c9d420e"
+        }
+      }
+    },
+    "cohesive": {
+      "buildManifestSha256": "09b916071b008b2a522976a205a7cb32f241071447a7c1367c505cbf3566b85e",
+      "samplePlans": {
+        "A": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Bitmap Heap Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 4.17,
+              "Total Cost": 11.28,
+              "Plan Rows": 3,
+              "Plan Width": 72,
+              "Recheck Cond": "(order_id = 'A'::text)",
+              "Plans": [
+                {
+                  "Node Type": "Bitmap Index Scan",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Index Name": "order_availability_order",
+                  "Startup Cost": 0.0,
+                  "Total Cost": 4.17,
+                  "Plan Rows": 3,
+                  "Plan Width": 0,
+                  "Index Cond": "(order_id = 'A'::text)"
+                }
+              ]
+            }
+          }
+        ],
+        "B": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Bitmap Heap Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 4.17,
+              "Total Cost": 11.28,
+              "Plan Rows": 3,
+              "Plan Width": 72,
+              "Recheck Cond": "(order_id = 'B'::text)",
+              "Plans": [
+                {
+                  "Node Type": "Bitmap Index Scan",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Index Name": "order_availability_order",
+                  "Startup Cost": 0.0,
+                  "Total Cost": 4.17,
+                  "Plan Rows": 3,
+                  "Plan Width": 0,
+                  "Index Cond": "(order_id = 'B'::text)"
+                }
+              ]
+            }
+          }
+        ],
+        "missing": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Bitmap Heap Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 4.17,
+              "Total Cost": 11.28,
+              "Plan Rows": 3,
+              "Plan Width": 72,
+              "Recheck Cond": "(order_id = 'missing'::text)",
+              "Plans": [
+                {
+                  "Node Type": "Bitmap Index Scan",
+                  "Parent Relationship": "Outer",
+                  "Parallel Aware": false,
+                  "Async Capable": false,
+                  "Index Name": "order_availability_order",
+                  "Startup Cost": 0.0,
+                  "Total Cost": 4.17,
+                  "Plan Rows": 3,
+                  "Plan Width": 0,
+                  "Index Cond": "(order_id = 'missing'::text)"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "settledRows": [
+        [
+          "A",
+          "a1",
+          "X",
+          1,
+          3
+        ],
+        [
+          "B",
+          "B",
+          "X",
+          2,
+          3
+        ],
+        [
+          "U",
+          "u1",
+          "Y",
+          4,
+          7
+        ]
+      ],
+      "controls": {
+        "stale-stock": {
+          "kind": "detected",
+          "assertion": "shared-sku-fanout",
+          "detail": "shared-sku-fanout: observed [['A', 'a1', 'X', 1, 5]], expected [['A', 'a1', 'X', 1, 3]]",
+          "buildManifestSha256": "e1826aa5ad2166141f2787e54f4fd9a039c46a4b80ec1d4856b5a2ef5e6c3f83"
+        },
+        "live-read": {
+          "kind": "detected",
+          "assertion": "projection-only-read",
+          "detail": "projection-only-read: observed {'cohesive_reservations', 'cohesive_orders', 'cohesive_inventory'}, expected {'order_availability'}",
+          "buildManifestSha256": "1e2187feb7a32083b6c1885b4345dba4b806a848e7020530e0da416631baa672"
+        }
+      }
+    }
+  },
+  "passed": true,
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "g0": {
+    "passed": true,
+    "pairEquivalenceChecked": true,
+    "checksPerCondition": 52,
+    "invariantCommandsPerCondition": 180,
+    "sdk": "10.0.402",
+    "cohesiveSourceRevision": "b0af008d85871ad8866d7d4311707ecd926529de"
+  }
+}

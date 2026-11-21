@@ -1,0 +1,75 @@
+--- a/src/Fulfillment.Application/Contracts.cs
++++ b/src/Fulfillment.Application/Contracts.cs
+@@ -13,6 +13,7 @@
+ 
+ public interface IFulfillmentBackend
+ {
++    AvailabilityProjection Availability { get; }
+     Task Initialize();
+     Task Seed(SeedData data);
+     Task<OrderCreated> CreateOrder();
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -3,9 +3,18 @@
+ 
+ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillmentBackend
+ {
++    public AvailabilityProjection Availability { get; } = new(database);
+     readonly OrderStore store = new(database);
+     public Task Seed(SeedData data) => Seeding.Write(database, data);
+-    public Task Initialize() => store.Initialize();
++    public async Task Initialize()
++    {
++        await store.Initialize();
++        await Availability.Initialize("""
++            SELECT o.id AS order_id, r.id AS reservation_id, r.sku, r.quantity, i.available
++            FROM orders o LEFT JOIN reservations r ON r.order_id = o.id
++            LEFT JOIN inventory i ON i.sku = r.sku
++            """);
++    }
+     public Task<OrderCreated> CreateOrder() => store.Create();
+     public async Task<OrderSummary?> GetOrder(string id) => await store.Order(id) is { } order ? new(order.Id, order.Status.ToString()) : null;
+     public async Task<InventoryView?> GetInventory(string sku) => await store.Inventory(sku) is { } item ? new(item.Sku, item.Available) : null;
+--- a/src/Fulfillment.Application/OperationQueue.cs
++++ b/src/Fulfillment.Application/OperationQueue.cs
+@@ -59,7 +59,9 @@
+             {
+                 try
+                 {
+-                    var result = await backend.Fulfill(entry.Admission.OperationId, entry.Request);
++                    Completion result;
++                    try { result = await backend.Fulfill(entry.Admission.OperationId, entry.Request); }
++                    finally { await backend.Availability.Refresh(); }
+                     lock (gate) entry.Result = result;
+                 }
+                 catch (Exception ex)
+--- a/src/Fulfillment.Application/Program.cs
++++ b/src/Fulfillment.Application/Program.cs
+@@ -26,6 +26,7 @@
+         ?? throw new InvalidOperationException("Missing seed data.");
+     data.Validate();
+     await app.Services.GetRequiredService<IFulfillmentBackend>().Seed(data);
++    await app.Services.GetRequiredService<IFulfillmentBackend>().Availability.Refresh();
+     await app.DisposeAsync();
+     return;
+ }
+@@ -35,6 +36,7 @@
+ app.MapPost("/orders", async (IFulfillmentBackend backend) =>
+ {
+     var created = await backend.CreateOrder();
++    await backend.Availability.Refresh();
+     return Results.Created($"/orders/{created.Id}", created);
+ });
+ app.MapGet("/orders/{id}", async (string id, IFulfillmentBackend backend) =>
+@@ -44,9 +46,8 @@
+ app.MapGet("/orders/{id}/details", async (string id, IFulfillmentBackend backend) =>
+     await backend.GetDetails(id) is { } details ? ReadResults.Reply(details, details.Reservations.Count) : Results.NotFound());
+ app.MapGet("/orders/{id}/availability", async (string id, IFulfillmentBackend backend) =>
+-    await backend.GetDetails(id) is { } details
+-        ? ReadResults.Reply(details.Reservations.Select(r => new AvailabilityView(r.Id, r.Sku, r.Quantity, r.AvailableStock)).ToArray(), details.Reservations.Count)
+-        : Results.NotFound());
++    await backend.Availability.Read(id) is { } rows
++        ? ReadResults.Reply(rows, rows.Length) : Results.NotFound());
+ app.MapPost("/fulfillment", (FulfillmentRequest request, OperationQueue queue) => queue.Admit(request));
+ app.MapGet("/fulfillment/results/{operationId}", (string operationId, OperationQueue queue) => queue.Result(operationId));
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapSubmit(app);

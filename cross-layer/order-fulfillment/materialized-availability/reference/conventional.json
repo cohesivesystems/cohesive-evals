@@ -1,0 +1,18 @@
+{
+  "src/Fulfillment.Application/Contracts.cs": {
+    "before": "d0a2479c5a1e994a9ad6c0f06b680bae6a53c2bdcfa3d70bc61af7b3600dd3ca",
+    "after": "ae049c68a58ba7db4bec81802fcd41dbe642c1b466de2459a578d54134869370"
+  },
+  "src/Fulfillment.Application/FulfillmentBackend.cs": {
+    "before": "6bcdc23ac3f2e953b433cb575ed642ef50ffc56451885758a09f4ae4c95b16bc",
+    "after": "12b9be68ef87831cc73b4db82d6c1fb29c88d6e1e42f8a47d8690628bd912043"
+  },
+  "src/Fulfillment.Application/OperationQueue.cs": {
+    "before": "2900fd73d40df61bf4bd458c66b21fa72fef37dddb3227df18b8873bcc712d13",
+    "after": "b0e7e0e168ce4dad0688ebd49fa694b1db863ed340f1e628cb47bf74d0fe327a"
+  },
+  "src/Fulfillment.Application/Program.cs": {
+    "before": "5be5971400a4829a00cbc896785acb3e973b9e826a271e727e4d5eac100e07a2",
+    "after": "1c1640edaa5f20c4d9e7aacbcf13b6273a1a5b4f24055f5cf0e31b7639ae2735"
+  }
+}
