@@ -1,8 +1,8 @@
 {
   "mode": "maintainer-guided",
   "startingTree": "34a2c3449f3a37e276d1d6093717a1d5f6dc89cf",
-  "implementationTree": "ed048f2ed25bb46e7c6bc4e1a092483b4e52456e",
-  "sdkRevision": "c638995ecf58d735b93248b9e80f768373aa63f6",
-  "packageVersion": "0.1.0-eval.c638995e",
-  "publication": "https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-c638995e"
+  "implementationTree": "af5a6357b607d1deda174b7cc20b7218fe2c8f83",
+  "sdkRevision": "15d6edbcac0e3f1882351713c9e4a09feb5d77e0",
+  "packageVersion": "0.1.0-eval.15d6edbc",
+  "publication": "https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-15d6edbc"
 }
