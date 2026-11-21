@@ -114,6 +114,14 @@ class HttpClient:
 
     def request(self, method, path, body=None, raw=None):
         """Send JSON or exact bytes and decode the reply; malformed JSON is protocol failure."""
+        status, payload = self.request_bytes(method, path, body, raw)
+        try:
+            return status, json.loads(payload) if payload else None
+        except (ValueError, UnicodeError) as error:
+            raise AdapterError("protocol", "HTTP response is not JSON") from error
+
+    def request_bytes(self, method, path, body=None, raw=None):
+        """Return the status and exact response bytes, including bodies on HTTP errors."""
         data = (
             raw
             if raw is not None
@@ -132,8 +140,4 @@ class HttpClient:
         except (urllib.error.URLError, TimeoutError) as error:
             raise AdapterError("infrastructure", str(error)) from error
         with response:
-            status, payload = response.status, response.read()
-        try:
-            return status, json.loads(payload) if payload else None
-        except (ValueError, UnicodeError) as error:
-            raise AdapterError("protocol", "HTTP response is not JSON") from error
+            return response.status, response.read()

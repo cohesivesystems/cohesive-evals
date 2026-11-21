@@ -10,7 +10,8 @@
     "physical": {
       "count": 2,
       "quantity": 5
-    }
+    },
+    "acknowledgedBeforeRestart": false
   },
   "after-release": {
     "condition": "cohesive",
@@ -75,7 +76,8 @@
     "physical": {
       "count": 2,
       "quantity": 5
-    }
+    },
+    "acknowledgedBeforeRestart": false
   },
   "before-dispatch": {
     "condition": "cohesive",

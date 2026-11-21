@@ -34,6 +34,24 @@ def wait_until(test, seconds, label):
     raise AssertionError('Deadline exceeded: '+label)
 
 
+def acknowledged_receipt(pending):
+    """Keep the original 202 receipt after a kill. Only a dropped connection permits retry."""
+    try:
+        status, receipt = pending.result(timeout=5)
+    except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+        return None
+    except urllib.error.URLError as error:
+        if isinstance(error.reason, (ConnectionResetError, ConnectionAbortedError, BrokenPipeError)):
+            return None
+        raise
+    if status != 202 or not isinstance(receipt, dict):
+        raise AssertionError(f"admission at crash barrier: expected a 202 receipt, got {(status, receipt)!r}")
+    operation = receipt.get("operationId")
+    if not isinstance(operation, str) or not operation or receipt.get("resultUrl") != "/fulfillment/results/" + operation:
+        raise AssertionError(f"admission at crash barrier: invalid receipt {receipt!r}")
+    return receipt
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--condition',choices=['conventional','cohesive'])
@@ -100,8 +118,7 @@ def main():
                             pending=pool.submit(client.request,'POST','/fulfillment',request)
                             wait_until(marker.exists,30,point)
                             process.kill();process.wait(timeout=10);process=None
-                            try: pending.result(timeout=5)
-                            except (OSError,TimeoutError):pass
+                            receipt = acknowledged_receipt(pending)
                     else:
                         status,receipt=client.request('POST','/fulfillment',request);assert status==202,(status,receipt)
                         if point not in ['none','terminal-failure']:
@@ -110,6 +127,7 @@ def main():
                     if point not in ['none','terminal-failure']:start(False)
                     # Ambiguous unacknowledged admission may require retry. An acknowledged
                     # admission must recover autonomously through its original result URL.
+                    acknowledged_before_restart = receipt is not None
                     if receipt is None:
                         status,receipt=client.request('POST','/fulfillment',request);assert status==202
                     outcome='OrderRejected' if rejecting else 'ReservedAndSubmitted'
@@ -144,6 +162,8 @@ def main():
                     assert client.request('GET',receipt['resultUrl'])==(expected_status,expected)
                     process.kill();process.wait(timeout=10);process=None
                     record={'condition':condition,'point':point,'passed':True,'completion':expected,'physical':physical}
+                    if point in ['before-admission-commit', 'after-admission-commit']:
+                        record['acknowledgedBeforeRestart'] = acknowledged_before_restart
                     records.append(record);(evidence/'result.json').write_text(json.dumps(record,indent=2)+'\n')
                     print(condition,point,'passed',flush=True)
         assert build_manifests=={c:verify_build(args.references.resolve()/c) for c in build_manifests}, 'Build changed during verification'

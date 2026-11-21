@@ -72,8 +72,8 @@ def at_capacity(client, receipt, phase):
     """Verify overflow, replay and conflict against the original HTTP receipt."""
     request = request_for(0)
     expect(
-        client.request("POST", "/fulfillment", request_for(CAPACITY))[0],
-        503,
+        client.request_bytes("POST", "/fulfillment", request_for(CAPACITY)),
+        (503, b""),
         phase + " at capacity",
     )
     expect(
@@ -82,8 +82,8 @@ def at_capacity(client, receipt, phase):
         phase + " retained identity",
     )
     expect(
-        client.request("POST", "/fulfillment", {**request, "quantity": 2})[0],
-        409,
+        client.request("POST", "/fulfillment", {**request, "quantity": 2}),
+        (409, {"code": "RequestIdentityConflict"}),
         phase + " identity conflict",
     )
 
@@ -132,6 +132,8 @@ def check(application, output, condition):
                 condition: {
                     "distinctAdmissions": CAPACITY,
                     "restartCapacityReplayConflict": True,
+                    "overflowBodyEmptyBeforeAndAfterRestart": True,
+                    "conflictCodeBeforeAndAfterRestart": "RequestIdentityConflict",
                 }
             }
         )

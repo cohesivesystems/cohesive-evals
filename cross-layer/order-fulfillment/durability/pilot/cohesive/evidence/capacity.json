@@ -5,7 +5,9 @@
   "conditions": {
     "cohesive": {
       "distinctAdmissions": 1000,
-      "restartCapacityReplayConflict": true
+      "restartCapacityReplayConflict": true,
+      "overflowBodyEmptyBeforeAndAfterRestart": true,
+      "conflictCodeBeforeAndAfterRestart": "RequestIdentityConflict"
     }
   }
 }
