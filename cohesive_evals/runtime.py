@@ -1,15 +1,13 @@
 """Bounded subprocess and HTTP lifecycle, without scenario or SDK knowledge."""
 
 from contextlib import contextmanager
-import json
 import re
 import socket
 import subprocess
 import time
-import urllib.error
-import urllib.request
 import uuid
-from .contracts import AdapterError
+from .errors import AdapterError
+from .http_client import HttpClient
 
 
 def run(*command, timeout=120, **kwargs):
@@ -103,41 +101,3 @@ def wait(process, predicate, label, timeout=30):
             return result
         time.sleep(0.02)
     raise AdapterError("infrastructure", label + " deadline")
-
-
-class HttpClient:
-    """Return public HTTP status/body observations; leave business interpretation to checks."""
-
-    def __init__(self, url):
-        """Bind the local host base URL."""
-        self.url = url
-
-    def request(self, method, path, body=None, raw=None):
-        """Send JSON or exact bytes and decode the reply; malformed JSON is protocol failure."""
-        status, payload = self.request_bytes(method, path, body, raw)
-        try:
-            return status, json.loads(payload) if payload else None
-        except (ValueError, UnicodeError) as error:
-            raise AdapterError("protocol", "HTTP response is not JSON") from error
-
-    def request_bytes(self, method, path, body=None, raw=None):
-        """Return the status and exact response bytes, including bodies on HTTP errors."""
-        data = (
-            raw
-            if raw is not None
-            else json.dumps(body).encode() if body is not None else None
-        )
-        request = urllib.request.Request(
-            self.url + path,
-            data=data,
-            method=method,
-            headers={"Content-Type": "application/json"},
-        )
-        try:
-            response = urllib.request.urlopen(request, timeout=20)
-        except urllib.error.HTTPError as error:
-            response = error
-        except (urllib.error.URLError, TimeoutError) as error:
-            raise AdapterError("infrastructure", str(error)) from error
-        with response:
-            return response.status, response.read()

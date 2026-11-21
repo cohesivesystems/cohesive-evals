@@ -11,13 +11,13 @@ import subprocess
 import sys
 import time
 import uuid
-import urllib.error
-import urllib.request
 
 ROOT=Path(__file__).resolve().parent
 CASE=ROOT.parent
 sys.path.insert(0,str(CASE/'verification'))
 sys.path.insert(0,str(CASE.parents[1]))
+from cohesive_evals.http_client import ConnectionDropped
+from cohesive_evals.errors import AdapterError
 from cohesive_evals.runtime import durable_task_scheduler, kestrel_url
 from verify import run, IMAGE
 from build import reference_fingerprint, verify_build
@@ -38,17 +38,10 @@ def acknowledged_receipt(pending):
     """Keep the original 202 receipt after a kill. Only a dropped connection permits retry."""
     try:
         status, receipt = pending.result(timeout=5)
-    except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+    except ConnectionDropped:
         return None
-    except urllib.error.URLError as error:
-        if isinstance(error.reason, (ConnectionResetError, ConnectionAbortedError, BrokenPipeError)):
-            return None
-        raise
-    if status != 202 or not isinstance(receipt, dict):
+    if status != 202 or not suite.valid_receipt(receipt):
         raise AssertionError(f"admission at crash barrier: expected a 202 receipt, got {(status, receipt)!r}")
-    operation = receipt.get("operationId")
-    if not isinstance(operation, str) or not operation or receipt.get("resultUrl") != "/fulfillment/results/" + operation:
-        raise AssertionError(f"admission at crash barrier: invalid receipt {receipt!r}")
     return receipt
 
 
@@ -108,7 +101,9 @@ def main():
                         def ready():
                             if process.poll() is not None:raise RuntimeError('Host exited; see '+str(evidence/'host.log'))
                             try:return client.request('GET','/orders/a')[0]==200
-                            except (urllib.error.URLError,ConnectionError):return False
+                            except AdapterError as error:
+                                if error.category == "infrastructure": return False
+                                raise
                         wait_until(ready,30,'host ready')
                     start(point!='none')
                     request={'requestId':'request-a','orderId':'a','sku':'stock','quantity':3}
@@ -120,7 +115,8 @@ def main():
                             process.kill();process.wait(timeout=10);process=None
                             receipt = acknowledged_receipt(pending)
                     else:
-                        status,receipt=client.request('POST','/fulfillment',request);assert status==202,(status,receipt)
+                        status,receipt=client.request('POST','/fulfillment',request)
+                        assert status == 202 and suite.valid_receipt(receipt), (status, receipt)
                         if point not in ['none','terminal-failure']:
                             wait_until(marker.exists,60,point)
                             process.kill();process.wait(timeout=10);process=None
@@ -129,7 +125,8 @@ def main():
                     # admission must recover autonomously through its original result URL.
                     acknowledged_before_restart = receipt is not None
                     if receipt is None:
-                        status,receipt=client.request('POST','/fulfillment',request);assert status==202
+                        status,receipt=client.request('POST','/fulfillment',request)
+                        assert status == 202 and suite.valid_receipt(receipt), (status, receipt)
                     outcome='OrderRejected' if rejecting else 'ReservedAndSubmitted'
                     expected={'code':'ExecutionFailed'} if terminal else {'status':'Rejected' if rejecting else 'Submitted','outcome':outcome}
                     expected_status=500 if terminal else 200

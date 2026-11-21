@@ -4,8 +4,13 @@ import concurrent.futures
 import json
 import sys
 import time
-import urllib.error
-import urllib.request
+from pathlib import Path
+
+# Dynamic suite loaders do not put this fixture's tests directory on the import path.
+tests_directory = str(Path(__file__).resolve().parent)
+if tests_directory not in sys.path:
+ sys.path.append(tests_directory)
+from cohesive_evals.http_client import HttpClient
 
 SEED = {
  'orders':[{'id':x, 'status':'Submitted' if x in ['submitted','matched','direct-submitted'] else 'Draft'} for x in
@@ -42,29 +47,34 @@ for endpoint in ['details', 'availability']:
   SEED['reservations'] += [{'id':r['id'],'orderId':order,'sku':sku,'quantity':1} for r in rows]
   BYTE_CASES.append((order, endpoint, target))
 
-class Client:
+def valid_receipt(value):
+ """Check the exact public keys, nonempty operation ID, and matching local result URL."""
+ if not isinstance(value, dict) or value.keys() != {'operationId', 'resultUrl'}:
+  return False
+ operation = value['operationId']
+ return isinstance(operation, str) and bool(operation) and value['resultUrl'] == '/fulfillment/results/' + operation
+
+
+class Client(HttpClient):
+ """Run fulfillment contract assertions over the shared HTTP transport."""
+
  def __init__(self,url):
-  self.url=url;self.observations=[]
- def request(self,method,path,body=None,raw=None):
-  data=raw if raw is not None else (json.dumps(body).encode() if body is not None else None)
-  req=urllib.request.Request(self.url+path,data=data,method=method,headers={'Content-Type':'application/json'})
-  try: response=urllib.request.urlopen(req,timeout=20)
-  except urllib.error.HTTPError as error: response=error
-  payload=response.read()
-  try: result=json.loads(payload) if payload else None
-  except json.JSONDecodeError: result=payload.decode()
-  return response.status,result
+  """Bind the host and collect observations for comparison across conditions."""
+  super().__init__(url)
+  self.observations=[]
  def expect(self,label,method,path,status,body=None,expected=None,raw=None):
+  """Assert the expected HTTP result and retain the observed body."""
   actual,value=self.request(method,path,body,raw)
   assert actual==status,(label,actual,value)
   if expected is not None: assert value==expected,(label,value,expected)
   self.observations.append({'check':label,'status':actual,'body':value})
   return value
  def fulfill(self,label,order,sku,quantity,outcome):
+  """Check admission, completion, and replay, returning the request and original receipt."""
   request={'requestId':label,'orderId':order,'sku':sku,'quantity':quantity}
   status,receipt=self.request('POST','/fulfillment',request)
   assert status==202,(label,status,receipt)
-  assert set(receipt)=={'operationId','resultUrl'} and receipt['resultUrl']=='/fulfillment/results/'+receipt['operationId']
+  assert valid_receipt(receipt), ('invalid admission receipt', receipt)
   end=time.monotonic()+20
   while True:
    status,value=self.request('GET',receipt['resultUrl'])

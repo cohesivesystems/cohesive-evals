@@ -2,6 +2,7 @@
 from contextlib import nullcontext
 from concurrent.futures import Future
 from http.client import RemoteDisconnected
+import urllib.error
 import importlib.util
 import json
 from pathlib import Path
@@ -34,18 +35,31 @@ class AdmissionGradingTests(unittest.TestCase):
     def test_only_interruption_permits_retry(self):
         """Treat a dropped connection as ambiguous and surface deadlines and unexpected replies."""
         interrupted = Future()
-        interrupted.set_exception(RemoteDisconnected())
+        interrupted.set_exception(verifier.ConnectionDropped("peer closed"))
         self.assertIsNone(verifier.acknowledged_receipt(interrupted))
         timed_out = Future()
         timed_out.set_exception(TimeoutError())
         with self.assertRaises(TimeoutError):
             verifier.acknowledged_receipt(timed_out)
-        for reply in [(500, None), (202, None), (202, {"operationId": "lost"})]:
+        for reply in [(500, None), (202, None), (202, {"operationId": "lost"}),
+                      (202, {"operationId": "x", "resultUrl": "/fulfillment/results/x", "extra": True})]:
             with self.subTest(reply=reply):
                 pending = Future()
                 pending.set_result(reply)
                 with self.assertRaisesRegex(AssertionError, "admission at crash barrier"):
                     verifier.acknowledged_receipt(pending)
+
+    def test_fixture_uses_shared_transport_failure_classification(self):
+        """Direct and wrapped disconnects permit retry. Transport deadlines stay infrastructure failures."""
+        client = verifier.suite.Client("http://fixture.invalid")
+        for cause, dropped in [(RemoteDisconnected(), True),
+                               (urllib.error.URLError(RemoteDisconnected()), True),
+                               (urllib.error.URLError(TimeoutError()), False)]:
+            with self.subTest(cause=cause), patch("urllib.request.urlopen", side_effect=cause):
+                with self.assertRaises(verifier.AdapterError) as caught:
+                    client.request("POST", "/fulfillment", {})
+                self.assertEqual(caught.exception.category, "infrastructure")
+                self.assertEqual(isinstance(caught.exception, verifier.ConnectionDropped), dropped)
 
     def test_capacity_rejects_wrong_bodies_with_correct_statuses(self):
         """Reject JSON null on overflow and a different domain code on conflicting replay."""
