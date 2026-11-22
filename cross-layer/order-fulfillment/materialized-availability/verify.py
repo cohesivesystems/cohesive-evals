@@ -18,7 +18,8 @@ SEED = {
                [("A", "Submitted"), ("B", "Draft"), ("R", "Submitted"), ("U", "Submitted")]],
     "inventory": [{"sku": "X", "available": 5}, {"sku": "Y", "available": 7}],
     "reservations": [{"id": "a1", "orderId": "A", "sku": "X", "quantity": 1},
-                     {"id": "u1", "orderId": "U", "sku": "Y", "quantity": 4}],
+                     {"id": "\ue000", "orderId": "U", "sku": "Y", "quantity": 2},
+                     {"id": "\U00010000", "orderId": "U", "sku": "Y", "quantity": 2}],
 }
 TARGET = "order_availability"
 
@@ -67,8 +68,10 @@ def wire(rows, order):
     matched = [r for r in rows if r[0] == order]
     if not matched:
         return 404, None
+    # The HTTP contract orders UTF-16 code units; physical inspection uses PostgreSQL C collation.
+    matched = sorted((r for r in matched if r[1] is not None), key=lambda r: r[1].encode("utf-16-be"))
     return 200, [dict(reservationId=r[1], sku=r[2], quantity=r[3], availableStock=r[4])
-                 for r in matched if r[1] is not None]
+                 for r in matched]
 
 
 @contextmanager
@@ -179,7 +182,7 @@ def check(folder, output, condition):
         trace = {}
         with launch(folder, output, env) as (client, process):
             expect(physical(db), rows, "startup-backfill")
-            for key in ("A", "B", "missing"):
+            for key in ("A", "B", "U", "missing"):
                 trace[key] = check_read(db, client, key, rows)
             status, created = client.request("POST", "/orders")
             expect(status, 201, "create")

@@ -5,7 +5,7 @@
   },
   "src/Fulfillment.Application/Fulfillment.Application.csproj": {
     "before": "b68cc3d67e5c9bf3f31243fea00425f3c7afbfb207d266bf32159a0095e01411",
-    "after": "3517a19058cc69c8e23fd31512a2a52f2322574ff8cce374b985850c8df21f4d"
+    "after": "9f238e7e644ca5ab31fbbe695c51b3b64ef2b63ad7496c4c5bfeaf9964210b16"
   },
   "src/Fulfillment.Application/FulfillmentBackend.cs": {
     "before": "3b490e8fd7857f3d7b5d769bc4e031417758d378da739917e20deabdffa5c156",
@@ -25,6 +25,6 @@
   },
   "src/Fulfillment.Application/packages.lock.json": {
     "before": "7762b5e19fc99dea1533b7f7af5e0149c1c48566ee21fb7bcf6a70781afb7313",
-    "after": "25475900f0afa54a2d6924de064b2a4fd4b56dffb346eec8d003f2bee54c28c3"
+    "after": "9cd5a71f509eab7705a6cb63c1835e73eb37a8b0989e6dfb7965be594635b592"
   }
 }
