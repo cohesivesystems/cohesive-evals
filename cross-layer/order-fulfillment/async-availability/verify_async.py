@@ -1,6 +1,7 @@
 """Exercise lag, crash replay, and resync overlap against a separately running availability worker."""
 
 import argparse
+import base64
 from contextlib import ExitStack, contextmanager
 import json
 import os
@@ -34,13 +35,13 @@ def before_acknowledgement(db, http_host):
 def published(db, worker):
     """Wait for the worker to reach its real blocked acknowledgement, after committing projection rows."""
     wait(worker, lambda: sql(db, "SELECT count(*) FROM pg_stat_activity WHERE wait_event_type='Lock' "
-         "AND query LIKE 'UPDATE availability_progress SET revision%'") == "1", "worker acknowledgement")
+         "AND replace(query, chr(34), '') LIKE 'UPDATE availability_progress SET revision%'") == "1", "worker acknowledgement")
 
 
 def versions(db):
-    """Observe a physical row version per order to distinguish rewritten unrelated rows on this fixture."""
+    """Collect every persisted row's transaction ID by order to detect unrelated rewrites."""
     return json.loads(sql(db, """SELECT json_object_agg(order_id, x) FROM
-        (SELECT order_id, min(xmin::text) x FROM order_availability GROUP BY order_id) v"""))
+        (SELECT order_id, json_agg(xmin::text ORDER BY reservation_id COLLATE "C") x FROM order_availability GROUP BY order_id) v"""))
 
 
 def check_read_limits(folder, output, client, dll, env):
@@ -66,12 +67,14 @@ def check_read_limits(folder, output, client, dll, env):
 
 def check(folder, output, condition):
     """Run one independent production HTTP and worker trace against an isolated database."""
-    with verification_run(output, "asyncavailability", RequirementFailure) as db:
+    server_args = ("-c", "wal_level=logical") if condition == "cohesive" else ()
+    with verification_run(output, "asyncavailability", RequirementFailure, server_args=server_args) as db:
         db.condition = condition
         fingerprint = build_tools.verify_build(folder)
         env = dict(os.environ, ConnectionStrings__Orders=f"Host=127.0.0.1;Port={db.port};Database=postgres;"
                    "Username=postgres;Password=fixture-only;Options=-c session_preload_libraries=auto_explain "
                    "-c auto_explain.log_min_duration=0 -c auto_explain.log_format=json")
+        env["Availability__PositionKey"] = base64.b64encode(os.urandom(32)).decode("ascii")
         dll = folder / "src/Fulfillment.Application/bin/Debug/net10.0/Fulfillment.Application.dll"
         seed = {**SEED, "orders": [*SEED["orders"], {"id": "C", "status": "Draft"}]}
         seed_path = output / "seed.json"
@@ -124,8 +127,12 @@ def check(folder, output, condition):
             expect(checkpoint()["applied"], baseline["applied"], "crash-before-checkpoint")
             after = versions(db)
             rewritten = sorted(key for key in start_versions if start_versions[key] != after[key])
+            if condition == "cohesive":
+                expect(rewritten, ["A", "B"], "only-affected-orders-rewritten")
             catch_up(lag["requested"])
             expect(physical(db), rows, "replay-no-duplicates")
+            if condition == "cohesive":
+                expect(versions(db)["U"], start_versions["U"], "replay-preserves-unrelated-order")
             replay = {}
             for key in ("A", "B", "U"):
                 reply = client.request("GET", f"/orders/{key}/availability")

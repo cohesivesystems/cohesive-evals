@@ -2,7 +2,7 @@
   "passed": true,
   "conditions": {
     "conventional": {
-      "buildManifestSha256": "c02d7092f5b5e3178650af0477ecab4fdb41ee1b0bb8e908f5e2f7a4ebead95c",
+      "buildManifestSha256": "87c05020f2c050b2f60795abfdec7b937fca41ff3eeb4e39e7b131b376c46e15",
       "initial": {
         "requested": 11,
         "applied": 11
@@ -175,20 +175,20 @@
       }
     },
     "cohesive": {
-      "buildManifestSha256": "35f7373170d8e2033d4f577dbada2f069182c2f3ec67d0ea662bf1956e547db5",
+      "buildManifestSha256": "e27ec6cca8ca98a7781ef9e7990835d063b575f3a61f18c45e2e9631922378a5",
       "initial": {
-        "requested": 21,
-        "applied": 21
+        "requested": 22,
+        "applied": 22
       },
       "paused": {
-        "requested": 24,
-        "applied": 21
+        "requested": 25,
+        "applied": 22
       },
-      "resyncCut": 25,
-      "overlappingWrite": 28,
+      "resyncCut": 26,
+      "overlappingWrite": 29,
       "final": {
-        "requested": 28,
-        "applied": 28
+        "requested": 29,
+        "applied": 29
       },
       "readLimits": {
         "rowsAtLimit": 1000,
@@ -237,10 +237,7 @@
       },
       "ordersRewrittenAfterB": [
         "A",
-        "B",
-        "C",
-        "R",
-        "U"
+        "B"
       ],
       "finalPlans": {
         "A": [
@@ -403,7 +400,7 @@
         "over-acknowledge": {
           "kind": "detected",
           "assertion": "checkpoint-captured-cut",
-          "detail": "checkpoint-captured-cut: observed 28, expected 25"
+          "detail": "checkpoint-captured-cut: observed 29, expected 26"
         }
       }
     }

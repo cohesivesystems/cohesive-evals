@@ -53,7 +53,7 @@ class VerificationRun:
 
 
 @contextmanager
-def verification_run(output, prefix, behavioral_failure):
+def verification_run(output, prefix, behavioral_failure, *, server_args=()):
     """Start an optional isolated database and always remove it, preserving primary failures."""
     output.mkdir(parents=True, exist_ok=False)
     session = VerificationRun(output, prefix + "-" + uuid.uuid4().hex[:12])
@@ -74,6 +74,7 @@ def verification_run(output, prefix, behavioral_failure):
                 "-p",
                 "127.0.0.1::5432",
                 IMAGE,
+                *server_args,
             )
             started = True
             for _ in range(100):

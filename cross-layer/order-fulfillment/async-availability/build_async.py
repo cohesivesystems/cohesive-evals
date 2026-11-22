@@ -17,7 +17,7 @@ DEFECTS = {"eager": "stale-while-paused", "late-publication": "published-before-
            "over-acknowledge": "checkpoint-captured-cut"}
 
 
-def mutate(candidate, defect):
+def mutate(candidate, defect, condition):
     """Introduce one scoped timing defect and reject changed or ambiguous mutation anchors."""
     queue = candidate / APP / "OperationQueue.cs"
     worker = candidate / APP / "AvailabilityMaintenance.cs"
@@ -27,6 +27,17 @@ def mutate(candidate, defect):
         path = queue
         anchor = "                    lock (gate) entry.Result = result;"
         changes = [(anchor, "                    await backend.Availability.Refresh();\n" + anchor)]
+    elif condition == "cohesive" and defect in {"late-publication", "over-acknowledge"}:
+        path = candidate / APP / "Program.cs"
+        ack_latest = ('await using (var ack = database.CreateCommand("UPDATE availability_progress SET revision='
+                      '(SELECT revision FROM availability_request)")) await ack.ExecuteNonQueryAsync();')
+        if defect == "late-publication":
+            anchor = "    using var worker = await Worker();\n    if (args[0]"
+            changes = [(anchor, "    " + ack_latest + "\n" + anchor)]
+        else:
+            anchor = 'if (args[0] == "--availability-worker-once") await worker.RunOnceAsync();'
+            changes = [(anchor, 'if (args[0] == "--availability-worker-once") { await worker.RunOnceAsync(); '
+                        + ack_latest + ' }')]
     elif defect == "late-publication":
         path = worker
         changes = [(publish, ""), (ack, ack + "\n" + publish)]
@@ -60,12 +71,25 @@ def build(baseline, output, defect=None):
             raise ValueError(f"Unexpected synchronous inputs for {condition}")
         candidate = output / condition
         shutil.copytree(original, candidate, ignore=shutil.ignore_patterns("bin", "obj", "build.log", "build-manifest.json"))
-        reference = ROOT / "reference" / "host"
-        apply_delta(candidate, reference.with_suffix(".patch"), reference.with_suffix(".json"))
-        shutil.copyfile(reference.parent / "AvailabilityMaintenance.cs", candidate / APP / "AvailabilityMaintenance.cs")
-        shutil.copyfile(reference.parent / f"{condition}.cs", candidate / APP / "AvailabilitySources.cs")
+        reference = ROOT / "reference"
+        delta = reference / ("rooted" if condition == "cohesive" else "host")
+        apply_delta(candidate, delta.with_suffix(".patch"), delta.with_suffix(".json"))
+        if condition == "cohesive":
+            sdk = ROOT / "sdk"
+            manifest = json.loads((sdk / "dependency-manifest.json").read_text())
+            shutil.rmtree(candidate / "packages")
+            (candidate / "packages").mkdir()
+            for package in manifest["packages"]:
+                asset = sdk / package["file"]
+                if hashlib.sha256(asset.read_bytes()).hexdigest() != package["sha256"]:
+                    raise ValueError(f"Unexpected SDK asset content: {asset.name}")
+                shutil.copyfile(asset, candidate / "packages" / asset.name)
+            shutil.copyfile(sdk / "dependency-manifest.json", candidate / "dependency-manifest.json")
+        else:
+            shutil.copyfile(reference / "AvailabilityMaintenance.cs", candidate / APP / "AvailabilityMaintenance.cs")
+            shutil.copyfile(reference / "conventional.cs", candidate / APP / "AvailabilitySources.cs")
         if defect:
-            mutate(candidate, defect)
+            mutate(candidate, defect, condition)
         with (candidate / "build.log").open("w") as log:
             build_tools.build_candidate(candidate, log)
 

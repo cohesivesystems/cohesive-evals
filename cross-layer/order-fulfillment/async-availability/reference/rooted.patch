@@ -1,0 +1,580 @@
+--- /dev/null
++++ b/src/Fulfillment.Application/AvailabilityStorage.cs
+@@ -0,0 +1,39 @@
++using Cohesive.Adapters.Postgres;
++using Cohesive.Model.Serialization;
++using Cohesive.Storage.Materialization;
++
++namespace Fulfillment.Application;
++
++public static class AvailabilityStorage
++{
++    public static PostgresMaterializationStorage Bind(PostgresPersistenceBindings bindings, FulfillmentQueries queries)
++    {
++        const int page = 100;
++        const int bytes = 2_000_000;
++        var declaration = Materialization.Define(new("orders/availability"), queries.OrderDetailsRelation)
++            .WithUpdatePolicy(new(MaterializationSynchronizationMode.All, MaterializationConsistencyKind.BaselinePlusCatchUp,
++                MaterializationIdempotencyKind.StableOutputIdentityAndVersion))
++            .WithBoundedRelationBaselineCatchUpSources(5000, bytes, 5000, bytes)
++            .WithGenerationalIndexTarget(page, bytes)
++            .WithFailurePolicy(new(3, MaterializationFailureDisposition.Stop))
++            .WithFreshnessPolicy(new(maximumLagMilliseconds: 300_000))
++            .WithProvenance(new(new("orders/availability", "1"), new("orders/availability"), DocumentOrigin.Generated))
++            .Build().Prepare(new(new("orders/availability/impact"), [MaterializationImpactStrategyKind.InverseTraversal], 5000, bytes));
++        return new(bindings, declaration, new()
++        {
++            PartitionField = FulfillmentDomain.PartitionField,
++            Planning = new(new("orders/availability/physical"), "orders/availability/v1", page, 5000, 5000, page, page, 1),
++            Reads = new(page, 5000, page, bytes, partitionScope: new(new(FulfillmentStoragePolicy.LogicalPartition),
++                FulfillmentDomain.PartitionField, FulfillmentStoragePolicy.LocalPartition)),
++            Rebuild = new(page, bytes, page, bytes, 128, 1, 1, 16),
++            Publication = "availability_changes",
++            Slot = input => "availability_" + Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(
++                System.Text.Encoding.UTF8.GetBytes(input.Value)))[..16],
++            Replication = new(readInactivityTimeout: TimeSpan.FromSeconds(1)),
++            Checkpoints = new("orders/availability"),
++            Provider = "orders/availability",
++            Capacity = new(new("orders/worker"), 1, ["postgres-session-advisory-lock"]),
++            Provenance = new(new("orders/availability", "1"), new("orders/availability"))
++        });
++    }
++}
+--- a/src/Fulfillment.Application/AvailabilityProjection.cs
++++ b/src/Fulfillment.Application/AvailabilityProjection.cs
+@@ -1,10 +1,26 @@
+ using Cohesive.Adapters.Postgres;
++using Npgsql;
++using Npgsql.Replication;
+
+ namespace Fulfillment.Application;
+
+-public sealed class AvailabilityProjection(PostgresMaterializedRows<ReservationAvailability> target)
++public sealed class AvailabilityProjection(PostgresMaterializedRows<ReservationAvailability> target, NpgsqlDataSource database,
++    PostgresMaterializationStorage storage)
+ {
+     readonly PostgresMaterializedLookup<string, ReservationAvailability> byOrder = target.Lookup(row => row.OrderId);
++
++    public PostgresRowsSchedule Schedule { get; } = storage.Schedule(database, "availability");
++
++    public async Task Initialize()
++    {
++        await storage.InitializeSourcesAsync(database);
++        await Schedule.InitializeAsync();
++    }
++
++    public Task<PostgresRootedRowsWorker<ReservationAvailability>> Worker(string connection, string positionKey) =>
++        storage.BindRowsWorkerAsync(database, () => new LogicalReplicationConnection(connection),
++            Convert.FromBase64String(positionKey), "availability/v1", target, row => row.OrderId,
++            TimeSpan.FromMilliseconds(100), Schedule);
+
+     public Task Refresh() => target.ResyncAsync();
+
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -29,7 +29,7 @@
+     public async Task Initialize()
+     {
+         var mappings = new FulfillmentPostgresMappings(domain);
+-        var bindings = PostgresPersistenceBindings.Define(new("orders"), storage =>
++        var bindings = PostgresPersistenceBindings.Define(new(new NpgsqlConnectionStringBuilder(database.ConnectionString).Database!), storage =>
+         {
+             storage.Schema(PostgresSchemaInitialization.CreateIfMissing, schema =>
+             {
+@@ -56,7 +56,7 @@
+         var queries = new FulfillmentQueries(domain);
+         details = persistence.Query(queries.OrderDetails, maximumRows: int.MaxValue - 1, maximumBytes: long.MaxValue);
+         Availability = new(persistence.MaterializeRows(queries.PartitionAvailability,
+-            FulfillmentStoragePolicy.LocalPartition, "order_availability"));
++            FulfillmentStoragePolicy.LocalPartition, "order_availability"), database, AvailabilityStorage.Bind(bindings, queries));
+         var process = new FulfillmentProcess(domain);
+         hosted = Service.Define(new("fulfillment"), new("1"), process.Provenance)
+             .Use(new ServiceDependencies().Process(process))
+--- a/src/Fulfillment.Application/FulfillmentQueries.cs
++++ b/src/Fulfillment.Application/FulfillmentQueries.cs
+@@ -12,22 +12,22 @@
+     /// <param name="domain">Shared entity and relationship authority.</param>
+     public FulfillmentQueries(FulfillmentDomain domain)
+     {
++        var query = RelationQuery.Expression();
++        var orders = query.Source(domain.Orders).Where(order => order.Partition == FulfillmentStoragePolicy.LocalPartition);
++        var reservations = orders.TraverseInverse(domain.ReservationOrder);
++        var inventory = reservations.Traverse(domain.ReservationItem);
++        OrderDetailsRelation = query.SingleOrDefault<OrderDetails>()
++            .From(inventory)
++            .Key(orders, order => order.Id, result => result.Id)
++            .Field(result => result.Status, orders, order => order.Status)
++            .Collection(result => result.Reservations, reservations, reservation => reservation.Id, item => item.Id,
++                items => items
++                    .Field(result => result.Sku, inventory, item => item.Sku)
++                    .Field(result => result.Quantity, reservations, reservation => reservation.Quantity)
++                    .Field(result => result.AvailableStock, inventory, item => item.Available))
++            .BuildRelation(new("fulfillment/order-details/relation"));
++        OrderDetails = Query(OrderDetailsRelation.ReadById(new("fulfillment/order-details")));
+         var queries = Queries.WithInput<string>("orderId");
+-        OrderDetails = queries.SingleOrDefault<OrderDetails>("fulfillment/order-details", (query, orderId, output) =>
+-        {
+-            var orders = OrdersById(query, orderId, domain);
+-            var reservations = orders.TraverseInverse(domain.ReservationOrder);
+-            var inventory = reservations.Traverse(domain.ReservationItem);
+-            return output
+-                .From(inventory)
+-                .Key(orders, order => order.Id, result => result.Id)
+-                .Field(result => result.Status, orders, order => order.Status)
+-                .Collection(result => result.Reservations, reservations, reservation => reservation.Id, item => item.Id,
+-                    items => items
+-                        .Field(result => result.Sku, inventory, item => item.Sku)
+-                        .Field(result => result.Quantity, reservations, reservation => reservation.Quantity)
+-                        .Field(result => result.AvailableStock, inventory, item => item.Available));
+-        });
+
+         ReservationAvailability = queries.Array("fulfillment/reservation-availability", (query, orderId) =>
+             AvailabilityRows(query, OrdersById(query, orderId, domain), domain));
+@@ -47,6 +47,8 @@
+             .Select((row, item) => new ReservationAvailability(
+                 row.OrderId, row.ReservationId, row.Sku, row.Quantity, item.Available));
+     }
++
++    public RootedRelation<OrderDetails> OrderDetailsRelation { get; }
+
+     public RelationQuery<string, ReservationAvailability[]> PartitionAvailability { get; }
+
+--- a/src/Fulfillment.Application/Fulfillment.Application.csproj
++++ b/src/Fulfillment.Application/Fulfillment.Application.csproj
+@@ -1,5 +1,5 @@
+ <Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup><AssemblyName>Fulfillment.Application</AssemblyName><RootNamespace>Fulfillment.Application</RootNamespace></PropertyGroup><ItemGroup><PackageReference Include="Npgsql" Version="[10.0.3]" /></ItemGroup><ItemGroup>
+-<PackageReference Include="Cohesive.Adapters.Postgres.Services" Version="[0.1.0-eval.c5a44bc0]" />
+-<PackageReference Include="Cohesive.Adapters.AspNet" Version="[0.1.0-eval.c5a44bc0]" />
+-<PackageReference Include="Cohesive.Analyzers" Version="[0.1.0-eval.c5a44bc0]" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
++<PackageReference Include="Cohesive.Adapters.Postgres.Services" Version="[0.1.0-eval.0ad7709a]" />
++<PackageReference Include="Cohesive.Adapters.AspNet" Version="[0.1.0-eval.0ad7709a]" />
++<PackageReference Include="Cohesive.Analyzers" Version="[0.1.0-eval.0ad7709a]" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+ </ItemGroup></Project>
+--- a/src/Fulfillment.Application/packages.lock.json
++++ b/src/Fulfillment.Application/packages.lock.json
+@@ -4,36 +4,36 @@
+     "net10.0": {
+       "Cohesive.Adapters.AspNet": {
+         "type": "Direct",
+-        "requested": "[0.1.0-eval.c5a44bc0, 0.1.0-eval.c5a44bc0]",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "ENaqPMJo5v/Q7tV6dSguNyTZP1C21KWDYrc+TfPl7JCl4V54bXrnZZIyaFRfawU7rK/IE8+7cDvlXYjRv/mV0g==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Api": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Api.Execution": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Application": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Host": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Identity": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Processes": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Relations": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Storage": "0.1.0-eval.c5a44bc0"
++        "requested": "[0.1.0-eval.0ad7709a, 0.1.0-eval.0ad7709a]",
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "SbGx/5Q8XWN1B/Pq8WpG53u1FRY+M9nt2Ey5+YaoVW7RcqtpB4Jqh4q6Kzr1HH+xGHIOqSdIyL/fwOQaiKkG6Q==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a",
++          "Cohesive.Api": "0.1.0-eval.0ad7709a",
++          "Cohesive.Api.Execution": "0.1.0-eval.0ad7709a",
++          "Cohesive.Application": "0.1.0-eval.0ad7709a",
++          "Cohesive.Host": "0.1.0-eval.0ad7709a",
++          "Cohesive.Identity": "0.1.0-eval.0ad7709a",
++          "Cohesive.Processes": "0.1.0-eval.0ad7709a",
++          "Cohesive.Relations": "0.1.0-eval.0ad7709a",
++          "Cohesive.Storage": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Adapters.Postgres.Services": {
+         "type": "Direct",
+-        "requested": "[0.1.0-eval.c5a44bc0, 0.1.0-eval.c5a44bc0]",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "0ndl/N3UPS4UVuJg6QLOMX/QY9rAib8TN04lqwmgdOHLDkuW7xQxiv82JP8pzyYlhHNZcqotSUWrmbKmVAvIHg==",
+-        "dependencies": {
+-          "Cohesive.Adapters.Postgres.Infra": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Api.Execution": "0.1.0-eval.c5a44bc0"
++        "requested": "[0.1.0-eval.0ad7709a, 0.1.0-eval.0ad7709a]",
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "jJZPGx0Jg0IEQ3SP3CKKU5TMeAgT8Efa6a0R+w2JVdKy0WTBwKaKTLX9rTwydrekiX5JsYk+eGkWShFbeFHCvA==",
++        "dependencies": {
++          "Cohesive.Adapters.Postgres.Infra": "0.1.0-eval.0ad7709a",
++          "Cohesive.Api.Execution": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Analyzers": {
+         "type": "Direct",
+-        "requested": "[0.1.0-eval.c5a44bc0, 0.1.0-eval.c5a44bc0]",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "H0EwakTfnKUO4Lks+qBiBXSE6IPVZ4bTOOGEDqOCjzyBRE9oFr2MPrxxuzH/u6y08PF0YY0Oja85t2xEQ1i7ow=="
++        "requested": "[0.1.0-eval.0ad7709a, 0.1.0-eval.0ad7709a]",
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "yCu2YfyB9DEhqkZg5GwfqO5aSwFXnjWdcJLi/ZQXeKN/XKVAPyLjBCgXAQlleAsU6SjiiyBbuwwuxm2bT7JHBA=="
+       },
+       "Npgsql": {
+         "type": "Direct",
+@@ -43,181 +43,181 @@
+       },
+       "Cohesive": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "8U7DH3mjY7ii8NTp6sT99WpPeNU93zSUiXhPDWbahwOT6iQVnFdUhtqyNrG2JOSmbY8j5gtMnlI8mEzuimY87w==",
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "mMBiiKUNNhDXb1yUhBkisJeTOuVow9miPtD8l2PbXagBJAtk0Aac67eQI3c9YCWtbGJvsgEBAUvI38m871QyZg==",
+         "dependencies": {
+           "Microsoft.Extensions.AsyncState": "10.0.0"
+         }
+       },
+       "Cohesive.Adapters.Postgres": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "5yzeXJ3WAUe4ylhUPiZ9/jrG8pO6QzujbaSuAzE0iYJEiu3Ce/Hwxq+eI48ySHbekIpyoj2OKMevXYYnbe99QQ==",
+-        "dependencies": {
+-          "Cohesive.Adapters.Sql": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Processes.Distribution": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Relations": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Storage": "0.1.0-eval.c5a44bc0",
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "+ORFn3tHr93jqTtVM2yh2ULLwkLFWcnesYRIKWjsMCMd4VqNbeyirGswjIKxE5tbYqXP5dENTBMXJNfzo25ywA==",
++        "dependencies": {
++          "Cohesive.Adapters.Sql": "0.1.0-eval.0ad7709a",
++          "Cohesive.Processes.Distribution": "0.1.0-eval.0ad7709a",
++          "Cohesive.Relations": "0.1.0-eval.0ad7709a",
++          "Cohesive.Storage": "0.1.0-eval.0ad7709a",
+           "Npgsql": "10.0.3"
+         }
+       },
+       "Cohesive.Adapters.Postgres.Infra": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "6TNWIRemIzry3tKoZby10x+PIuu7wuH477frAuzA52oOEJ/07IfuxVq9kWcpYzXmOCcNxLbP+SdJJELvALGnkA==",
+-        "dependencies": {
+-          "Cohesive.Adapters.Postgres": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Relations.Infra": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "7hh6h87OwLyAjAS1y6qKrOMaYMYd5OhjNR1vX0PN+JBCgVptyvL/8bc26gi8DHc4mMqcY2s2hVpyE7t5ZkT/wA==",
++        "dependencies": {
++          "Cohesive.Adapters.Postgres": "0.1.0-eval.0ad7709a",
++          "Cohesive.Relations.Infra": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Adapters.Sql": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "/hQhv9FqBGHefu22KRgV7ACbKb9jYvmksp/yPY+4hLNPbjZMt7TzxAWH7Y4jEmY37EQ5j8rCEqWyIMNR/QcfOg==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "BqTPozcjFxECNz10IL2XYKz811RKvSOljy1lcZbE6EM8vpK0E14k7n1jefRRfvRZ7u+m8VFDQVb9K0DL3aegrg==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Api": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "LST7JBIy5bmb1fIJnNI4VKOhVl8HPnW5czB5/0zSg+8D87NSBNsxLs8YZVGWxQcyZbeTtCQoYy0314aK5P/lAw==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Relations": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Transitions": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "iJuYtsmlzhwobL68/uyMABhDJw8ZYQw4mcVovmN37Zt/VEm9g98oTPwTm8hNa1XkY44DwX/9urTY13vc0UbAPw==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a",
++          "Cohesive.Relations": "0.1.0-eval.0ad7709a",
++          "Cohesive.Transitions": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Api.Execution": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "9E+jpK5wmZjWL0YFd2T7geBU52dfbCxkv3I18byvWxbBDNFwArLnRL0Y5h5shb8YTOCLvY/hoTgYCHBN6nOsvw==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Api": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Identity": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Processes": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Storage": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "Ud0FSH2dp6BfItzdImv4Jcu/cVbNlKMAKA+FT8ykJotiO0DNylYOsejN9rFbh0Jte3d/stewfIxFBYhw75xUSA==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a",
++          "Cohesive.Api": "0.1.0-eval.0ad7709a",
++          "Cohesive.Identity": "0.1.0-eval.0ad7709a",
++          "Cohesive.Processes": "0.1.0-eval.0ad7709a",
++          "Cohesive.Storage": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Application": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "O6HdTzQQyjRUhmnNzULFuaaQNMT8lWzSHpUgvhZFL/ry5k/SAdzHjn2tkPb8VTqzVOMqMTSOXpA1oJjhK6EWyA==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Api.Execution": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Infra": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Processes": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Relations": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Storage": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Transitions": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "BgzUDkzPdQmJEbivDGMQRW/DYQTbauqgwoL4lfMZ1QE3UDW0+cpNKjun6Q//mC1uqyallQuBZUm/+SZ68dpm2Q==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a",
++          "Cohesive.Api.Execution": "0.1.0-eval.0ad7709a",
++          "Cohesive.Infra": "0.1.0-eval.0ad7709a",
++          "Cohesive.Processes": "0.1.0-eval.0ad7709a",
++          "Cohesive.Relations": "0.1.0-eval.0ad7709a",
++          "Cohesive.Storage": "0.1.0-eval.0ad7709a",
++          "Cohesive.Transitions": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Cli": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "ZJ7JelkLoJOEssz0ZOpKX4e3gg0xcuyE/ujFycYU/CGGpxV3vFVMUDVfkTnFIAa6ofw7jYZUnu9Zb1l6jCA1Fg==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Configuration": "0.1.0-eval.c5a44bc0",
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "o7Igy8sHJIr/GCwrs6f56NBU9BKe78Kt9yVPoH24Ng8Io/DoZ+Ky6A+VBeSGvSXLAAnmSvSD3Kif+EpjkTApbg==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a",
++          "Cohesive.Configuration": "0.1.0-eval.0ad7709a",
+           "System.CommandLine": "2.0.5"
+         }
+       },
+       "Cohesive.Configuration": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "6TjPucw3YJIqQGK6K8uLAsBFoMYsCEFv9ujv2MTSp6I6dAMsKENvrfzMUnr0id3UZa+zg+2UF7sVYMnq3e+ncg==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "sp43qFjsRqcGNEIJFM/S8cHFefv2+9pkt+ea7+P4VD8FqANIqlWdxEuoRQYfeh1PaWhqCWr+lmZlExncl9ONvw==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Host": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "ltv1rePXIWOAVKZQkEnt6Xx7XBOtjKHtLeaLgg8S50S23rUACYgFe3J+k0qkrfJKaEUCWxWTLm8z1v2NdQrTNQ==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Api.Execution": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Cli": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Configuration": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Processes": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Storage": "0.1.0-eval.c5a44bc0",
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "OWSQbFr11/4KfIpUBw1RjcqKq3LJTmFcTi0a+0Id39yBoiGTu2MJKAzEsx93XbdEIeiCiWzVnKEtEv41yV2Cgg==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a",
++          "Cohesive.Api.Execution": "0.1.0-eval.0ad7709a",
++          "Cohesive.Cli": "0.1.0-eval.0ad7709a",
++          "Cohesive.Configuration": "0.1.0-eval.0ad7709a",
++          "Cohesive.Processes": "0.1.0-eval.0ad7709a",
++          "Cohesive.Storage": "0.1.0-eval.0ad7709a",
+           "System.CommandLine": "2.0.5"
+         }
+       },
+       "Cohesive.Identity": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "5KVfMqqJ5ajd3RI4cb+hHvaDTtzlqOICdmho5y2F0/FiHL9KEMGl1An4B+nLvr7CuKZjTXQE5HoPSN/C5KzUXg==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Relations": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Storage": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Transitions": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "qv8CQA+nPFbAoNXx6h2f3HuHd4G9MAOgXzkrCzSRdpu30h9sTPidmjRBBoH4Vh8+RRq1VyHItnqBEDcBELw8aA==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a",
++          "Cohesive.Relations": "0.1.0-eval.0ad7709a",
++          "Cohesive.Storage": "0.1.0-eval.0ad7709a",
++          "Cohesive.Transitions": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Infra": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "s4MZQ6ZJuBcB+A42HtgjbgSxrG3qxa+UDkTx6mgEc8JE1OyOKKp0+Z71qc653m7+I16oBwgiEpLA0qUsNa2rJQ==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "H7e3Tt3QCmEeuw3chW84uaBZ/k61bXAyg3M3uqaJSqMlX1Kp5JZX1sHadS3VWQuTL/xBeCCzwS3SzRThUb4I9A==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Processes": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "sCxVdBtRPILhucjzCf53c3+lSFya4WpZFzcHlL0Uczb6DpLfZLfYQ2g5AETY8fT6GyBO6zVPPgPLoY1VIQ74mA==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Relations": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Transitions": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "Iwf9CL8iEVwDwMj6tji3dBTCvdH5CMC9Y2Ks0ENfrbTQgeVBdsbkNMxo3+Uxe/CCf7Nk0199DlcRplOQ9rNOyw==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a",
++          "Cohesive.Relations": "0.1.0-eval.0ad7709a",
++          "Cohesive.Transitions": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Processes.Distribution": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "Uv0blKMeSI+LNEXcZzlVSdBP+YLvxlE1It5uRp8IX9OpXNZuQFdxf/OIcaUxrIB4+IQvMv0IzoxHPy+3iIbRxg==",
+-        "dependencies": {
+-          "Cohesive.Processes": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "nPDiJq36u3Y8i260p8zGJ/BPAensVAAVgwaxFqbQxvg0wJcD6J2vA/HnDoognzPIXal5LS5NvpWGNryM6o3cDw==",
++        "dependencies": {
++          "Cohesive.Processes": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Relations": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "/ooL2wQAsq8LTGhfItedgwFHAymY6jSzwiupD1kiN3bUC66EPjjVNLew5Pzt+j8h8rCy9c/o3lrWCVR/dN6ZtA==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "zibl6eoiMYkrPILLGvX26qscAiMYWt1cmIb5l0kmRBnDd5u1sBrtSXZk60ADtne5Z3/JuT06HQqTKWmCYp6tsQ==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Relations.Infra": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "gKkhiStD++diWZ5jI8KPOJM3u9QVCU+9Cy70Qnfgw1VsrbU10ebV7Jb9J3zKLE6PFaVwXU+KCnurvf117GezEw==",
+-        "dependencies": {
+-          "Cohesive.Infra": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Relations": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "CUdjNlT2V2odevEjRxSvj+AD2PD18QcuAMfLUY+wXoDtcqA+rYUPGHjjGejjowv1tNXHBXGrY/PUtXa4EmGQaQ==",
++        "dependencies": {
++          "Cohesive.Infra": "0.1.0-eval.0ad7709a",
++          "Cohesive.Relations": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Storage": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "yqt+rvdGLqtodnUw7VoLcqQed2bhTkqV+qd0l/sG0Yw40xq5c9y8PIni/XTLhEUa5UAJNStRLjpyc8/HMDDgFw==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Processes": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Relations": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Transitions": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "vrRizo8ekI6tFuNcHlDfaq4AUicg+ZP9+NBZZmZsCgiNyNtfNJOg3Q4YiU6rNimlZzJFeyancMJBb+fXLSG6Lw==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a",
++          "Cohesive.Processes": "0.1.0-eval.0ad7709a",
++          "Cohesive.Relations": "0.1.0-eval.0ad7709a",
++          "Cohesive.Transitions": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Cohesive.Transitions": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.c5a44bc0",
+-        "contentHash": "iwco8exNEh3M58fcxBEr5TN6pWMNdzXrqfVDoqtjBezem+nHwzOJeV0e82OItVbYMjVK1JA+p9BG10u83bvgFA==",
+-        "dependencies": {
+-          "Cohesive": "0.1.0-eval.c5a44bc0",
+-          "Cohesive.Relations": "0.1.0-eval.c5a44bc0"
++        "resolved": "0.1.0-eval.0ad7709a",
++        "contentHash": "inYiGEgBhnNPgY4KFLMk4DBIEKa6W/J3/7ZtTT09Np/LI8DNyzbDVzNoKi5KoilCvLkoTLLR8Wg5kvLeoRoyLw==",
++        "dependencies": {
++          "Cohesive": "0.1.0-eval.0ad7709a",
++          "Cohesive.Relations": "0.1.0-eval.0ad7709a"
+         }
+       },
+       "Microsoft.Extensions.AsyncState": {
+--- a/src/Fulfillment.Application/Program.cs
++++ b/src/Fulfillment.Application/Program.cs
+@@ -18,16 +18,32 @@
+ var app = builder.Build();
+ var backend = app.Services.GetRequiredService<IFulfillmentBackend>();
+ await backend.Initialize();
++var database = app.Services.GetRequiredService<NpgsqlDataSource>();
++var projection = backend.Availability;
++var schedule = projection.Schedule;
++Task<Cohesive.Adapters.Postgres.PostgresRootedRowsWorker<ReservationAvailability>> Worker() =>
++    projection.Worker(connection, builder.Configuration["Availability:PositionKey"]
++        ?? throw new InvalidOperationException("Set Availability:PositionKey for the worker."));
+ if (args.SequenceEqual(["--resync-availability"]))
+ {
+-    await backend.Availability.Refresh();
++    Console.WriteLine(await schedule.RequestResyncAsync());
+     await app.DisposeAsync();
+     return;
+ }
+-await backend.Availability.Refresh();
+-await using (var index = app.Services.GetRequiredService<NpgsqlDataSource>().CreateCommand(
+-    "CREATE INDEX IF NOT EXISTS order_availability_order ON order_availability(order_id)"))
+-    await index.ExecuteNonQueryAsync();
++if (args.SequenceEqual(["--availability-worker-once"]) || args.SequenceEqual(["--availability-worker"]))
++{
++    using var worker = await Worker();
++    if (args[0] == "--availability-worker-once") await worker.RunOnceAsync();
++    else
++    {
++        var host = Host.CreateApplicationBuilder();
++        host.Services.AddHostedService(_ => worker);
++        await host.Build().RunAsync();
++    }
++    await app.DisposeAsync();
++    return;
++}
++await projection.Initialize();
+ if (builder.Configuration["seed"] is { } seedFile)
+ {
+     if (Environment.GetEnvironmentVariable("FULFILLMENT_SETUP") != "1")
+@@ -37,17 +53,27 @@
+         ?? throw new InvalidOperationException("Missing seed data.");
+     data.Validate();
+     await app.Services.GetRequiredService<IFulfillmentBackend>().Seed(data);
+-    await app.Services.GetRequiredService<IFulfillmentBackend>().Availability.Refresh();
++    await schedule.RequestResyncAsync();
++    using var worker = await Worker();
++    await worker.RunOnceAsync();
+     await app.DisposeAsync();
+     return;
+ }
++if ((await schedule.CheckpointAsync()).Applied == 0)
++{
++    using var worker = await Worker();
++    await worker.RunOnceAsync();
++}
++await using (var index = database.CreateCommand(
++    "CREATE INDEX IF NOT EXISTS order_availability_order ON order_availability(order_id)"))
++    await index.ExecuteNonQueryAsync();
++app.MapGet("/availability/checkpoint", () => schedule.CheckpointAsync());
+ HostSetup.Configure(app);
+ // The local fixture has one host-provided identity/scope. It exposes no seed,
+ // reset or arbitrary SQL route, and never derives identity from request JSON.
+ app.MapPost("/orders", async (IFulfillmentBackend backend) =>
+ {
+     var created = await backend.CreateOrder();
+-    await backend.Availability.Refresh();
+     return Results.Created($"/orders/{created.Id}", created);
+ });
+ app.MapGet("/orders/{id}", async (string id, IFulfillmentBackend backend) =>
+--- a/src/Fulfillment.Application/OperationQueue.cs
++++ b/src/Fulfillment.Application/OperationQueue.cs
+@@ -59,9 +59,7 @@
+             {
+                 try
+                 {
+-                    Completion result;
+-                    try { result = await backend.Fulfill(entry.Admission.OperationId, entry.Request); }
+-                    finally { await backend.Availability.Refresh(); }
++                    var result = await backend.Fulfill(entry.Admission.OperationId, entry.Request);
+                     lock (gate) entry.Result = result;
+                 }
+                 catch (Exception ex)
