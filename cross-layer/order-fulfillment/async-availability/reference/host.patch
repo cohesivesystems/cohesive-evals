@@ -1,0 +1,71 @@
+--- a/src/Fulfillment.Application/Program.cs
++++ b/src/Fulfillment.Application/Program.cs
+@@ -18,16 +18,26 @@
+ var app = builder.Build();
+ var backend = app.Services.GetRequiredService<IFulfillmentBackend>();
+ await backend.Initialize();
++var database = app.Services.GetRequiredService<NpgsqlDataSource>();
++var maintenance = new AvailabilityMaintenance(database, backend.Availability);
+ if (args.SequenceEqual(["--resync-availability"]))
+ {
+-    await backend.Availability.Refresh();
++    Console.WriteLine(await maintenance.RequestResync());
+     await app.DisposeAsync();
+     return;
+ }
+-await backend.Availability.Refresh();
+-await using (var index = app.Services.GetRequiredService<NpgsqlDataSource>().CreateCommand(
+-    "CREATE INDEX IF NOT EXISTS order_availability_order ON order_availability(order_id)"))
+-    await index.ExecuteNonQueryAsync();
++if (args.SequenceEqual(["--availability-worker-once"]) || args.SequenceEqual(["--availability-worker"]))
++{
++    var continuous = args[0] == "--availability-worker";
++    do
++    {
++        await maintenance.RunOnce();
++        if (continuous) await Task.Delay(100);
++    } while (continuous);
++    await app.DisposeAsync();
++    return;
++}
++await maintenance.Initialize();
+ if (builder.Configuration["seed"] is { } seedFile)
+ {
+     if (Environment.GetEnvironmentVariable("FULFILLMENT_SETUP") != "1")
+@@ -37,17 +47,21 @@
+         ?? throw new InvalidOperationException("Missing seed data.");
+     data.Validate();
+     await app.Services.GetRequiredService<IFulfillmentBackend>().Seed(data);
+-    await app.Services.GetRequiredService<IFulfillmentBackend>().Availability.Refresh();
++    await maintenance.RunOnce();
+     await app.DisposeAsync();
+     return;
+ }
++if ((await maintenance.Checkpoint()).Applied == 0) await maintenance.RunOnce();
++await using (var index = database.CreateCommand(
++    "CREATE INDEX IF NOT EXISTS order_availability_order ON order_availability(order_id)"))
++    await index.ExecuteNonQueryAsync();
++app.MapGet("/availability/checkpoint", () => maintenance.Checkpoint());
+ HostSetup.Configure(app);
+ // The local fixture has one host-provided identity/scope. It exposes no seed,
+ // reset or arbitrary SQL route, and never derives identity from request JSON.
+ app.MapPost("/orders", async (IFulfillmentBackend backend) =>
+ {
+     var created = await backend.CreateOrder();
+-    await backend.Availability.Refresh();
+     return Results.Created($"/orders/{created.Id}", created);
+ });
+ app.MapGet("/orders/{id}", async (string id, IFulfillmentBackend backend) =>
+--- a/src/Fulfillment.Application/OperationQueue.cs
++++ b/src/Fulfillment.Application/OperationQueue.cs
+@@ -59,9 +59,7 @@
+             {
+                 try
+                 {
+-                    Completion result;
+-                    try { result = await backend.Fulfill(entry.Admission.OperationId, entry.Request); }
+-                    finally { await backend.Availability.Refresh(); }
++                    var result = await backend.Fulfill(entry.Admission.OperationId, entry.Request);
+                     lock (gate) entry.Result = result;
+                 }
+                 catch (Exception ex)

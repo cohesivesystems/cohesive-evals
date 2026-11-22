@@ -11,6 +11,8 @@ The visible Python tests use the shared HTTP client. When copying a condition ou
 
 The [persisted availability pilot](materialized-availability/README.md) adds and qualifies a materialized read model on isolated copies of these fixtures.
 
+The [async availability evolution](async-availability/README.md) exercises worker lag, crash replay and writes during resync.
+
 ## Run and verify
 
 Each condition contains its own setup README, public contract, schemas, package
