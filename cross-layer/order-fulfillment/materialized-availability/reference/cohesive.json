@@ -1,0 +1,30 @@
+{
+  "src/Fulfillment.Application/Contracts.cs": {
+    "before": "d0a2479c5a1e994a9ad6c0f06b680bae6a53c2bdcfa3d70bc61af7b3600dd3ca",
+    "after": "ae049c68a58ba7db4bec81802fcd41dbe642c1b466de2459a578d54134869370"
+  },
+  "src/Fulfillment.Application/Fulfillment.Application.csproj": {
+    "before": "b68cc3d67e5c9bf3f31243fea00425f3c7afbfb207d266bf32159a0095e01411",
+    "after": "9f238e7e644ca5ab31fbbe695c51b3b64ef2b63ad7496c4c5bfeaf9964210b16"
+  },
+  "src/Fulfillment.Application/FulfillmentBackend.cs": {
+    "before": "3b490e8fd7857f3d7b5d769bc4e031417758d378da739917e20deabdffa5c156",
+    "after": "ec5134f437744980ef6fcdb59998fb85e5a67aa100bd9df415f5e32426dd1393"
+  },
+  "src/Fulfillment.Application/FulfillmentQueries.cs": {
+    "before": "4a32f6bcb2a518a5ef460f0059122ac037ec780c42caa5ded67b394c66a7ec79",
+    "after": "66c0d30c7fa99ebc01da589254197b8e6e68c2854c852d7397cccf2769e8666f"
+  },
+  "src/Fulfillment.Application/OperationQueue.cs": {
+    "before": "2900fd73d40df61bf4bd458c66b21fa72fef37dddb3227df18b8873bcc712d13",
+    "after": "b0e7e0e168ce4dad0688ebd49fa694b1db863ed340f1e628cb47bf74d0fe327a"
+  },
+  "src/Fulfillment.Application/Program.cs": {
+    "before": "5be5971400a4829a00cbc896785acb3e973b9e826a271e727e4d5eac100e07a2",
+    "after": "34fad1078d49ba2c3b221e2847de158c89113fd1f884cfbcda3abb597efb4538"
+  },
+  "src/Fulfillment.Application/packages.lock.json": {
+    "before": "7762b5e19fc99dea1533b7f7af5e0149c1c48566ee21fb7bcf6a70781afb7313",
+    "after": "9cd5a71f509eab7705a6cb63c1835e73eb37a8b0989e6dfb7965be594635b592"
+  }
+}

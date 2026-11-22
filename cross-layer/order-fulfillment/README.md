@@ -9,6 +9,8 @@ and the native PostgreSQL and ASP.NET adapters.
 
 The visible Python tests use the shared HTTP client. When copying a condition out of the repo, dereference test symlinks (the fixture builders use `shutil.copytree` with its default settings).
 
+The [persisted availability pilot](materialized-availability/README.md) adds and qualifies a materialized read model on isolated copies of these fixtures.
+
 ## Run and verify
 
 Each condition contains its own setup README, public contract, schemas, package
