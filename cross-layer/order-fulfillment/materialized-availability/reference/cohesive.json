@@ -5,11 +5,11 @@
   },
   "src/Fulfillment.Application/Fulfillment.Application.csproj": {
     "before": "b68cc3d67e5c9bf3f31243fea00425f3c7afbfb207d266bf32159a0095e01411",
-    "after": "93536aa9cd37cfe47280ee78d195f2070e6e3b088bfab1d5c28e1f777e87d4ab"
+    "after": "3517a19058cc69c8e23fd31512a2a52f2322574ff8cce374b985850c8df21f4d"
   },
   "src/Fulfillment.Application/FulfillmentBackend.cs": {
     "before": "3b490e8fd7857f3d7b5d769bc4e031417758d378da739917e20deabdffa5c156",
-    "after": "5af1a4912588964bcd59d3f119c253d7d427a28f4edcd70fa372e6f11d667795"
+    "after": "ec5134f437744980ef6fcdb59998fb85e5a67aa100bd9df415f5e32426dd1393"
   },
   "src/Fulfillment.Application/FulfillmentQueries.cs": {
     "before": "4a32f6bcb2a518a5ef460f0059122ac037ec780c42caa5ded67b394c66a7ec79",
@@ -25,6 +25,6 @@
   },
   "src/Fulfillment.Application/packages.lock.json": {
     "before": "7762b5e19fc99dea1533b7f7af5e0149c1c48566ee21fb7bcf6a70781afb7313",
-    "after": "c84fc33aa6de6735b9be7f27855eb604e86b9f12c4a9e29d27fd6a1c060787f3"
+    "after": "25475900f0afa54a2d6924de064b2a4fd4b56dffb346eec8d003f2bee54c28c3"
   }
 }

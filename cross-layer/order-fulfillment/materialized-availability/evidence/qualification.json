@@ -2,7 +2,7 @@
   "baseline": "2e57e3c50e97123fc9f36b428b23bfbfe03b5549",
   "conditions": {
     "conventional": {
-      "buildManifestSha256": "0f57c5dfd41cfd9dd10535704d079ad7b3146311aaf4ef1e834cc77605aa2635",
+      "buildManifestSha256": "bbb44053dd4bf77cad72e09efe627fb46e9d995c859632f18b7660504bfd0038",
       "samplePlans": {
         "A": [
           {
@@ -119,28 +119,40 @@
           "kind": "detected",
           "assertion": "shared-sku-fanout",
           "detail": "shared-sku-fanout: observed [['A', 'a1', 'X', 1, 5]], expected [['A', 'a1', 'X', 1, 3]]",
-          "buildManifestSha256": "87754df337b51608e702e6ce13f27af8f1fe9bf8d37cbae1cb0c40b430d6f71a"
+          "buildManifestSha256": "059272d4b3ff39aa585a85fc00af0765bc852128840bfad602b080c6ade44a82"
         },
         "live-read": {
           "kind": "detected",
           "assertion": "projection-only-read",
-          "detail": "projection-only-read: observed {'orders', 'inventory', 'reservations'}, expected {'order_availability'}",
-          "buildManifestSha256": "9997283d2403b2804b33dde77688d751cbe0aa06bfebeb1efae2afe9cc0cc6f6"
+          "detail": "projection-only-read: observed {'inventory', 'orders', 'reservations'}, expected {'order_availability'}",
+          "buildManifestSha256": "3e060e6f410c2ff37522d187b64e477f401a1409233c25055ea0ab7fc6c92f78"
         },
         "resync-noop": {
           "kind": "detected",
           "assertion": "explicit-resync",
-          "detail": "explicit-resync: observed [['A', 'a1', 'X', 1, 5], ['B', 'B', 'X', 2, 5], ['R', None, None, None, None], ['U', 'u1', 'Y', 4, 7], ['bc9b64dc-7e8b-4790-9741-66568cb15f7c', None, None, None, None]], expected [['A', 'a1', 'X', 1, 3], ['B', 'B', 'X', 2, 3], ['R', None, None, None, None], ['U', 'u1', 'Y', 4, 7], ['bc9b64dc-7e8b-4790-9741-66568cb15f7c', None, None, None, None]]",
-          "buildManifestSha256": "576bf54969864495a4bd2ce217ddc39ff36fe5dd89c41db15ffafe40ec557651"
+          "detail": "explicit-resync: observed [['A', 'a1', 'X', 1, 5], ['B', 'B', 'X', 2, 5], ['R', None, None, None, None], ['U', 'u1', 'Y', 4, 7], ['db5ae39c-9157-4cde-b9df-e9476dfd3981', None, None, None, None]], expected [['A', 'a1', 'X', 1, 3], ['B', 'B', 'X', 2, 3], ['R', None, None, None, None], ['U', 'u1', 'Y', 4, 7], ['db5ae39c-9157-4cde-b9df-e9476dfd3981', None, None, None, None]]",
+          "buildManifestSha256": "c7d0dce498467174fa672ed37c44f6582cf9274331b64e8d013f47a94c7d2636"
         }
       }
     },
     "cohesive": {
-      "buildManifestSha256": "afc3013480797c9690a3ef4810b6cfaa8e1548b210d0ba93d485eebda9c62d6d",
+      "buildManifestSha256": "2096d9d5fb9d3e3b67ed5635687a3c3640b5a25b02ae8707c125cce22f336400",
       "samplePlans": {
         "A": [
           {
-            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "query": "SELECT obj_description(to_regclass($1), 'pg_class')",
+            "plan": {
+              "Node Type": "Result",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 0.0,
+              "Total Cost": 0.26,
+              "Plan Rows": 1,
+              "Plan Width": 32
+            }
+          },
+          {
+            "query": "SELECT \"reservation_id\", \"sku\", \"order_id\", \"quantity\", \"available\" FROM \"public\".\"order_availability\" WHERE \"order_id\" = $1",
             "plan": {
               "Node Type": "Seq Scan",
               "Parallel Aware": false,
@@ -150,14 +162,26 @@
               "Startup Cost": 0.0,
               "Total Cost": 1.05,
               "Plan Rows": 1,
-              "Plan Width": 72,
+              "Plan Width": 104,
               "Filter": "(order_id = 'A'::text)"
             }
           }
         ],
         "B": [
           {
-            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "query": "SELECT obj_description(to_regclass($1), 'pg_class')",
+            "plan": {
+              "Node Type": "Result",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 0.0,
+              "Total Cost": 0.26,
+              "Plan Rows": 1,
+              "Plan Width": 32
+            }
+          },
+          {
+            "query": "SELECT \"reservation_id\", \"sku\", \"order_id\", \"quantity\", \"available\" FROM \"public\".\"order_availability\" WHERE \"order_id\" = $1",
             "plan": {
               "Node Type": "Seq Scan",
               "Parallel Aware": false,
@@ -167,14 +191,26 @@
               "Startup Cost": 0.0,
               "Total Cost": 1.05,
               "Plan Rows": 1,
-              "Plan Width": 72,
+              "Plan Width": 104,
               "Filter": "(order_id = 'B'::text)"
             }
           }
         ],
         "missing": [
           {
-            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "query": "SELECT obj_description(to_regclass($1), 'pg_class')",
+            "plan": {
+              "Node Type": "Result",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 0.0,
+              "Total Cost": 0.26,
+              "Plan Rows": 1,
+              "Plan Width": 32
+            }
+          },
+          {
+            "query": "SELECT \"reservation_id\", \"sku\", \"order_id\", \"quantity\", \"available\" FROM \"public\".\"order_availability\" WHERE \"order_id\" = $1",
             "plan": {
               "Node Type": "Seq Scan",
               "Parallel Aware": false,
@@ -184,7 +220,7 @@
               "Startup Cost": 0.0,
               "Total Cost": 1.05,
               "Plan Rows": 1,
-              "Plan Width": 72,
+              "Plan Width": 104,
               "Filter": "(order_id = 'missing'::text)"
             }
           }
@@ -253,19 +289,19 @@
           "kind": "detected",
           "assertion": "shared-sku-fanout",
           "detail": "shared-sku-fanout: observed [['A', 'a1', 'X', 1, 5]], expected [['A', 'a1', 'X', 1, 3]]",
-          "buildManifestSha256": "db3c8ca2aa50e0c0e8560e4922732ec04713cbf0fc81f08ee9317d4f72859396"
+          "buildManifestSha256": "bb8939e3e442723d83e32b222bd453d522e08259acd624a5171f773291d23669"
         },
         "live-read": {
           "kind": "detected",
           "assertion": "projection-only-read",
-          "detail": "projection-only-read: observed {'cohesive_orders', 'cohesive_inventory', 'cohesive_reservations'}, expected {'order_availability'}",
-          "buildManifestSha256": "dddaccbc30c96f98a942507464ef0c8c65a254859ec0a8e99d52454f5aa5a1ab"
+          "detail": "projection-only-read: observed {'cohesive_orders', 'cohesive_reservations', 'cohesive_inventory'}, expected {'order_availability'}",
+          "buildManifestSha256": "f5edaba02dc7e0001ca2e5e80892d2f17468df141bd6641f59efb5ef6e67902a"
         },
         "resync-noop": {
           "kind": "detected",
           "assertion": "explicit-resync",
-          "detail": "explicit-resync: observed [['A', 'a1', 'X', 1, 5], ['B', 'B', 'X', 2, 5], ['R', None, None, None, None], ['U', 'u1', 'Y', 4, 7], ['b8101636-e828-490d-9222-9e4f76a87984', None, None, None, None]], expected [['A', 'a1', 'X', 1, 3], ['B', 'B', 'X', 2, 3], ['R', None, None, None, None], ['U', 'u1', 'Y', 4, 7], ['b8101636-e828-490d-9222-9e4f76a87984', None, None, None, None]]",
-          "buildManifestSha256": "192127ad373668bab7e3eb975138eefa8bf3bd900b89476fa1c9232dc6e3a9cb"
+          "detail": "explicit-resync: observed [['A', 'a1', 'X', 1, 5], ['B', 'B', 'X', 2, 5], ['R', None, None, None, None], ['U', 'u1', 'Y', 4, 7], ['db2b2afe-e68c-4a06-999f-1da417288009', None, None, None, None]], expected [['A', 'a1', 'X', 1, 3], ['B', 'B', 'X', 2, 3], ['R', None, None, None, None], ['U', 'u1', 'Y', 4, 7], ['db2b2afe-e68c-4a06-999f-1da417288009', None, None, None, None]]",
+          "buildManifestSha256": "f7442502c0372043ef2eee449ea323fab1ebedef5fed6eaa144553f61abe853d"
         }
       }
     }
@@ -278,6 +314,6 @@
     "checksPerCondition": 52,
     "invariantCommandsPerCondition": 180,
     "sdk": "10.0.402",
-    "cohesiveSourceRevision": "62c8a5f3ee1495619016bcf849de6803fc5fa7d5"
+    "cohesiveSourceRevision": "5c14c2adfec3ffb9556af4deb64e78f23e11ebe3"
   }
 }

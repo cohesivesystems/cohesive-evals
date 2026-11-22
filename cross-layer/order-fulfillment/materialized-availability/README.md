@@ -6,13 +6,13 @@ Fulfilling B can change a reservation already shown on A. Both G0 references per
 |---|---|---|
 | Define rows | SQL left joins from orders to reservations and inventory | Reuse the typed order → reservation traversal and inventory join across the existing per-order query and a new partition query |
 | Persist and refresh | PostgreSQL stores the SELECT in a materialized view. One REFRESH command recomputes it. | The app binds the partition query with `MaterializeRows` and awaits `ResyncAsync()`. The SDK executes the bound SELECT and publishes all rows in one PostgreSQL transaction. |
-| Read | Indexed order ID lookup against the persisted view | Same lookup against the persisted table |
+| Read | Indexed order ID lookup against the persisted view | A prepared `target.Lookup(row => row.OrderId)` reads typed reservation rows from the persisted table. The app supplies HTTP shaping and ordinal ordering. |
 
 [Conventional refresh](reference/conventional.cs) · [Cohesive refresh](reference/cohesive.cs) · [Typed query and maintenance boundaries](reference/cohesive.patch)
 
 ## SDK audit
 
-The Aspire example uses PostgreSQL for source rows, CDC and checkpoint storage. Its destination is an Elasticsearch shadow generation. The pilot now uses the published synchronous PostgreSQL row target. The app supplies the typed relation, partition and target name. The adapter owns parameter binding, serialized replacement and rollback. The previous revision hydrated the whole partition and copied it back through Npgsql in application code. [Aspire example](https://github.com/cohesivesystems/cohesive/tree/3fa9fad4/eng/examples/aspire-first/OrderMaterialization) · [Published eval SDK](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-62c8a5f3) · [Package pins](sdk/dependency-manifest.json)
+The Aspire example uses PostgreSQL for source rows, CDC and checkpoint storage. Its destination is an Elasticsearch shadow generation. The pilot now uses the published synchronous PostgreSQL row target. The app supplies the typed relation, partition and target name. The adapter owns parameter binding, serialized replacement, rollback and typed result assembly. Each typed lookup takes an access-share lock and checks the table ownership marker before selecting its rows. The previous revision hydrated the whole partition and copied it back through Npgsql in application code. [Aspire example](https://github.com/cohesivesystems/cohesive/tree/3fa9fad4/eng/examples/aspire-first/OrderMaterialization) · [Published eval SDK](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-5c14c2ad) · [Package pins](sdk/dependency-manifest.json)
 
 ## Operator resync
 
