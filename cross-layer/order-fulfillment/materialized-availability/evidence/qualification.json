@@ -2,7 +2,7 @@
   "baseline": "2e57e3c50e97123fc9f36b428b23bfbfe03b5549",
   "conditions": {
     "conventional": {
-      "buildManifestSha256": "2d41f430fea0f0d5f1e9cfb3c6927cba46af077f22f91803acad1269c9d1a1c8",
+      "buildManifestSha256": "0f57c5dfd41cfd9dd10535704d079ad7b3146311aaf4ef1e834cc77605aa2635",
       "samplePlans": {
         "A": [
           {
@@ -56,140 +56,40 @@
           }
         ]
       },
-      "settledRows": [
-        [
-          "A",
-          "a1",
-          "X",
-          1,
-          3
+      "resync": {
+        "stale": [
+          [
+            "A",
+            "a1",
+            "X",
+            1,
+            5
+          ],
+          [
+            "B",
+            "B",
+            "X",
+            2,
+            5
+          ]
         ],
-        [
-          "B",
-          "B",
-          "X",
-          2,
-          3
+        "repaired": [
+          [
+            "A",
+            "a1",
+            "X",
+            1,
+            3
+          ],
+          [
+            "B",
+            "B",
+            "X",
+            2,
+            3
+          ]
         ],
-        [
-          "U",
-          "u1",
-          "Y",
-          4,
-          7
-        ]
-      ],
-      "controls": {
-        "stale-stock": {
-          "kind": "detected",
-          "assertion": "shared-sku-fanout",
-          "detail": "shared-sku-fanout: observed [['A', 'a1', 'X', 1, 5]], expected [['A', 'a1', 'X', 1, 3]]",
-          "buildManifestSha256": "11daaa1bfb0bf3d7db258434f864ac1fc5d37c76360294ebbf7373cd8744ee4f"
-        },
-        "live-read": {
-          "kind": "detected",
-          "assertion": "projection-only-read",
-          "detail": "projection-only-read: observed {'reservations', 'inventory', 'orders'}, expected {'order_availability'}",
-          "buildManifestSha256": "767a93947e59ee89db14963bf79b9ca81bca57771f7a16227839b0394c9d420e"
-        }
-      }
-    },
-    "cohesive": {
-      "buildManifestSha256": "09b916071b008b2a522976a205a7cb32f241071447a7c1367c505cbf3566b85e",
-      "samplePlans": {
-        "A": [
-          {
-            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
-            "plan": {
-              "Node Type": "Bitmap Heap Scan",
-              "Parallel Aware": false,
-              "Async Capable": false,
-              "Relation Name": "order_availability",
-              "Alias": "order_availability",
-              "Startup Cost": 4.17,
-              "Total Cost": 11.28,
-              "Plan Rows": 3,
-              "Plan Width": 72,
-              "Recheck Cond": "(order_id = 'A'::text)",
-              "Plans": [
-                {
-                  "Node Type": "Bitmap Index Scan",
-                  "Parent Relationship": "Outer",
-                  "Parallel Aware": false,
-                  "Async Capable": false,
-                  "Index Name": "order_availability_order",
-                  "Startup Cost": 0.0,
-                  "Total Cost": 4.17,
-                  "Plan Rows": 3,
-                  "Plan Width": 0,
-                  "Index Cond": "(order_id = 'A'::text)"
-                }
-              ]
-            }
-          }
-        ],
-        "B": [
-          {
-            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
-            "plan": {
-              "Node Type": "Bitmap Heap Scan",
-              "Parallel Aware": false,
-              "Async Capable": false,
-              "Relation Name": "order_availability",
-              "Alias": "order_availability",
-              "Startup Cost": 4.17,
-              "Total Cost": 11.28,
-              "Plan Rows": 3,
-              "Plan Width": 72,
-              "Recheck Cond": "(order_id = 'B'::text)",
-              "Plans": [
-                {
-                  "Node Type": "Bitmap Index Scan",
-                  "Parent Relationship": "Outer",
-                  "Parallel Aware": false,
-                  "Async Capable": false,
-                  "Index Name": "order_availability_order",
-                  "Startup Cost": 0.0,
-                  "Total Cost": 4.17,
-                  "Plan Rows": 3,
-                  "Plan Width": 0,
-                  "Index Cond": "(order_id = 'B'::text)"
-                }
-              ]
-            }
-          }
-        ],
-        "missing": [
-          {
-            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
-            "plan": {
-              "Node Type": "Bitmap Heap Scan",
-              "Parallel Aware": false,
-              "Async Capable": false,
-              "Relation Name": "order_availability",
-              "Alias": "order_availability",
-              "Startup Cost": 4.17,
-              "Total Cost": 11.28,
-              "Plan Rows": 3,
-              "Plan Width": 72,
-              "Recheck Cond": "(order_id = 'missing'::text)",
-              "Plans": [
-                {
-                  "Node Type": "Bitmap Index Scan",
-                  "Parent Relationship": "Outer",
-                  "Parallel Aware": false,
-                  "Async Capable": false,
-                  "Index Name": "order_availability_order",
-                  "Startup Cost": 0.0,
-                  "Total Cost": 4.17,
-                  "Plan Rows": 3,
-                  "Plan Width": 0,
-                  "Index Cond": "(order_id = 'missing'::text)"
-                }
-              ]
-            }
-          }
-        ]
+        "completedResyncs": 2
       },
       "settledRows": [
         [
@@ -219,13 +119,153 @@
           "kind": "detected",
           "assertion": "shared-sku-fanout",
           "detail": "shared-sku-fanout: observed [['A', 'a1', 'X', 1, 5]], expected [['A', 'a1', 'X', 1, 3]]",
-          "buildManifestSha256": "e1826aa5ad2166141f2787e54f4fd9a039c46a4b80ec1d4856b5a2ef5e6c3f83"
+          "buildManifestSha256": "87754df337b51608e702e6ce13f27af8f1fe9bf8d37cbae1cb0c40b430d6f71a"
         },
         "live-read": {
           "kind": "detected",
           "assertion": "projection-only-read",
-          "detail": "projection-only-read: observed {'cohesive_reservations', 'cohesive_orders', 'cohesive_inventory'}, expected {'order_availability'}",
-          "buildManifestSha256": "1e2187feb7a32083b6c1885b4345dba4b806a848e7020530e0da416631baa672"
+          "detail": "projection-only-read: observed {'orders', 'inventory', 'reservations'}, expected {'order_availability'}",
+          "buildManifestSha256": "9997283d2403b2804b33dde77688d751cbe0aa06bfebeb1efae2afe9cc0cc6f6"
+        },
+        "resync-noop": {
+          "kind": "detected",
+          "assertion": "explicit-resync",
+          "detail": "explicit-resync: observed [['A', 'a1', 'X', 1, 5], ['B', 'B', 'X', 2, 5], ['R', None, None, None, None], ['U', 'u1', 'Y', 4, 7], ['bc9b64dc-7e8b-4790-9741-66568cb15f7c', None, None, None, None]], expected [['A', 'a1', 'X', 1, 3], ['B', 'B', 'X', 2, 3], ['R', None, None, None, None], ['U', 'u1', 'Y', 4, 7], ['bc9b64dc-7e8b-4790-9741-66568cb15f7c', None, None, None, None]]",
+          "buildManifestSha256": "576bf54969864495a4bd2ce217ddc39ff36fe5dd89c41db15ffafe40ec557651"
+        }
+      }
+    },
+    "cohesive": {
+      "buildManifestSha256": "afc3013480797c9690a3ef4810b6cfaa8e1548b210d0ba93d485eebda9c62d6d",
+      "samplePlans": {
+        "A": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.05,
+              "Plan Rows": 1,
+              "Plan Width": 72,
+              "Filter": "(order_id = 'A'::text)"
+            }
+          }
+        ],
+        "B": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.05,
+              "Plan Rows": 1,
+              "Plan Width": 72,
+              "Filter": "(order_id = 'B'::text)"
+            }
+          }
+        ],
+        "missing": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.05,
+              "Plan Rows": 1,
+              "Plan Width": 72,
+              "Filter": "(order_id = 'missing'::text)"
+            }
+          }
+        ]
+      },
+      "resync": {
+        "stale": [
+          [
+            "A",
+            "a1",
+            "X",
+            1,
+            5
+          ],
+          [
+            "B",
+            "B",
+            "X",
+            2,
+            5
+          ]
+        ],
+        "repaired": [
+          [
+            "A",
+            "a1",
+            "X",
+            1,
+            3
+          ],
+          [
+            "B",
+            "B",
+            "X",
+            2,
+            3
+          ]
+        ],
+        "completedResyncs": 2
+      },
+      "settledRows": [
+        [
+          "A",
+          "a1",
+          "X",
+          1,
+          3
+        ],
+        [
+          "B",
+          "B",
+          "X",
+          2,
+          3
+        ],
+        [
+          "U",
+          "u1",
+          "Y",
+          4,
+          7
+        ]
+      ],
+      "controls": {
+        "stale-stock": {
+          "kind": "detected",
+          "assertion": "shared-sku-fanout",
+          "detail": "shared-sku-fanout: observed [['A', 'a1', 'X', 1, 5]], expected [['A', 'a1', 'X', 1, 3]]",
+          "buildManifestSha256": "db3c8ca2aa50e0c0e8560e4922732ec04713cbf0fc81f08ee9317d4f72859396"
+        },
+        "live-read": {
+          "kind": "detected",
+          "assertion": "projection-only-read",
+          "detail": "projection-only-read: observed {'cohesive_orders', 'cohesive_inventory', 'cohesive_reservations'}, expected {'order_availability'}",
+          "buildManifestSha256": "dddaccbc30c96f98a942507464ef0c8c65a254859ec0a8e99d52454f5aa5a1ab"
+        },
+        "resync-noop": {
+          "kind": "detected",
+          "assertion": "explicit-resync",
+          "detail": "explicit-resync: observed [['A', 'a1', 'X', 1, 5], ['B', 'B', 'X', 2, 5], ['R', None, None, None, None], ['U', 'u1', 'Y', 4, 7], ['b8101636-e828-490d-9222-9e4f76a87984', None, None, None, None]], expected [['A', 'a1', 'X', 1, 3], ['B', 'B', 'X', 2, 3], ['R', None, None, None, None], ['U', 'u1', 'Y', 4, 7], ['b8101636-e828-490d-9222-9e4f76a87984', None, None, None, None]]",
+          "buildManifestSha256": "192127ad373668bab7e3eb975138eefa8bf3bd900b89476fa1c9232dc6e3a9cb"
         }
       }
     }
@@ -238,6 +278,6 @@
     "checksPerCondition": 52,
     "invariantCommandsPerCondition": 180,
     "sdk": "10.0.402",
-    "cohesiveSourceRevision": "b0af008d85871ad8866d7d4311707ecd926529de"
+    "cohesiveSourceRevision": "62c8a5f3ee1495619016bcf849de6803fc5fa7d5"
   }
 }

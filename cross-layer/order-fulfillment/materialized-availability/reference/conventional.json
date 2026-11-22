@@ -13,6 +13,6 @@
   },
   "src/Fulfillment.Application/Program.cs": {
     "before": "5be5971400a4829a00cbc896785acb3e973b9e826a271e727e4d5eac100e07a2",
-    "after": "1c1640edaa5f20c4d9e7aacbcf13b6273a1a5b4f24055f5cf0e31b7639ae2735"
+    "after": "34fad1078d49ba2c3b221e2847de158c89113fd1f884cfbcda3abb597efb4538"
   }
 }

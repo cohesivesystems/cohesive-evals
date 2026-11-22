@@ -1,4 +1,4 @@
-"""Qualify both built references and four built controls, retaining independent G0 evidence."""
+"""Qualify both built references and six built controls, retaining independent G0 evidence."""
 
 import argparse
 import json
@@ -48,8 +48,9 @@ def qualify(references, controls, output):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("references", "stale_stock", "live_read", "output"):
+    for name in ("references", "stale_stock", "live_read", "resync_noop", "output"):
         parser.add_argument(name, type=Path)
     args = parser.parse_args()
     qualify(args.references.resolve(), {"stale-stock": (args.stale_stock.resolve(), "shared-sku-fanout"),
-            "live-read": (args.live_read.resolve(), "projection-only-read")}, args.output.resolve())
+            "live-read": (args.live_read.resolve(), "projection-only-read"),
+            "resync-noop": (args.resync_noop.resolve(), "explicit-resync")}, args.output.resolve())

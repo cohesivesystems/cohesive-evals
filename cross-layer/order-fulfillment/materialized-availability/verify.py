@@ -124,6 +124,38 @@ def submit(client, process, request, expected):
     return receipt
 
 
+def damage_projection(db, condition):
+    """Leave both X rows stale while committing no change to the authoritative stock."""
+    if condition == "conventional":
+        # PostgreSQL materialized views are read-only. Refresh against transient stock in
+        # one transaction and restore the source before commit; only the view becomes stale.
+        sql(db, """BEGIN;
+            UPDATE inventory SET available=5 WHERE sku='X';
+            REFRESH MATERIALIZED VIEW order_availability;
+            UPDATE inventory SET available=3 WHERE sku='X';
+            COMMIT""")
+    else:
+        sql(db, "UPDATE order_availability SET available=5 WHERE sku='X'")
+
+
+def check_resync(db, condition, client, dll, env, rows):
+    """Repair drift twice through the operator command while the original app keeps serving."""
+    damage_projection(db, condition)
+    stale = [r[:-1] + [5] if r[2] == "X" else r for r in rows]
+    if physical(db) != stale:
+        raise RuntimeError("Failed to establish the stale projection control")
+    expect(client.request("GET", "/inventory/X"), (200, {"sku": "X", "available": 3}), "source-stock")
+    expect(client.request("GET", "/orders/A/availability"), wire(stale, "A"), "stale-before-resync")
+    for attempt in range(2):
+        run("dotnet", str(dll), "--resync-availability", env=env)
+        actual = physical(db)
+        expect(actual, rows, "explicit-resync" if attempt == 0 else "repeat-resync")
+        for order in ("A", "B", "U"):
+            expect(client.request("GET", f"/orders/{order}/availability"), wire(rows, order), "resynced-read")
+    return {"stale": [r for r in stale if r[2] == "X"], "repaired": [r for r in actual if r[2] == "X"],
+            "completedResyncs": 2}
+
+
 def check(folder, output, condition):
     """Run the same trace for either condition and record source identity and native access evidence."""
     with verification_run(output, "availability", RequirementFailure) as db:
@@ -174,12 +206,13 @@ def check(folder, output, condition):
             expect(physical(db), rows, "compensated-before-get")
             for key in ("A", "B"):
                 expect(client.request("GET", f"/orders/{key}/availability"), wire(rows, key), "compensated-read")
+            repair = check_resync(db, condition, client, dll, env, rows)
         expect(physical(db), rows, "persisted-while-stopped")
         with launch(folder, output, env) as (client, _):
             expect(physical(db), rows, "restart-before-get")
             for key in ("A", "B", "U", created["id"], "missing"):
                 expect(client.request("GET", f"/orders/{key}/availability"), wire(rows, key), "restart-read")
-        db.report({condition: {"buildManifestSha256": fingerprint, "samplePlans": trace,
+        db.report({condition: {"buildManifestSha256": fingerprint, "samplePlans": trace, "resync": repair,
                                "settledRows": [r for r in observed if r[0] in ("A", "B", "U")]}})
 
 

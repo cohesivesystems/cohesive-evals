@@ -8,8 +8,6 @@ public sealed class AvailabilityProjection(NpgsqlDataSource database)
     {
         await using var command = database.CreateCommand($"""
             CREATE MATERIALIZED VIEW IF NOT EXISTS order_availability AS {select} WITH NO DATA;
-            CREATE INDEX IF NOT EXISTS order_availability_order ON order_availability(order_id);
-            REFRESH MATERIALIZED VIEW order_availability;
             """);
         await command.ExecuteNonQueryAsync();
     }

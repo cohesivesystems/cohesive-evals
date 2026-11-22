@@ -45,7 +45,27 @@
                  catch (Exception ex)
 --- a/src/Fulfillment.Application/Program.cs
 +++ b/src/Fulfillment.Application/Program.cs
-@@ -26,6 +26,7 @@
+@@ -16,7 +16,18 @@
+ builder.Services.AddHostedService(provider => provider.GetRequiredService<OperationQueue>());
+ HostSetup.Configure(builder.Services);
+ var app = builder.Build();
+-await app.Services.GetRequiredService<IFulfillmentBackend>().Initialize();
++var backend = app.Services.GetRequiredService<IFulfillmentBackend>();
++await backend.Initialize();
++if (args.SequenceEqual(["--resync-availability"]))
++{
++    await backend.Availability.Refresh();
++    await app.DisposeAsync();
++    return;
++}
++await backend.Availability.Refresh();
++await using (var index = app.Services.GetRequiredService<NpgsqlDataSource>().CreateCommand(
++    "CREATE INDEX IF NOT EXISTS order_availability_order ON order_availability(order_id)"))
++    await index.ExecuteNonQueryAsync();
+ if (builder.Configuration["seed"] is { } seedFile)
+ {
+     if (Environment.GetEnvironmentVariable("FULFILLMENT_SETUP") != "1")
+@@ -26,6 +37,7 @@
          ?? throw new InvalidOperationException("Missing seed data.");
      data.Validate();
      await app.Services.GetRequiredService<IFulfillmentBackend>().Seed(data);
@@ -53,7 +73,7 @@
      await app.DisposeAsync();
      return;
  }
-@@ -35,6 +36,7 @@
+@@ -35,6 +47,7 @@
  app.MapPost("/orders", async (IFulfillmentBackend backend) =>
  {
      var created = await backend.CreateOrder();
@@ -61,7 +81,7 @@
      return Results.Created($"/orders/{created.Id}", created);
  });
  app.MapGet("/orders/{id}", async (string id, IFulfillmentBackend backend) =>
-@@ -44,9 +46,8 @@
+@@ -44,9 +57,8 @@
  app.MapGet("/orders/{id}/details", async (string id, IFulfillmentBackend backend) =>
      await backend.GetDetails(id) is { } details ? ReadResults.Reply(details, details.Reservations.Count) : Results.NotFound());
  app.MapGet("/orders/{id}/availability", async (string id, IFulfillmentBackend backend) =>

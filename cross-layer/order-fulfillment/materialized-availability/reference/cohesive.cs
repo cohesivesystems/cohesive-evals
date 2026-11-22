@@ -1,52 +1,11 @@
 using Cohesive.Adapters.Postgres;
 using Npgsql;
-using NpgsqlTypes;
 
 namespace Fulfillment.Application;
 
-public sealed class AvailabilityProjection(NpgsqlDataSource database)
+public sealed class AvailabilityProjection(NpgsqlDataSource database, PostgresMaterializedRows target)
 {
-    PostgresQueryReader<string, ReservationAvailability[]> rows = null!;
-
-    public async Task Initialize(PostgresQueryReader<string, ReservationAvailability[]> reader)
-    {
-        rows = reader;
-        await using var schema = database.CreateCommand("""
-            CREATE TABLE IF NOT EXISTS order_availability (
-                order_id text NOT NULL, reservation_id text, sku text, quantity integer, available integer);
-            CREATE INDEX IF NOT EXISTS order_availability_order ON order_availability(order_id)
-            """);
-        await schema.ExecuteNonQueryAsync();
-        await Refresh();
-    }
-
-    public async Task Refresh()
-    {
-        await using var connection = await database.OpenConnectionAsync();
-        await using var transaction = await connection.BeginTransactionAsync();
-        await using var replace = new NpgsqlCommand("""
-            LOCK TABLE order_availability IN EXCLUSIVE MODE;
-            DELETE FROM order_availability
-            """, connection, transaction);
-        await replace.ExecuteNonQueryAsync();
-        var snapshot = await rows.ReadAsync(FulfillmentStoragePolicy.LocalPartition);
-        await using (var writer = await connection.BeginBinaryImportAsync("""
-            COPY order_availability (order_id, reservation_id, sku, quantity, available) FROM STDIN (FORMAT BINARY)
-            """))
-        {
-            foreach (var row in snapshot)
-            {
-                await writer.StartRowAsync();
-                await writer.WriteAsync(row.OrderId, NpgsqlDbType.Text);
-                await writer.WriteAsync(row.ReservationId, NpgsqlDbType.Text);
-                await writer.WriteAsync(row.Sku, NpgsqlDbType.Text);
-                await writer.WriteAsync(row.Quantity, NpgsqlDbType.Integer);
-                await writer.WriteAsync(row.Available, NpgsqlDbType.Integer);
-            }
-            await writer.CompleteAsync();
-        }
-        await transaction.CommitAsync();
-    }
+    public Task Refresh() => target.ResyncAsync();
 
     public async Task<AvailabilityView[]?> Read(string id)
     {

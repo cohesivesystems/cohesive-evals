@@ -2,12 +2,14 @@
 
 import argparse
 import importlib.util
+import json
 from pathlib import Path
 import shutil
 import subprocess
 import tempfile
 
 from cohesive_evals.snapshots import apply_delta
+from cohesive_evals.evidence import sha
 
 ROOT = Path(__file__).resolve().parent
 CASE = ROOT.parent
@@ -31,11 +33,29 @@ def materialize(output, defect):
         subprocess.run(["tar", "-xf", archive, "-C", tree], check=True)
         for condition in CONDITIONS:
             folder = output / condition
-            shutil.copytree(tree / relative / condition, folder)
+            ignore = shutil.ignore_patterns("packages") if condition == "cohesive" else None
+            shutil.copytree(tree / relative / condition, folder, ignore=ignore)
             reference = ROOT / "reference" / condition
             apply_delta(folder, reference.with_suffix(".patch"), reference.with_suffix(".json"))
             shutil.copyfile(reference.with_suffix(".cs"), folder / APP / "AvailabilityProjection.cs")
-            if defect == "stale-stock":
+            if condition == "cohesive":
+                sdk = ROOT / "sdk"
+                manifest = sdk / "dependency-manifest.json"
+                (folder / "packages").mkdir()
+                for package in json.loads(manifest.read_text())["packages"]:
+                    source = sdk / package["file"]
+                    if sha(source) != package["sha256"]:
+                        raise ValueError(f"Published SDK package digest differs for {source.name}")
+                    shutil.copyfile(source, folder / "packages" / source.name)
+                shutil.copyfile(manifest, folder / manifest.name)
+            if defect == "resync-noop":
+                program = folder / APP / "Program.cs"
+                anchor = 'if (args.SequenceEqual(["--resync-availability"]))\n{\n    await backend.Availability.Refresh();'
+                source = program.read_text()
+                if source.count(anchor) != 1:
+                    raise ValueError("Explicit resync mutation anchor changed")
+                program.write_text(source.replace(anchor, anchor.rsplit("\n", 1)[0]))
+            elif defect == "stale-stock":
                 # Suppress the settlement refresh. A's previously persisted X row stays stale.
                 queue = folder / APP / "OperationQueue.cs"
                 anchor = "finally { await backend.Availability.Refresh(); }"
@@ -61,6 +81,6 @@ def materialize(output, defect):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output", type=Path)
-    parser.add_argument("--defect", choices=["stale-stock", "live-read"])
+    parser.add_argument("--defect", choices=["stale-stock", "live-read", "resync-noop"])
     args = parser.parse_args()
     materialize(args.output.resolve(), args.defect)
