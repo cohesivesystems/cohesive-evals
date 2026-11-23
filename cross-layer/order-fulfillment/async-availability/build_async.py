@@ -26,7 +26,22 @@ def mutate(candidate, defect, condition):
     if defect == "eager":
         path = queue
         anchor = "                    lock (gate) entry.Result = result;"
-        changes = [(anchor, "                    await backend.Availability.Refresh();\n" + anchor)]
+        if condition == "cohesive":
+            # A broken source-side trigger leaks stock changes while the async worker is paused.
+            path = candidate / APP / "Program.cs"
+            anchor = "await projection.InitializeAsync();"
+            eager = '''
+await using (var cmd = database.CreateCommand("""
+    CREATE OR REPLACE FUNCTION eager_stock() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN UPDATE order_availability SET available=NEW.available WHERE sku=NEW.sku; RETURN NEW; END $$;
+    CREATE OR REPLACE TRIGGER eager_stock AFTER UPDATE OF available ON cohesive_inventory
+        FOR EACH ROW EXECUTE FUNCTION eager_stock();
+    """))
+    await cmd.ExecuteNonQueryAsync();
+'''
+            changes = [(anchor, anchor + eager)]
+        else:
+            changes = [(anchor, "                    await backend.Availability.Refresh();\n" + anchor)]
     elif condition == "cohesive" and defect in {"late-publication", "over-acknowledge"}:
         path = candidate / APP / "Program.cs"
         ack_latest = ('await using (var ack = database.CreateCommand("UPDATE availability_progress SET revision='

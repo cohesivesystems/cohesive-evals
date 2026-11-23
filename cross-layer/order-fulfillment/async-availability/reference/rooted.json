@@ -1,31 +1,27 @@
 {
-  "src/Fulfillment.Application/AvailabilityStorage.cs": {
-    "before": null,
-    "after": "557ade76ea9f611a11f09afeeafdae77123a3d8e32b871b87575de9db37ae6cf"
-  },
   "src/Fulfillment.Application/AvailabilityProjection.cs": {
     "before": "586bf8f7cf2f6e877ee07b3d3cf7834a76b934ba3798d9d5c7276fc8cf7375c4",
-    "after": "60f2162f15ce1ecbbf506f19d874506b41085334245d6a06a3d36581e7268569"
+    "after": "64bd7339a4360b27a9aaacff5758fa8af923b366178179ee1048fb25130408a9"
   },
   "src/Fulfillment.Application/FulfillmentBackend.cs": {
     "before": "ec5134f437744980ef6fcdb59998fb85e5a67aa100bd9df415f5e32426dd1393",
-    "after": "01436a30cc949a9a44f0124158008e617b9f3f61e2cf352cdd60c71593e1398d"
+    "after": "c6bbd550bb0240a74c83d484397b16a7edb9b5ad4d692d1cdf50e17f2937e12c"
   },
   "src/Fulfillment.Application/FulfillmentQueries.cs": {
     "before": "66c0d30c7fa99ebc01da589254197b8e6e68c2854c852d7397cccf2769e8666f",
-    "after": "acfc3361eb32a2b9660aad424d0f576438277630b3bd677554fa67640de2dfd2"
+    "after": "b7658e0c70ef21003a29be58974d2c190aa6937a3c48a111b4c43684ff8b742c"
   },
   "src/Fulfillment.Application/Fulfillment.Application.csproj": {
     "before": "9f238e7e644ca5ab31fbbe695c51b3b64ef2b63ad7496c4c5bfeaf9964210b16",
-    "after": "22406a66487a7fab79d9f94c0c472e17e677af90304c7b55ff50d9e7ee59822a"
+    "after": "77c554677e13622e1a4b7fc8c908890ea5d74c0b09a67f33b4e643f143071aa2"
   },
   "src/Fulfillment.Application/packages.lock.json": {
     "before": "9cd5a71f509eab7705a6cb63c1835e73eb37a8b0989e6dfb7965be594635b592",
-    "after": "cfd431bf65e218d0b24396670bdfaa0918cd69f0cdc7d53fbaf56d2209300086"
+    "after": "16c4d3a7e96d00237cfbeab118ddb768fe9f636fc5e7afb790e9cd97abeefca5"
   },
   "src/Fulfillment.Application/Program.cs": {
     "before": "34fad1078d49ba2c3b221e2847de158c89113fd1f884cfbcda3abb597efb4538",
-    "after": "2939554f71ee2580d30a059a9d6cb8ab6e0e7db632e0716f24fac843b7d2f54a"
+    "after": "a9ab3aba60818b95dd93182d995160d5ce4df279daec504c36d935031bbf667e"
   },
   "src/Fulfillment.Application/OperationQueue.cs": {
     "before": "b0e7e0e168ce4dad0688ebd49fa694b1db863ed340f1e628cb47bf74d0fe327a",

@@ -4,13 +4,13 @@ Fulfillment completion acknowledges the source writes. The availability GET read
 
 | | Conventional | Cohesive |
 |---|---|---|
-| Detect committed changes | PostgreSQL statement triggers on orders, reservations and inventory | The rooted order relation determines the PostgreSQL publication, replication slots and wake-up triggers |
+| Detect committed changes | PostgreSQL statement triggers on orders, reservations and inventory | The availability projection determines the PostgreSQL publication, replication slots and wake-up triggers |
 | Publish | PostgreSQL refreshes its materialized view | The SDK resolves affected order IDs from logical changes and replaces their rows with the typed projection |
 | Read | Indexed SQL on the view | Typed lookup on the persisted target |
 
 The conventional worker captures the request revision and refreshes the entire view. The Cohesive hosted worker follows Aspire’s direct and inverse impact routes, including inventory → reservations → orders. It commits affected row groups before saving each input’s checkpoint and acknowledging its replication slot. Both workers expose requested/applied watermarks and acknowledge only their captured revision. Explicit resync repairs the full target.
 
-Cohesive runs with PostgreSQL logical replication enabled, a stable position-authentication key, and one slot per relation input. The fixture generates a key per isolated database and shares it across that run’s processes. Its flat output query and rooted impact declaration are bound explicitly by order ID. Deployment is single-partition. Readers can observe committed intermediate pages during catch-up.
+Cohesive runs with PostgreSQL logical replication enabled, a stable position-authentication key, and one slot per relation input. The fixture generates a key per isolated database and shares it across that run’s processes. The app declares the reservation fields and order key once with `RowsByRoot`. `MaterializeAsyncRows` uses that projection for SQL publication, typed lookup and change-impact planning. The app supplies its local partition, target table and the existing schedule name used by the crash gate. The SDK supplies the remaining PostgreSQL defaults. Deployment is single-partition. Readers can observe committed intermediate pages during catch-up.
 
 ## Run
 
