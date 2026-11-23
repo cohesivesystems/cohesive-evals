@@ -13,11 +13,11 @@
   },
   "src/Fulfillment.Application/Fulfillment.Application.csproj": {
     "before": "9f238e7e644ca5ab31fbbe695c51b3b64ef2b63ad7496c4c5bfeaf9964210b16",
-    "after": "77c554677e13622e1a4b7fc8c908890ea5d74c0b09a67f33b4e643f143071aa2"
+    "after": "2b0aa95397e7834a78cc668bac474880ce12a141d5015c4c46414918732ffc6b"
   },
   "src/Fulfillment.Application/packages.lock.json": {
     "before": "9cd5a71f509eab7705a6cb63c1835e73eb37a8b0989e6dfb7965be594635b592",
-    "after": "16c4d3a7e96d00237cfbeab118ddb768fe9f636fc5e7afb790e9cd97abeefca5"
+    "after": "1a6ca4ca3a6b1e4490efcd9acff3f4247fe18bca7fe8be3c810278bbd4c59bc8"
   },
   "src/Fulfillment.Application/Program.cs": {
     "before": "34fad1078d49ba2c3b221e2847de158c89113fd1f884cfbcda3abb597efb4538",
