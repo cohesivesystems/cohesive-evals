@@ -99,3 +99,4 @@ __pycache__/
 
 # Commit the published PostgreSQL materialization pilot SDK closure.
 !cross-layer/order-fulfillment/materialized-availability/sdk/*.nupkg
+!cross-layer/order-fulfillment/evolution/packed/sdk/*.nupkg
