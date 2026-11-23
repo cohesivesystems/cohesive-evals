@@ -1,0 +1,8 @@
+{
+  "baselineCommit": "98c42c990bcb6c1a75657ef256a34938a4c06798",
+  "inputSha256": {
+    "conventional": "59d147ca9a435ceba8bac36b5dc037562fd4c216be9ffdb7e42478c2bc81bf00",
+    "cohesive": "703e5f48a1b3b75b3328e7ebf1fc8b82cac393fcfeb1f4dbd03d9847134ee2e2"
+  },
+  "authoringBudgetMinutesPerCondition": 90
+}

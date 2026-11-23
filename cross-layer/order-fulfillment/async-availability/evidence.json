@@ -1,0 +1,409 @@
+{
+  "passed": true,
+  "conditions": {
+    "conventional": {
+      "buildManifestSha256": "c6d932aa2d6c928c0f35c9f14501044da9b9a31bf78425619520cb8248e40e85",
+      "initial": {
+        "requested": 11,
+        "applied": 11
+      },
+      "paused": {
+        "requested": 14,
+        "applied": 11
+      },
+      "resyncCut": 15,
+      "overlappingWrite": 18,
+      "final": {
+        "requested": 18,
+        "applied": 18
+      },
+      "readLimits": {
+        "rowsAtLimit": 1000,
+        "bytesAtLimit": 1000000,
+        "overLimitStatus": 422
+      },
+      "pausedAvailabilityA": [
+        {
+          "reservationId": "a1",
+          "sku": "X",
+          "quantity": 1,
+          "availableStock": 5
+        }
+      ],
+      "availabilityAfterReplay": {
+        "A": [
+          {
+            "reservationId": "a1",
+            "sku": "X",
+            "quantity": 1,
+            "availableStock": 3
+          }
+        ],
+        "B": [
+          {
+            "reservationId": "B",
+            "sku": "X",
+            "quantity": 2,
+            "availableStock": 3
+          }
+        ],
+        "U": [
+          {
+            "reservationId": "𐀀",
+            "sku": "Y",
+            "quantity": 2,
+            "availableStock": 7
+          },
+          {
+            "reservationId": "",
+            "sku": "Y",
+            "quantity": 2,
+            "availableStock": 7
+          }
+        ]
+      },
+      "ordersRewrittenAfterB": [
+        "A",
+        "B",
+        "C",
+        "R",
+        "U"
+      ],
+      "finalPlans": {
+        "A": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.07,
+              "Plan Rows": 1,
+              "Plan Width": 72,
+              "Filter": "(order_id = 'A'::text)"
+            }
+          }
+        ],
+        "B": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.07,
+              "Plan Rows": 1,
+              "Plan Width": 72,
+              "Filter": "(order_id = 'B'::text)"
+            }
+          }
+        ],
+        "C": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.07,
+              "Plan Rows": 1,
+              "Plan Width": 72,
+              "Filter": "(order_id = 'C'::text)"
+            }
+          }
+        ],
+        "U": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.07,
+              "Plan Rows": 1,
+              "Plan Width": 72,
+              "Filter": "(order_id = 'U'::text)"
+            }
+          }
+        ],
+        "missing": [
+          {
+            "query": "SELECT reservation_id, sku, quantity, available FROM order_availability WHERE order_id = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.07,
+              "Plan Rows": 1,
+              "Plan Width": 72,
+              "Filter": "(order_id = 'missing'::text)"
+            }
+          }
+        ]
+      },
+      "controls": {
+        "eager": {
+          "kind": "detected",
+          "assertion": "stale-while-paused",
+          "detail": "stale-while-paused: observed (200, [{'reservationId': 'a1', 'sku': 'X', 'quantity': 1, 'availableStock': 3}]), expected (200, [{'reservationId': 'a1', 'sku': 'X', 'quantity': 1, 'availableStock': 5}])"
+        },
+        "late-publication": {
+          "kind": "detected",
+          "assertion": "published-before-ack",
+          "detail": "published-before-ack: observed [['A', 'a1', 'X', 1, 5], ['B', None, None, None, None], ['C', None, None, None, None], ['R', None, None, None, None], ['U', '\\ue000', 'Y', 2, 7], ['U', '𐀀', 'Y', 2, 7]], expected [['A', 'a1', 'X', 1, 3], ['B', 'B', 'X', 2, 3], ['C', None, None, None, None], ['R', None, None, None, None], ['U', '\\ue000', 'Y', 2, 7], ['U', '𐀀', 'Y', 2, 7]]"
+        },
+        "over-acknowledge": {
+          "kind": "detected",
+          "assertion": "checkpoint-captured-cut",
+          "detail": "checkpoint-captured-cut: observed 18, expected 15"
+        }
+      }
+    },
+    "cohesive": {
+      "buildManifestSha256": "ff1bcdf80f9ba917be78b9838468d6da999a1651bb14a37875e23042aaa6ec3e",
+      "initial": {
+        "requested": 22,
+        "applied": 22
+      },
+      "paused": {
+        "requested": 25,
+        "applied": 22
+      },
+      "resyncCut": 26,
+      "overlappingWrite": 29,
+      "final": {
+        "requested": 29,
+        "applied": 29
+      },
+      "readLimits": {
+        "rowsAtLimit": 1000,
+        "bytesAtLimit": 1000000,
+        "overLimitStatus": 422
+      },
+      "pausedAvailabilityA": [
+        {
+          "reservationId": "a1",
+          "sku": "X",
+          "quantity": 1,
+          "availableStock": 5
+        }
+      ],
+      "availabilityAfterReplay": {
+        "A": [
+          {
+            "reservationId": "a1",
+            "sku": "X",
+            "quantity": 1,
+            "availableStock": 3
+          }
+        ],
+        "B": [
+          {
+            "reservationId": "B",
+            "sku": "X",
+            "quantity": 2,
+            "availableStock": 3
+          }
+        ],
+        "U": [
+          {
+            "reservationId": "𐀀",
+            "sku": "Y",
+            "quantity": 2,
+            "availableStock": 7
+          },
+          {
+            "reservationId": "",
+            "sku": "Y",
+            "quantity": 2,
+            "availableStock": 7
+          }
+        ]
+      },
+      "ordersRewrittenAfterB": [
+        "A",
+        "B"
+      ],
+      "finalPlans": {
+        "A": [
+          {
+            "query": "SELECT obj_description(to_regclass($1), 'pg_class')",
+            "plan": {
+              "Node Type": "Result",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 0.0,
+              "Total Cost": 0.26,
+              "Plan Rows": 1,
+              "Plan Width": 32
+            }
+          },
+          {
+            "query": "SELECT \"reservation_id\", \"sku\", \"order_id\", \"quantity\", \"available\" FROM \"public\".\"order_availability\" WHERE \"order_id\" = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.07,
+              "Plan Rows": 1,
+              "Plan Width": 104,
+              "Filter": "(order_id = 'A'::text)"
+            }
+          }
+        ],
+        "B": [
+          {
+            "query": "SELECT obj_description(to_regclass($1), 'pg_class')",
+            "plan": {
+              "Node Type": "Result",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 0.0,
+              "Total Cost": 0.26,
+              "Plan Rows": 1,
+              "Plan Width": 32
+            }
+          },
+          {
+            "query": "SELECT \"reservation_id\", \"sku\", \"order_id\", \"quantity\", \"available\" FROM \"public\".\"order_availability\" WHERE \"order_id\" = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.07,
+              "Plan Rows": 1,
+              "Plan Width": 104,
+              "Filter": "(order_id = 'B'::text)"
+            }
+          }
+        ],
+        "C": [
+          {
+            "query": "SELECT obj_description(to_regclass($1), 'pg_class')",
+            "plan": {
+              "Node Type": "Result",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 0.0,
+              "Total Cost": 0.26,
+              "Plan Rows": 1,
+              "Plan Width": 32
+            }
+          },
+          {
+            "query": "SELECT \"reservation_id\", \"sku\", \"order_id\", \"quantity\", \"available\" FROM \"public\".\"order_availability\" WHERE \"order_id\" = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.07,
+              "Plan Rows": 1,
+              "Plan Width": 104,
+              "Filter": "(order_id = 'C'::text)"
+            }
+          }
+        ],
+        "U": [
+          {
+            "query": "SELECT obj_description(to_regclass($1), 'pg_class')",
+            "plan": {
+              "Node Type": "Result",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 0.0,
+              "Total Cost": 0.26,
+              "Plan Rows": 1,
+              "Plan Width": 32
+            }
+          },
+          {
+            "query": "SELECT \"reservation_id\", \"sku\", \"order_id\", \"quantity\", \"available\" FROM \"public\".\"order_availability\" WHERE \"order_id\" = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.07,
+              "Plan Rows": 1,
+              "Plan Width": 104,
+              "Filter": "(order_id = 'U'::text)"
+            }
+          }
+        ],
+        "missing": [
+          {
+            "query": "SELECT obj_description(to_regclass($1), 'pg_class')",
+            "plan": {
+              "Node Type": "Result",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Startup Cost": 0.0,
+              "Total Cost": 0.26,
+              "Plan Rows": 1,
+              "Plan Width": 32
+            }
+          },
+          {
+            "query": "SELECT \"reservation_id\", \"sku\", \"order_id\", \"quantity\", \"available\" FROM \"public\".\"order_availability\" WHERE \"order_id\" = $1",
+            "plan": {
+              "Node Type": "Seq Scan",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "order_availability",
+              "Alias": "order_availability",
+              "Startup Cost": 0.0,
+              "Total Cost": 1.07,
+              "Plan Rows": 1,
+              "Plan Width": 104,
+              "Filter": "(order_id = 'missing'::text)"
+            }
+          }
+        ]
+      },
+      "controls": {
+        "eager": {
+          "kind": "detected",
+          "assertion": "stale-while-paused",
+          "detail": "stale-while-paused: observed (200, [{'reservationId': 'a1', 'sku': 'X', 'quantity': 1, 'availableStock': 3}]), expected (200, [{'reservationId': 'a1', 'sku': 'X', 'quantity': 1, 'availableStock': 5}])"
+        },
+        "late-publication": {
+          "kind": "detected",
+          "assertion": "published-before-ack",
+          "detail": "published-before-ack: observed [['A', 'a1', 'X', 1, 5], ['B', None, None, None, None], ['C', None, None, None, None], ['R', None, None, None, None], ['U', '\\ue000', 'Y', 2, 7], ['U', '𐀀', 'Y', 2, 7]], expected [['A', 'a1', 'X', 1, 3], ['B', 'B', 'X', 2, 3], ['C', None, None, None, None], ['R', None, None, None, None], ['U', '\\ue000', 'Y', 2, 7], ['U', '𐀀', 'Y', 2, 7]]"
+        },
+        "over-acknowledge": {
+          "kind": "detected",
+          "assertion": "checkpoint-captured-cut",
+          "detail": "checkpoint-captured-cut: observed 29, expected 26"
+        }
+      }
+    }
+  },
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193"
+}
