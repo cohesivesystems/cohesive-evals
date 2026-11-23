@@ -1,0 +1,5 @@
+{
+  "parent": "e2",
+  "checks": "packing_checks.py",
+  "inventoryFields": {}
+}

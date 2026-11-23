@@ -1,0 +1,90 @@
+{
+  "sourceRevision": "35603a8d7c49468238af4c14269d3c41a453a7a6",
+  "packageVersion": "0.1.0-eval.35603a8d",
+  "packages": [
+    {
+      "file": "Cohesive.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "a8cb9b31f73fc74aa475063c2593f803f3870fcd5b13d77f1a8258fb43cbd50d"
+    },
+    {
+      "file": "Cohesive.Adapters.AspNet.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "02c134459467ae8af37916ada12073b1317a3944ac07e72d6b6748bc35970dde"
+    },
+    {
+      "file": "Cohesive.Adapters.Postgres.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "d3222f4e99274a42d613dc3f8a464612a3df547971cfb123abc67ab5efd14225"
+    },
+    {
+      "file": "Cohesive.Adapters.Postgres.Infra.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "72ff9d3b3182a84b697b8d736abac42abb5719d2a8bef6c7fcb7fa36b35fb0cc"
+    },
+    {
+      "file": "Cohesive.Adapters.Postgres.Services.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "2b8158cec53382a4aa0d1fd11800861c0906c1115ebfeecd8b2aac127dcfc722"
+    },
+    {
+      "file": "Cohesive.Adapters.Sql.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "0f883bdc8b0be58a13089094d21fb26f87bd8fe9d56cdd659072d650666555e5"
+    },
+    {
+      "file": "Cohesive.Analyzers.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "5c804f0fa7eeb5805b03b29271d4aca0441bff4f8c8714b7ba7b2f28d8e0e1c6"
+    },
+    {
+      "file": "Cohesive.Api.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "58bbbd0942f89b4046e0c5646be6f494b83929eb888b400e7a1afc18969c665d"
+    },
+    {
+      "file": "Cohesive.Api.Execution.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "add74373a08dd9f0d3035175b3c4e7271c71c081f44444e0e0957bef3bf47373"
+    },
+    {
+      "file": "Cohesive.Application.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "9fcf71a39675154bdc73868e723c50fb14e712b52c842a33e301f623bb6485fd"
+    },
+    {
+      "file": "Cohesive.Cli.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "45887f4ac2bf77447aeeb0a924319785482cea965a980cec7a978076d4ebf151"
+    },
+    {
+      "file": "Cohesive.Configuration.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "0649644ce15734ae4c99a1ac54147739a8ff710754532a105c0f5548ae5b7656"
+    },
+    {
+      "file": "Cohesive.Host.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "fd7a38425027e60646a3ecb63fc5f62ca94f116f8c7aac770d9cdaced29d4fa8"
+    },
+    {
+      "file": "Cohesive.Identity.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "72c23eebf7a214cd7b64a3bec99caf6ee601cf69b61d9149728f4c21867b0b98"
+    },
+    {
+      "file": "Cohesive.Infra.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "26c35714cba75742768f27d7ede74fad946fe04598de9475cecfd6e549a0f6cb"
+    },
+    {
+      "file": "Cohesive.Processes.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "f4ba4bb837ed4ae5cdbbddae548a6cd2198fd23b058e3189b78ca7af0117a011"
+    },
+    {
+      "file": "Cohesive.Processes.Distribution.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "c846bcf895751aa05662ca1304f20eb1dabcac05540b0dd50fa6f602412bc891"
+    },
+    {
+      "file": "Cohesive.Relations.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "b38fb0ffd1b61fd3a7ddbd2e9c845829be1a7edc34f433bf3df33c22a5efe1eb"
+    },
+    {
+      "file": "Cohesive.Relations.Infra.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "50182b378c23c5472188b0d187bdf35aaf7735511868e2f056b6c7a64b957214"
+    },
+    {
+      "file": "Cohesive.Storage.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "3c3685d750669bb75aaf21d3013ccb706f56b0eb18b97e0d24fe31de81f733b0"
+    },
+    {
+      "file": "Cohesive.Transitions.0.1.0-eval.35603a8d.nupkg",
+      "sha256": "d387651da5cc0a98f1b45b3639a2ca83a33410b9428030619496c449e3dff4ad"
+    }
+  ]
+}

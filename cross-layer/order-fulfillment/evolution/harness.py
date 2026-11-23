@@ -18,7 +18,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parent
 CASE = ROOT.parent
-GENERATIONS = ('e1', 'e2', 'e3')
+GENERATIONS = ('e1', 'e2', 'e3', 'packed')
 PROFILE_CONFIG = {name: json.loads((ROOT / name / 'profile.json').read_text()) for name in GENERATIONS}
 CONDITIONS = ('conventional', 'cohesive')
 IMAGE = 'postgres:17.10-alpine3.24'
@@ -43,8 +43,15 @@ def profile(generation):
     }
 
 
+def ancestry(generation):
+    """Return retained checkpoints in order, following an explicit branch parent when present."""
+    predecessors = GENERATIONS[:GENERATIONS.index(generation)]
+    parent = PROFILE_CONFIG[generation].get('parent', predecessors[-1] if predecessors else None)
+    return [*ancestry(parent), generation] if parent else [generation]
+
+
 def selected_profiles(generation, only_generation=False):
-    names = [generation] if only_generation else GENERATIONS[:GENERATIONS.index(generation) + 1]
+    names = [generation] if only_generation else ancestry(generation)
     return [profile(name) for name in names]
 
 
@@ -109,7 +116,7 @@ def inventory_fields(generation):
     """Cumulative observation fields declared by independent verifier profiles."""
     fields = {}
     if generation is not None:
-        for name in GENERATIONS[:GENERATIONS.index(generation) + 1]:
+        for name in ancestry(generation):
             additions = PROFILE_CONFIG[name]['inventoryFields']
             if fields.keys() & additions.keys():
                 raise ValueError('An inventory field must have one introducing profile')

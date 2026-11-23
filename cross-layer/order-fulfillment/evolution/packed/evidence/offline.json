@@ -1,0 +1,173 @@
+{
+  "conventional": [
+    {
+      "state": "Draft",
+      "command": "submit",
+      "destination": "Submitted"
+    },
+    {
+      "state": "Draft",
+      "command": "cancel",
+      "destination": "Cancelled"
+    },
+    {
+      "state": "Draft",
+      "command": "pack",
+      "destination": null
+    },
+    {
+      "state": "Draft",
+      "command": "unpack",
+      "destination": null
+    },
+    {
+      "state": "Submitted",
+      "command": "submit",
+      "destination": null
+    },
+    {
+      "state": "Submitted",
+      "command": "cancel",
+      "destination": null
+    },
+    {
+      "state": "Submitted",
+      "command": "pack",
+      "destination": "Packed"
+    },
+    {
+      "state": "Submitted",
+      "command": "unpack",
+      "destination": "Submitted"
+    },
+    {
+      "state": "Cancelled",
+      "command": "submit",
+      "destination": null
+    },
+    {
+      "state": "Cancelled",
+      "command": "cancel",
+      "destination": "Cancelled"
+    },
+    {
+      "state": "Cancelled",
+      "command": "pack",
+      "destination": null
+    },
+    {
+      "state": "Cancelled",
+      "command": "unpack",
+      "destination": null
+    },
+    {
+      "state": "Packed",
+      "command": "submit",
+      "destination": null
+    },
+    {
+      "state": "Packed",
+      "command": "cancel",
+      "destination": null
+    },
+    {
+      "state": "Packed",
+      "command": "pack",
+      "destination": "Packed"
+    },
+    {
+      "state": "Packed",
+      "command": "unpack",
+      "destination": "Submitted"
+    }
+  ],
+  "cohesive": [
+    {
+      "state": "Cancelled",
+      "command": "cancel",
+      "destination": "Cancelled"
+    },
+    {
+      "state": "Cancelled",
+      "command": "pack",
+      "destination": null
+    },
+    {
+      "state": "Cancelled",
+      "command": "submit",
+      "destination": null
+    },
+    {
+      "state": "Cancelled",
+      "command": "unpack",
+      "destination": null
+    },
+    {
+      "state": "Draft",
+      "command": "cancel",
+      "destination": "Cancelled"
+    },
+    {
+      "state": "Draft",
+      "command": "pack",
+      "destination": null
+    },
+    {
+      "state": "Draft",
+      "command": "submit",
+      "destination": "Submitted"
+    },
+    {
+      "state": "Draft",
+      "command": "unpack",
+      "destination": null
+    },
+    {
+      "state": "Packed",
+      "command": "cancel",
+      "destination": null
+    },
+    {
+      "state": "Packed",
+      "command": "pack",
+      "destination": "Packed"
+    },
+    {
+      "state": "Packed",
+      "command": "submit",
+      "destination": null
+    },
+    {
+      "state": "Packed",
+      "command": "unpack",
+      "destination": "Submitted"
+    },
+    {
+      "state": "Submitted",
+      "command": "cancel",
+      "destination": null
+    },
+    {
+      "state": "Submitted",
+      "command": "pack",
+      "destination": "Packed"
+    },
+    {
+      "state": "Submitted",
+      "command": "submit",
+      "destination": null
+    },
+    {
+      "state": "Submitted",
+      "command": "unpack",
+      "destination": "Submitted"
+    }
+  ],
+  "cohesiveCoverageControl": {
+    "accepted": false,
+    "diagnostics": [
+      "transitions.compilation.machine.configurationMismatch",
+      "transitions.compilation.machine.coverage"
+    ]
+  }
+}

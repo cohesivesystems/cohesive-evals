@@ -1,0 +1,7 @@
+{
+  "kind": "behavioral",
+  "condition": "cohesive",
+  "obligation": "lifecycle",
+  "assertion": "legal serial history",
+  "detail": "lifecycle: ('legal serial history', {'pack': (200, {'id': 'packed-race', 'status': 'Packed'}), 'unpack': (409, {'type': 'https://tools.ietf.org/html/rfc9110#section-15.5.10', 'title': 'Concurrent modification', 'status': 409, 'detail': 'The resource changed concurrently. Reload its current state before trying again.', 'code': 'services.concurrency.conflict', 'traceId': '00-d905e8a11f75221d5d3561b65899425e-6c325e72b800315e-00'})}, (200, {'id': 'packed-race', 'status': 'Packed'}))"
+}

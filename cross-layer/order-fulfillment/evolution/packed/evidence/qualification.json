@@ -1,0 +1,86 @@
+{
+  "passed": true,
+  "generation": "packed",
+  "cases": [
+    {
+      "condition": "conventional",
+      "case": "known-good",
+      "passed": true,
+      "obligation": null,
+      "assertion": null,
+      "buildManifestSha256": "c7f7f262a10f3e1462a547a1b74f17de16ffeb90f99222e56ce58cd39b04d8c3"
+    },
+    {
+      "condition": "conventional",
+      "case": "pack-draft",
+      "passed": true,
+      "obligation": "lifecycle",
+      "assertion": "Draft pack",
+      "buildManifestSha256": "12ff25b197263f09c19735390b298fa8f462d8fa20c3ec46a66c951c28d6ccc8"
+    },
+    {
+      "condition": "conventional",
+      "case": "unpack-to-draft",
+      "passed": true,
+      "obligation": "lifecycle",
+      "assertion": "Packed unpack",
+      "buildManifestSha256": "11f2d84c52ad52a99997fe001543510f4b4b2585e1543d831320d0a28e165d4a"
+    },
+    {
+      "condition": "conventional",
+      "case": "lose-packed",
+      "passed": true,
+      "obligation": "lifecycle",
+      "assertion": "packed survives restart",
+      "buildManifestSha256": "66a291912ea213c9fd93e399c9c53f394b0026e8f67e727822e4665a6f7f5ada"
+    },
+    {
+      "condition": "conventional",
+      "case": "stock-on-repeat",
+      "passed": true,
+      "obligation": "lifecycle",
+      "assertion": "stock and reservation preservation",
+      "buildManifestSha256": "cfb0b4bd9dde0994d51d9b9d1184d927cb2c8b74902abd72addebea233f51618"
+    },
+    {
+      "condition": "cohesive",
+      "case": "known-good",
+      "passed": true,
+      "obligation": null,
+      "assertion": null,
+      "buildManifestSha256": "849739cd8ef5f691c39577597c9d4fc557008d8d83190f653920b7bdc097022a"
+    },
+    {
+      "condition": "cohesive",
+      "case": "pack-draft",
+      "passed": true,
+      "obligation": "lifecycle",
+      "assertion": "Draft pack",
+      "buildManifestSha256": "bf027903eb010b811ae459ae8cd6eb383da515858bd6569c999098126f27edbf"
+    },
+    {
+      "condition": "cohesive",
+      "case": "unpack-to-draft",
+      "passed": true,
+      "obligation": "lifecycle",
+      "assertion": "Packed unpack",
+      "buildManifestSha256": "9d852dedb6d7d28ce4be527375fa6939fe14214d616074812c1e153f5f5ee084"
+    },
+    {
+      "condition": "cohesive",
+      "case": "lose-packed",
+      "passed": true,
+      "obligation": "lifecycle",
+      "assertion": "packed survives restart",
+      "buildManifestSha256": "6953dc7aa4d0883e6f18203a1eb218d0bc693ed31d5701b557dae327e08a5ee7"
+    },
+    {
+      "condition": "cohesive",
+      "case": "stock-on-repeat",
+      "passed": true,
+      "obligation": "lifecycle",
+      "assertion": "stock and reservation preservation",
+      "buildManifestSha256": "866719dcffba2c323f3ca13a3122a36add0f11704089792893194027ff226f51"
+    }
+  ]
+}

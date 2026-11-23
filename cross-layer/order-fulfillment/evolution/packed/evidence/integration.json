@@ -1,0 +1,1819 @@
+{
+  "passed": true,
+  "generation": "packed",
+  "priorCheckpointsVerified": true,
+  "postgresImage": "postgres:17.10-alpine3.24",
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "conditions": {
+    "conventional": {
+      "baseline": [
+        {
+          "check": "empty details",
+          "status": 200,
+          "body": {
+            "id": "success",
+            "status": "Draft",
+            "reservations": []
+          }
+        },
+        {
+          "check": "empty availability",
+          "status": 200,
+          "body": []
+        },
+        {
+          "check": "not found /orders/unknown",
+          "status": 404,
+          "body": null
+        },
+        {
+          "check": "not found /orders/unknown/details",
+          "status": 404,
+          "body": null
+        },
+        {
+          "check": "not found /orders/unknown/availability",
+          "status": 404,
+          "body": null
+        },
+        {
+          "check": "not found /inventory/unknown",
+          "status": 404,
+          "body": null
+        },
+        {
+          "check": "not found /fulfillment/results/unknown",
+          "status": 404,
+          "body": null
+        },
+        {
+          "check": "missing direct submit",
+          "status": 404,
+          "body": null
+        },
+        {
+          "check": "direct submit",
+          "status": 200,
+          "body": {
+            "id": "direct",
+            "status": "Submitted"
+          }
+        },
+        {
+          "check": "direct reject",
+          "status": 409,
+          "body": {
+            "code": "OrderNotDraft"
+          }
+        },
+        {
+          "check": "direct no reservation",
+          "status": 200,
+          "body": []
+        },
+        {
+          "check": "case sensitive id",
+          "status": 200,
+          "body": {
+            "id": "case-A",
+            "status": "Submitted"
+          }
+        },
+        {
+          "check": "other case preserved",
+          "status": 200,
+          "body": {
+            "id": "case-a",
+            "status": "Draft"
+          }
+        },
+        {
+          "check": "create",
+          "status": 201,
+          "body": {
+            "id": "<created>"
+          }
+        },
+        {
+          "check": "empty request",
+          "status": 400,
+          "body": {
+            "code": "InvalidRequest"
+          }
+        },
+        {
+          "check": "empty order",
+          "status": 400,
+          "body": {
+            "code": "InvalidRequest"
+          }
+        },
+        {
+          "check": "null sku",
+          "status": 400,
+          "body": {
+            "code": "InvalidRequest"
+          }
+        },
+        {
+          "check": "malformed and missing quantities",
+          "status": 400
+        },
+        {
+          "check": "unknown-precedence",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "OrderMissing"
+          }
+        },
+        {
+          "check": "missing-inventory-precedence",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "InventoryMissing"
+          }
+        },
+        {
+          "check": "invalid-zero",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "InvalidQuantity"
+          }
+        },
+        {
+          "check": "invalid-negative",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "InvalidQuantity"
+          }
+        },
+        {
+          "check": "insufficient",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "InsufficientStock"
+          }
+        },
+        {
+          "check": "submitted-stock-precedence",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "InsufficientStock"
+          }
+        },
+        {
+          "check": "submitted-compensation",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "OrderRejected"
+          }
+        },
+        {
+          "check": "existing-match",
+          "status": 200,
+          "body": {
+            "status": "Submitted",
+            "outcome": "ReservedAndSubmitted"
+          }
+        },
+        {
+          "check": "existing-conflict-precedence",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "ReservationConflict"
+          }
+        },
+        {
+          "check": "success-request",
+          "status": 200,
+          "body": {
+            "status": "Submitted",
+            "outcome": "ReservedAndSubmitted"
+          }
+        },
+        {
+          "check": "same-intent-new-request",
+          "status": 200,
+          "body": {
+            "status": "Submitted",
+            "outcome": "ReservedAndSubmitted"
+          }
+        },
+        {
+          "check": "changed request identity",
+          "status": 409,
+          "body": {
+            "code": "RequestIdentityConflict"
+          }
+        },
+        {
+          "check": "success stock",
+          "status": 200,
+          "body": {
+            "sku": "success-sku",
+            "available": 3
+          }
+        },
+        {
+          "check": "compensated stock",
+          "status": 200,
+          "body": {
+            "sku": "submitted-sku",
+            "available": 5
+          }
+        },
+        {
+          "check": "rejected reservations",
+          "status": 200,
+          "body": []
+        },
+        {
+          "check": "success details",
+          "status": 200,
+          "body": {
+            "id": "success",
+            "status": "Submitted",
+            "reservations": [
+              {
+                "id": "success",
+                "sku": "success-sku",
+                "quantity": 2,
+                "availableStock": 3
+              }
+            ]
+          }
+        },
+        {
+          "check": "success availability",
+          "status": 200,
+          "body": [
+            {
+              "reservationId": "success",
+              "sku": "success-sku",
+              "quantity": 2,
+              "availableStock": 3
+            }
+          ]
+        },
+        {
+          "check": "preserved invalid-sku",
+          "status": 200,
+          "body": {
+            "sku": "invalid-sku",
+            "available": 5
+          }
+        },
+        {
+          "check": "preserved insufficient-sku",
+          "status": 200,
+          "body": {
+            "sku": "insufficient-sku",
+            "available": 5
+          }
+        },
+        {
+          "check": "preserved matched-sku",
+          "status": 200,
+          "body": {
+            "sku": "matched-sku",
+            "available": 5
+          }
+        },
+        {
+          "check": "preserved conflict-sku",
+          "status": 200,
+          "body": {
+            "sku": "conflict-sku",
+            "available": 5
+          }
+        },
+        {
+          "check": "preserved unrelated-sku",
+          "status": 200,
+          "body": {
+            "sku": "unrelated-sku",
+            "available": 5
+          }
+        },
+        {
+          "check": "unrelated order",
+          "status": 200,
+          "body": {
+            "id": "unrelated",
+            "status": "Draft"
+          }
+        },
+        {
+          "check": "unicode details",
+          "status": 200,
+          "body": {
+            "id": "unicode",
+            "status": "Submitted",
+            "reservations": [
+              {
+                "id": "\ud800\udc00",
+                "sku": "unrelated-sku",
+                "quantity": 1,
+                "availableStock": 5
+              },
+              {
+                "id": "\ue000",
+                "sku": "unrelated-sku",
+                "quantity": 1,
+                "availableStock": 5
+              }
+            ]
+          }
+        },
+        {
+          "check": "row limit accepted details",
+          "status": 200,
+          "count": 1000
+        },
+        {
+          "check": "row limit exceeded details",
+          "status": 422,
+          "body": {
+            "code": "ReadResultTooLarge"
+          }
+        },
+        {
+          "check": "unicode availability",
+          "status": 200,
+          "body": [
+            {
+              "reservationId": "\ud800\udc00",
+              "sku": "unrelated-sku",
+              "quantity": 1,
+              "availableStock": 5
+            },
+            {
+              "reservationId": "\ue000",
+              "sku": "unrelated-sku",
+              "quantity": 1,
+              "availableStock": 5
+            }
+          ]
+        },
+        {
+          "check": "row limit accepted availability",
+          "status": 200,
+          "count": 1000
+        },
+        {
+          "check": "row limit exceeded availability",
+          "status": 422,
+          "body": {
+            "code": "ReadResultTooLarge"
+          }
+        },
+        {
+          "check": "bytes-details-1000000",
+          "status": 200
+        },
+        {
+          "check": "bytes-details-1000001",
+          "status": 422
+        },
+        {
+          "check": "bytes-availability-1000000",
+          "status": 200
+        },
+        {
+          "check": "bytes-availability-1000001",
+          "status": 422
+        },
+        {
+          "check": "seed not on listener",
+          "status": 404,
+          "body": null
+        }
+      ],
+      "invariants": [
+        {
+          "seed": 17,
+          "commands": 60,
+          "facts": {
+            "inventory": [
+              {
+                "sku": "inv-17-other",
+                "available": 1
+              },
+              {
+                "sku": "inv-17-stock",
+                "available": 0
+              },
+              {
+                "sku": "inv-17-untouched",
+                "available": 11
+              }
+            ],
+            "reservations": [
+              {
+                "id": "inv-17-0",
+                "orderId": "inv-17-0",
+                "sku": "inv-17-stock",
+                "quantity": 3
+              },
+              {
+                "id": "inv-17-1",
+                "orderId": "inv-17-1",
+                "sku": "inv-17-stock",
+                "quantity": 2
+              },
+              {
+                "id": "inv-17-5",
+                "orderId": "inv-17-5",
+                "sku": "inv-17-other",
+                "quantity": 1
+              },
+              {
+                "id": "inv-17-6",
+                "orderId": "inv-17-6",
+                "sku": "inv-17-other",
+                "quantity": 5
+              }
+            ]
+          }
+        },
+        {
+          "seed": 83,
+          "commands": 60,
+          "facts": {
+            "inventory": [
+              {
+                "sku": "inv-83-other",
+                "available": 7
+              },
+              {
+                "sku": "inv-83-stock",
+                "available": 0
+              },
+              {
+                "sku": "inv-83-untouched",
+                "available": 11
+              }
+            ],
+            "reservations": [
+              {
+                "id": "inv-83-0",
+                "orderId": "inv-83-0",
+                "sku": "inv-83-stock",
+                "quantity": 3
+              },
+              {
+                "id": "inv-83-1",
+                "orderId": "inv-83-1",
+                "sku": "inv-83-stock",
+                "quantity": 2
+              }
+            ]
+          }
+        },
+        {
+          "seed": 251,
+          "commands": 60,
+          "facts": {
+            "inventory": [
+              {
+                "sku": "inv-251-other",
+                "available": 5
+              },
+              {
+                "sku": "inv-251-stock",
+                "available": 0
+              },
+              {
+                "sku": "inv-251-untouched",
+                "available": 11
+              }
+            ],
+            "reservations": [
+              {
+                "id": "inv-251-0",
+                "orderId": "inv-251-0",
+                "sku": "inv-251-stock",
+                "quantity": 3
+              },
+              {
+                "id": "inv-251-1",
+                "orderId": "inv-251-1",
+                "sku": "inv-251-stock",
+                "quantity": 2
+              },
+              {
+                "id": "inv-251-4",
+                "orderId": "inv-251-4",
+                "sku": "inv-251-other",
+                "quantity": 2
+              }
+            ]
+          }
+        }
+      ],
+      "visibleE1": [
+        {
+          "check": "limit default",
+          "status": 200,
+          "body": {
+            "sku": "limit-visible",
+            "available": 5,
+            "maxPerOrder": 2147483647
+          }
+        },
+        {
+          "check": "configure limit",
+          "status": 200,
+          "body": {
+            "sku": "limit-visible",
+            "available": 5,
+            "maxPerOrder": 2
+          }
+        },
+        {
+          "check": "visible-over",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "QuantityLimitExceeded"
+          }
+        },
+        {
+          "check": "visible-at",
+          "status": 200,
+          "body": {
+            "status": "Submitted",
+            "outcome": "ReservedAndSubmitted"
+          }
+        },
+        {
+          "check": "rejection preserves stock",
+          "status": 200,
+          "body": {
+            "sku": "limit-visible",
+            "available": 3,
+            "maxPerOrder": 2
+          }
+        }
+      ],
+      "e1": {
+        "commands": 118,
+        "finalFacts": {
+          "orders": [
+            {
+              "id": "e1-0",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-1",
+              "status": "Submitted"
+            },
+            {
+              "id": "e1-2",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-3",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-4",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-5",
+              "status": "Submitted"
+            },
+            {
+              "id": "e1-6",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-7",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-8",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-9",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-10",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-11",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-12",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-13",
+              "status": "Submitted"
+            },
+            {
+              "id": "e1-14",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-15",
+              "status": "Submitted"
+            },
+            {
+              "id": "e1-16",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-17",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-18",
+              "status": "Submitted"
+            },
+            {
+              "id": "e1-19",
+              "status": "Submitted"
+            }
+          ],
+          "inventory": [
+            {
+              "sku": "e1-stock",
+              "available": 6,
+              "maxPerOrder": 1
+            },
+            {
+              "sku": "e1-other",
+              "available": 6,
+              "maxPerOrder": 2
+            },
+            {
+              "sku": "e1-sentinel",
+              "available": 13,
+              "maxPerOrder": 4
+            },
+            {
+              "sku": "e1-max",
+              "available": 0,
+              "maxPerOrder": 2147483647
+            }
+          ],
+          "reservations": [
+            {
+              "id": "e1-1",
+              "orderId": "e1-1",
+              "sku": "e1-stock",
+              "quantity": 2
+            },
+            {
+              "id": "e1-18",
+              "orderId": "e1-18",
+              "sku": "e1-max",
+              "quantity": 2147483647
+            },
+            {
+              "id": "e1-15",
+              "orderId": "e1-15",
+              "sku": "e1-stock",
+              "quantity": 2
+            },
+            {
+              "id": "e1-5",
+              "orderId": "e1-5",
+              "sku": "e1-stock",
+              "quantity": 2
+            },
+            {
+              "id": "e1-13",
+              "orderId": "e1-13",
+              "sku": "e1-other",
+              "quantity": 1
+            }
+          ]
+        },
+        "cleanRestartVerified": true
+      },
+      "visibleE2": [
+        {
+          "check": "cancel draft",
+          "status": 200,
+          "body": {
+            "id": "cancel-visible",
+            "status": "Cancelled"
+          }
+        },
+        {
+          "check": "cancel again",
+          "status": 200,
+          "body": {
+            "id": "cancel-visible",
+            "status": "Cancelled"
+          }
+        },
+        {
+          "check": "submit cancelled",
+          "status": 409,
+          "body": {
+            "code": "OrderCancelled"
+          }
+        },
+        {
+          "check": "cancel-visible-request",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "OrderCancelled"
+          }
+        },
+        {
+          "check": "cancel preserves stock",
+          "status": 200,
+          "body": {
+            "sku": "cancel-visible",
+            "available": 5,
+            "maxPerOrder": 2147483647
+          }
+        }
+      ],
+      "e2": {
+        "commands": 92,
+        "finalFacts": {
+          "orders": [
+            {
+              "id": "e2-0",
+              "status": "Cancelled"
+            },
+            {
+              "id": "e2-1",
+              "status": "Cancelled"
+            },
+            {
+              "id": "e2-2",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-3",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-4",
+              "status": "Draft"
+            },
+            {
+              "id": "e2-5",
+              "status": "Cancelled"
+            },
+            {
+              "id": "e2-6",
+              "status": "Cancelled"
+            },
+            {
+              "id": "e2-7",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-8",
+              "status": "Draft"
+            },
+            {
+              "id": "e2-9",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-10",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-11",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-12",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-13",
+              "status": "Cancelled"
+            },
+            {
+              "id": "e2-14",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-15",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-16",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-17",
+              "status": "Draft"
+            },
+            {
+              "id": "e2-18",
+              "status": "Cancelled"
+            },
+            {
+              "id": "e2-19",
+              "status": "Submitted"
+            }
+          ],
+          "inventory": [
+            {
+              "maxPerOrder": 2147483647,
+              "sku": "e2-stock",
+              "available": 10
+            },
+            {
+              "maxPerOrder": 2,
+              "sku": "e2-other",
+              "available": 1
+            },
+            {
+              "maxPerOrder": 4,
+              "sku": "e2-sentinel",
+              "available": 13
+            },
+            {
+              "maxPerOrder": 2147483647,
+              "sku": "e2-max",
+              "available": 2147483647
+            }
+          ],
+          "reservations": [
+            {
+              "id": "e2-2",
+              "orderId": "e2-2",
+              "sku": "e2-stock",
+              "quantity": 2
+            },
+            {
+              "id": "e2-9",
+              "orderId": "e2-9",
+              "sku": "e2-other",
+              "quantity": 2
+            },
+            {
+              "id": "e2-7",
+              "orderId": "e2-7",
+              "sku": "e2-other",
+              "quantity": 2
+            },
+            {
+              "id": "e2-12",
+              "orderId": "e2-12",
+              "sku": "e2-other",
+              "quantity": 2
+            }
+          ]
+        },
+        "cleanRestartVerified": true
+      },
+      "visiblePACKED": [
+        {
+          "check": "pack",
+          "status": 200,
+          "body": {
+            "id": "packing-example",
+            "status": "Packed"
+          }
+        },
+        {
+          "check": "unpack",
+          "status": 200,
+          "body": {
+            "id": "packing-example",
+            "status": "Submitted"
+          }
+        }
+      ],
+      "packed": {
+        "tableCells": 16,
+        "serializableRaces": 2,
+        "commands": 29,
+        "cleanRestartVerified": true
+      },
+      "buildManifestSha256": "25878fcc09e7dea8488f431ebfd28cd0cbc0541a38938c72f53ae47df3fe42d4"
+    },
+    "cohesive": {
+      "baseline": [
+        {
+          "check": "empty details",
+          "status": 200,
+          "body": {
+            "id": "success",
+            "status": "Draft",
+            "reservations": []
+          }
+        },
+        {
+          "check": "empty availability",
+          "status": 200,
+          "body": []
+        },
+        {
+          "check": "not found /orders/unknown",
+          "status": 404,
+          "body": null
+        },
+        {
+          "check": "not found /orders/unknown/details",
+          "status": 404,
+          "body": null
+        },
+        {
+          "check": "not found /orders/unknown/availability",
+          "status": 404,
+          "body": null
+        },
+        {
+          "check": "not found /inventory/unknown",
+          "status": 404,
+          "body": null
+        },
+        {
+          "check": "not found /fulfillment/results/unknown",
+          "status": 404,
+          "body": null
+        },
+        {
+          "check": "missing direct submit",
+          "status": 404,
+          "body": null
+        },
+        {
+          "check": "direct submit",
+          "status": 200,
+          "body": {
+            "id": "direct",
+            "status": "Submitted"
+          }
+        },
+        {
+          "check": "direct reject",
+          "status": 409,
+          "body": {
+            "code": "OrderNotDraft"
+          }
+        },
+        {
+          "check": "direct no reservation",
+          "status": 200,
+          "body": []
+        },
+        {
+          "check": "case sensitive id",
+          "status": 200,
+          "body": {
+            "id": "case-A",
+            "status": "Submitted"
+          }
+        },
+        {
+          "check": "other case preserved",
+          "status": 200,
+          "body": {
+            "id": "case-a",
+            "status": "Draft"
+          }
+        },
+        {
+          "check": "create",
+          "status": 201,
+          "body": {
+            "id": "<created>"
+          }
+        },
+        {
+          "check": "empty request",
+          "status": 400,
+          "body": {
+            "code": "InvalidRequest"
+          }
+        },
+        {
+          "check": "empty order",
+          "status": 400,
+          "body": {
+            "code": "InvalidRequest"
+          }
+        },
+        {
+          "check": "null sku",
+          "status": 400,
+          "body": {
+            "code": "InvalidRequest"
+          }
+        },
+        {
+          "check": "malformed and missing quantities",
+          "status": 400
+        },
+        {
+          "check": "unknown-precedence",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "OrderMissing"
+          }
+        },
+        {
+          "check": "missing-inventory-precedence",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "InventoryMissing"
+          }
+        },
+        {
+          "check": "invalid-zero",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "InvalidQuantity"
+          }
+        },
+        {
+          "check": "invalid-negative",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "InvalidQuantity"
+          }
+        },
+        {
+          "check": "insufficient",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "InsufficientStock"
+          }
+        },
+        {
+          "check": "submitted-stock-precedence",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "InsufficientStock"
+          }
+        },
+        {
+          "check": "submitted-compensation",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "OrderRejected"
+          }
+        },
+        {
+          "check": "existing-match",
+          "status": 200,
+          "body": {
+            "status": "Submitted",
+            "outcome": "ReservedAndSubmitted"
+          }
+        },
+        {
+          "check": "existing-conflict-precedence",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "ReservationConflict"
+          }
+        },
+        {
+          "check": "success-request",
+          "status": 200,
+          "body": {
+            "status": "Submitted",
+            "outcome": "ReservedAndSubmitted"
+          }
+        },
+        {
+          "check": "same-intent-new-request",
+          "status": 200,
+          "body": {
+            "status": "Submitted",
+            "outcome": "ReservedAndSubmitted"
+          }
+        },
+        {
+          "check": "changed request identity",
+          "status": 409,
+          "body": {
+            "code": "RequestIdentityConflict"
+          }
+        },
+        {
+          "check": "success stock",
+          "status": 200,
+          "body": {
+            "sku": "success-sku",
+            "available": 3
+          }
+        },
+        {
+          "check": "compensated stock",
+          "status": 200,
+          "body": {
+            "sku": "submitted-sku",
+            "available": 5
+          }
+        },
+        {
+          "check": "rejected reservations",
+          "status": 200,
+          "body": []
+        },
+        {
+          "check": "success details",
+          "status": 200,
+          "body": {
+            "id": "success",
+            "status": "Submitted",
+            "reservations": [
+              {
+                "id": "success",
+                "sku": "success-sku",
+                "quantity": 2,
+                "availableStock": 3
+              }
+            ]
+          }
+        },
+        {
+          "check": "success availability",
+          "status": 200,
+          "body": [
+            {
+              "reservationId": "success",
+              "sku": "success-sku",
+              "quantity": 2,
+              "availableStock": 3
+            }
+          ]
+        },
+        {
+          "check": "preserved invalid-sku",
+          "status": 200,
+          "body": {
+            "sku": "invalid-sku",
+            "available": 5
+          }
+        },
+        {
+          "check": "preserved insufficient-sku",
+          "status": 200,
+          "body": {
+            "sku": "insufficient-sku",
+            "available": 5
+          }
+        },
+        {
+          "check": "preserved matched-sku",
+          "status": 200,
+          "body": {
+            "sku": "matched-sku",
+            "available": 5
+          }
+        },
+        {
+          "check": "preserved conflict-sku",
+          "status": 200,
+          "body": {
+            "sku": "conflict-sku",
+            "available": 5
+          }
+        },
+        {
+          "check": "preserved unrelated-sku",
+          "status": 200,
+          "body": {
+            "sku": "unrelated-sku",
+            "available": 5
+          }
+        },
+        {
+          "check": "unrelated order",
+          "status": 200,
+          "body": {
+            "id": "unrelated",
+            "status": "Draft"
+          }
+        },
+        {
+          "check": "unicode details",
+          "status": 200,
+          "body": {
+            "id": "unicode",
+            "status": "Submitted",
+            "reservations": [
+              {
+                "id": "\ud800\udc00",
+                "sku": "unrelated-sku",
+                "quantity": 1,
+                "availableStock": 5
+              },
+              {
+                "id": "\ue000",
+                "sku": "unrelated-sku",
+                "quantity": 1,
+                "availableStock": 5
+              }
+            ]
+          }
+        },
+        {
+          "check": "row limit accepted details",
+          "status": 200,
+          "count": 1000
+        },
+        {
+          "check": "row limit exceeded details",
+          "status": 422,
+          "body": {
+            "code": "ReadResultTooLarge"
+          }
+        },
+        {
+          "check": "unicode availability",
+          "status": 200,
+          "body": [
+            {
+              "reservationId": "\ud800\udc00",
+              "sku": "unrelated-sku",
+              "quantity": 1,
+              "availableStock": 5
+            },
+            {
+              "reservationId": "\ue000",
+              "sku": "unrelated-sku",
+              "quantity": 1,
+              "availableStock": 5
+            }
+          ]
+        },
+        {
+          "check": "row limit accepted availability",
+          "status": 200,
+          "count": 1000
+        },
+        {
+          "check": "row limit exceeded availability",
+          "status": 422,
+          "body": {
+            "code": "ReadResultTooLarge"
+          }
+        },
+        {
+          "check": "bytes-details-1000000",
+          "status": 200
+        },
+        {
+          "check": "bytes-details-1000001",
+          "status": 422
+        },
+        {
+          "check": "bytes-availability-1000000",
+          "status": 200
+        },
+        {
+          "check": "bytes-availability-1000001",
+          "status": 422
+        },
+        {
+          "check": "seed not on listener",
+          "status": 404,
+          "body": null
+        }
+      ],
+      "invariants": [
+        {
+          "seed": 17,
+          "commands": 60,
+          "facts": {
+            "inventory": [
+              {
+                "sku": "inv-17-other",
+                "available": 1
+              },
+              {
+                "sku": "inv-17-stock",
+                "available": 0
+              },
+              {
+                "sku": "inv-17-untouched",
+                "available": 11
+              }
+            ],
+            "reservations": [
+              {
+                "id": "inv-17-0",
+                "orderId": "inv-17-0",
+                "sku": "inv-17-stock",
+                "quantity": 3
+              },
+              {
+                "id": "inv-17-1",
+                "orderId": "inv-17-1",
+                "sku": "inv-17-stock",
+                "quantity": 2
+              },
+              {
+                "id": "inv-17-5",
+                "orderId": "inv-17-5",
+                "sku": "inv-17-other",
+                "quantity": 1
+              },
+              {
+                "id": "inv-17-6",
+                "orderId": "inv-17-6",
+                "sku": "inv-17-other",
+                "quantity": 5
+              }
+            ]
+          }
+        },
+        {
+          "seed": 83,
+          "commands": 60,
+          "facts": {
+            "inventory": [
+              {
+                "sku": "inv-83-other",
+                "available": 7
+              },
+              {
+                "sku": "inv-83-stock",
+                "available": 0
+              },
+              {
+                "sku": "inv-83-untouched",
+                "available": 11
+              }
+            ],
+            "reservations": [
+              {
+                "id": "inv-83-0",
+                "orderId": "inv-83-0",
+                "sku": "inv-83-stock",
+                "quantity": 3
+              },
+              {
+                "id": "inv-83-1",
+                "orderId": "inv-83-1",
+                "sku": "inv-83-stock",
+                "quantity": 2
+              }
+            ]
+          }
+        },
+        {
+          "seed": 251,
+          "commands": 60,
+          "facts": {
+            "inventory": [
+              {
+                "sku": "inv-251-other",
+                "available": 5
+              },
+              {
+                "sku": "inv-251-stock",
+                "available": 0
+              },
+              {
+                "sku": "inv-251-untouched",
+                "available": 11
+              }
+            ],
+            "reservations": [
+              {
+                "id": "inv-251-0",
+                "orderId": "inv-251-0",
+                "sku": "inv-251-stock",
+                "quantity": 3
+              },
+              {
+                "id": "inv-251-1",
+                "orderId": "inv-251-1",
+                "sku": "inv-251-stock",
+                "quantity": 2
+              },
+              {
+                "id": "inv-251-4",
+                "orderId": "inv-251-4",
+                "sku": "inv-251-other",
+                "quantity": 2
+              }
+            ]
+          }
+        }
+      ],
+      "visibleE1": [
+        {
+          "check": "limit default",
+          "status": 200,
+          "body": {
+            "sku": "limit-visible",
+            "available": 5,
+            "maxPerOrder": 2147483647
+          }
+        },
+        {
+          "check": "configure limit",
+          "status": 200,
+          "body": {
+            "sku": "limit-visible",
+            "available": 5,
+            "maxPerOrder": 2
+          }
+        },
+        {
+          "check": "visible-over",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "QuantityLimitExceeded"
+          }
+        },
+        {
+          "check": "visible-at",
+          "status": 200,
+          "body": {
+            "status": "Submitted",
+            "outcome": "ReservedAndSubmitted"
+          }
+        },
+        {
+          "check": "rejection preserves stock",
+          "status": 200,
+          "body": {
+            "sku": "limit-visible",
+            "available": 3,
+            "maxPerOrder": 2
+          }
+        }
+      ],
+      "e1": {
+        "commands": 118,
+        "finalFacts": {
+          "orders": [
+            {
+              "id": "e1-0",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-1",
+              "status": "Submitted"
+            },
+            {
+              "id": "e1-2",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-3",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-4",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-5",
+              "status": "Submitted"
+            },
+            {
+              "id": "e1-6",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-7",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-8",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-9",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-10",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-11",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-12",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-13",
+              "status": "Submitted"
+            },
+            {
+              "id": "e1-14",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-15",
+              "status": "Submitted"
+            },
+            {
+              "id": "e1-16",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-17",
+              "status": "Draft"
+            },
+            {
+              "id": "e1-18",
+              "status": "Submitted"
+            },
+            {
+              "id": "e1-19",
+              "status": "Submitted"
+            }
+          ],
+          "inventory": [
+            {
+              "sku": "e1-stock",
+              "available": 6,
+              "maxPerOrder": 1
+            },
+            {
+              "sku": "e1-other",
+              "available": 6,
+              "maxPerOrder": 2
+            },
+            {
+              "sku": "e1-sentinel",
+              "available": 13,
+              "maxPerOrder": 4
+            },
+            {
+              "sku": "e1-max",
+              "available": 0,
+              "maxPerOrder": 2147483647
+            }
+          ],
+          "reservations": [
+            {
+              "id": "e1-1",
+              "orderId": "e1-1",
+              "sku": "e1-stock",
+              "quantity": 2
+            },
+            {
+              "id": "e1-18",
+              "orderId": "e1-18",
+              "sku": "e1-max",
+              "quantity": 2147483647
+            },
+            {
+              "id": "e1-15",
+              "orderId": "e1-15",
+              "sku": "e1-stock",
+              "quantity": 2
+            },
+            {
+              "id": "e1-5",
+              "orderId": "e1-5",
+              "sku": "e1-stock",
+              "quantity": 2
+            },
+            {
+              "id": "e1-13",
+              "orderId": "e1-13",
+              "sku": "e1-other",
+              "quantity": 1
+            }
+          ]
+        },
+        "cleanRestartVerified": true
+      },
+      "visibleE2": [
+        {
+          "check": "cancel draft",
+          "status": 200,
+          "body": {
+            "id": "cancel-visible",
+            "status": "Cancelled"
+          }
+        },
+        {
+          "check": "cancel again",
+          "status": 200,
+          "body": {
+            "id": "cancel-visible",
+            "status": "Cancelled"
+          }
+        },
+        {
+          "check": "submit cancelled",
+          "status": 409,
+          "body": {
+            "code": "OrderCancelled"
+          }
+        },
+        {
+          "check": "cancel-visible-request",
+          "status": 200,
+          "body": {
+            "status": "Rejected",
+            "outcome": "OrderCancelled"
+          }
+        },
+        {
+          "check": "cancel preserves stock",
+          "status": 200,
+          "body": {
+            "sku": "cancel-visible",
+            "available": 5,
+            "maxPerOrder": 2147483647
+          }
+        }
+      ],
+      "e2": {
+        "commands": 92,
+        "finalFacts": {
+          "orders": [
+            {
+              "id": "e2-0",
+              "status": "Cancelled"
+            },
+            {
+              "id": "e2-1",
+              "status": "Cancelled"
+            },
+            {
+              "id": "e2-2",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-3",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-4",
+              "status": "Draft"
+            },
+            {
+              "id": "e2-5",
+              "status": "Cancelled"
+            },
+            {
+              "id": "e2-6",
+              "status": "Cancelled"
+            },
+            {
+              "id": "e2-7",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-8",
+              "status": "Draft"
+            },
+            {
+              "id": "e2-9",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-10",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-11",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-12",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-13",
+              "status": "Cancelled"
+            },
+            {
+              "id": "e2-14",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-15",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-16",
+              "status": "Submitted"
+            },
+            {
+              "id": "e2-17",
+              "status": "Draft"
+            },
+            {
+              "id": "e2-18",
+              "status": "Cancelled"
+            },
+            {
+              "id": "e2-19",
+              "status": "Submitted"
+            }
+          ],
+          "inventory": [
+            {
+              "maxPerOrder": 2147483647,
+              "sku": "e2-stock",
+              "available": 10
+            },
+            {
+              "maxPerOrder": 2,
+              "sku": "e2-other",
+              "available": 1
+            },
+            {
+              "maxPerOrder": 4,
+              "sku": "e2-sentinel",
+              "available": 13
+            },
+            {
+              "maxPerOrder": 2147483647,
+              "sku": "e2-max",
+              "available": 2147483647
+            }
+          ],
+          "reservations": [
+            {
+              "id": "e2-2",
+              "orderId": "e2-2",
+              "sku": "e2-stock",
+              "quantity": 2
+            },
+            {
+              "id": "e2-9",
+              "orderId": "e2-9",
+              "sku": "e2-other",
+              "quantity": 2
+            },
+            {
+              "id": "e2-7",
+              "orderId": "e2-7",
+              "sku": "e2-other",
+              "quantity": 2
+            },
+            {
+              "id": "e2-12",
+              "orderId": "e2-12",
+              "sku": "e2-other",
+              "quantity": 2
+            }
+          ]
+        },
+        "cleanRestartVerified": true
+      },
+      "visiblePACKED": [
+        {
+          "check": "pack",
+          "status": 200,
+          "body": {
+            "id": "packing-example",
+            "status": "Packed"
+          }
+        },
+        {
+          "check": "unpack",
+          "status": 200,
+          "body": {
+            "id": "packing-example",
+            "status": "Submitted"
+          }
+        }
+      ],
+      "packed": {
+        "tableCells": 16,
+        "serializableRaces": 2,
+        "commands": 29,
+        "cleanRestartVerified": true
+      },
+      "buildManifestSha256": "15981bba402a13ff52b42079500d304680ab1c29b8243c422f0a8b4e632907da"
+    }
+  }
+}

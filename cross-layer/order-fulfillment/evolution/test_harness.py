@@ -17,6 +17,11 @@ class SharedHarnessTests(unittest.TestCase):
         self.assertEqual([p['name'] for p in selected_profiles('e3')], ['e1', 'e2', 'e3'])
         self.assertEqual([p['name'] for p in selected_profiles('e3', True)], ['e3'])
 
+    def test_packing_retains_cancellation_without_quarantine(self):
+        """Packing branches from G2 and inherits its public inventory shape."""
+        self.assertEqual(harness.ancestry('packed'), ['e1', 'e2', 'packed'])
+        self.assertEqual(inventory_fields('packed'), inventory_fields('e2'))
+
     def test_only_intended_behavioral_failure_earns_credit(self):
         good = {'kind': 'behavioral', 'obligation': 'E2-02', 'assertion': 'cancelled fulfillment'}
         self.assertTrue(detected(1, good, 'E2-02', 'cancelled fulfillment'))
@@ -48,7 +53,7 @@ class SharedHarnessTests(unittest.TestCase):
         self.assertEqual(adapt_inventory({**value, 'note': None}, nullable), value)
         with self.assertRaises(AssertionError):
             adapt_inventory(value, nullable)
-        addition = {'future': {'inventoryFields': {'tagged': {'column': 'tagged', 'neutral': False}}}}
+        addition = {'future': {'parent': 'e3', 'inventoryFields': {'tagged': {'column': 'tagged', 'neutral': False}}}}
         with patch.dict(harness.PROFILE_CONFIG, addition), patch.object(harness, 'GENERATIONS', (*harness.GENERATIONS, 'future')):
             hidden = newer_inventory_fields('future', 'e3')
             self.assertEqual(adapt_inventory({**value, 'tagged': False}, hidden), value)
@@ -57,7 +62,7 @@ class SharedHarnessTests(unittest.TestCase):
 
     def test_all_generation_mutations_have_one_anchor(self):
         with tempfile.TemporaryDirectory() as directory:
-            for generation in ('e1', 'e2', 'e3'):
+            for generation in harness.GENERATIONS:
                 p = profile(generation)
                 refs = p['build'].materialize(Path(directory) / generation)
                 for condition in ('conventional', 'cohesive'):

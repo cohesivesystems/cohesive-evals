@@ -1,0 +1,356 @@
+diff --git a/CONTRACT.md b/CONTRACT.md
+index 46c977f..24027bf 100644
+--- a/CONTRACT.md
++++ b/CONTRACT.md
+@@ -174,3 +174,13 @@ without reseeding. Order status, inventory settings and reservation facts must
+ survive. Check new commands with fresh request IDs afterward. Admission
+ and result history remain host-lifetime only; recovery of pending work, durable
+ request replay and live schema migration are not required.
++
++## Packing a submitted order
++
++POST /orders/{id}/pack moves Submitted to Packed. POST /orders/{id}/unpack moves
++Packed to Submitted. Either accepts a repeat in its destination state. Ignore the
++request body. Return the current order summary with 200, an empty 404 for a missing
++order, or 409 with code OrderNotPackable or OrderNotUnpackable from Draft or
++Cancelled. Packing only changes status. From Packed, submit and cancel conflict
++with OrderNotDraft and OrderNotCancellable. Fulfillment retains its G2 precedence,
++compensation and completed-request replay. Concurrent commands must match a serial ordering.
+diff --git a/schemas.json b/schemas.json
+index b709c8e..1864590 100644
+--- a/schemas.json
++++ b/schemas.json
+@@ -27,7 +27,8 @@
+           "enum": [
+             "Draft",
+             "Submitted",
+-            "Cancelled"
++            "Cancelled",
++            "Packed"
+           ]
+         }
+       },
+@@ -241,7 +242,8 @@
+           "enum": [
+             "Draft",
+             "Submitted",
+-            "Cancelled"
++            "Cancelled",
++            "Packed"
+           ]
+         },
+         "reservations": {
+@@ -299,6 +301,8 @@
+             "OrderNotDraft",
+             "RequestIdentityConflict",
+             "OrderCancelled",
++            "OrderNotPackable",
++            "OrderNotUnpackable",
+             "OrderNotCancellable"
+           ]
+         }
+@@ -322,5 +326,5 @@
+     }
+   },
+   "$comment": "Details and availability responses are limited to 1,000,000 serialized UTF-8 bytes; see CONTRACT.md for escaping and HTTP 422 behavior.",
+-  "$id": "https://cohesive.systems/fulfillment/contracts/v1/G2/schemas.json"
++  "$id": "https://cohesive.systems/fulfillment/contracts/v1/packed/schemas.json"
+ }
+diff --git a/seed.schema.json b/seed.schema.json
+index 0641ae7..2d510f2 100644
+--- a/seed.schema.json
++++ b/seed.schema.json
+@@ -1,6 +1,6 @@
+ {
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+-  "$id": "https://cohesive.systems/fulfillment/contracts/v1/G2/seed.schema.json",
++  "$id": "https://cohesive.systems/fulfillment/contracts/v1/packed/seed.schema.json",
+   "title": "Application provisioning input",
+   "type": "object",
+   "properties": {
+@@ -42,7 +42,8 @@
+           "enum": [
+             "Draft",
+             "Submitted",
+-            "Cancelled"
++            "Cancelled",
++            "Packed"
+           ]
+         }
+       },
+diff --git a/src/Fulfillment.Application/Contracts.cs b/src/Fulfillment.Application/Contracts.cs
+index 923cf69..9aaeb3d 100644
+--- a/src/Fulfillment.Application/Contracts.cs
++++ b/src/Fulfillment.Application/Contracts.cs
+@@ -20,8 +20,7 @@ public interface IFulfillmentBackend
+     Task<InventoryView?> GetInventory(string sku);
+     Task<OrderDetailsView?> GetDetails(string id);
+     Task<Completion> Fulfill(string operationId, FulfillmentRequest request);
+-    void MapSubmit(WebApplication app);
+-    void MapCancel(WebApplication app);
++    void MapLifecycle(WebApplication app);
+     void MapInventoryLimits(WebApplication app);
+ }
+ 
+@@ -33,7 +32,7 @@ public sealed record SeedData(SeedOrder[] Orders, SeedInventory[] Inventory, See
+     public void Validate()
+     {
+         if (Orders is null || Inventory is null || Reservations is null
+-            || Orders.Any(x => string.IsNullOrWhiteSpace(x.Id) || x.Status is not ("Draft" or "Submitted" or "Cancelled"))
++            || Orders.Any(x => string.IsNullOrWhiteSpace(x.Id) || x.Status is not ("Draft" or "Submitted" or "Cancelled" or "Packed"))
+             || Inventory.Any(x => string.IsNullOrWhiteSpace(x.Sku) || x.Available < 0 || x.MaxPerOrder <= 0)
+             || Reservations.Any(x => string.IsNullOrWhiteSpace(x.Id) || string.IsNullOrWhiteSpace(x.OrderId) || string.IsNullOrWhiteSpace(x.Sku) || x.Quantity <= 0))
+             throw new ArgumentException("Invalid seed data.");
+diff --git a/src/Fulfillment.Application/Domain.cs b/src/Fulfillment.Application/Domain.cs
+index 8dd3085..0af9e30 100644
+--- a/src/Fulfillment.Application/Domain.cs
++++ b/src/Fulfillment.Application/Domain.cs
+@@ -1,26 +1,31 @@
+ namespace Fulfillment.Application;
+ 
+-public enum OrderStatus { Draft, Submitted, Cancelled }
+-public sealed record Order(string Id, OrderStatus Status);
++public enum OrderStatus { Draft, Submitted, Cancelled, Packed }
++public sealed record Order(string Id, OrderStatus Status)
++{
++    public Order? Apply(OrderCommand command)
++    {
++        var machine = new Stateless.StateMachine<OrderStatus, OrderCommand>(Status);
++        machine.Configure(OrderStatus.Draft)
++            .Permit(OrderCommand.Submit, OrderStatus.Submitted)
++            .Permit(OrderCommand.Cancel, OrderStatus.Cancelled);
++        machine.Configure(OrderStatus.Submitted)
++            .Permit(OrderCommand.Pack, OrderStatus.Packed)
++            .Ignore(OrderCommand.Unpack);
++        machine.Configure(OrderStatus.Packed)
++            .Permit(OrderCommand.Unpack, OrderStatus.Submitted)
++            .Ignore(OrderCommand.Pack);
++        machine.Configure(OrderStatus.Cancelled).Ignore(OrderCommand.Cancel);
++        if (!machine.CanFire(command)) return null;
++        machine.Fire(command);
++        return this with { Status = machine.State };
++    }
++}
+ public sealed record InventoryItem(string Sku, int Available, int MaxPerOrder = int.MaxValue);
+ public sealed record Reservation(string Id, string OrderId, string Sku, int Quantity);
+-public enum SubmissionOutcome { Submitted, NotDraft, OrderCancelled }
+-public enum CancellationOutcome { Cancelled, NotCancellable }
++public enum OrderCommand { Submit, Cancel, Pack, Unpack }
+ public enum StockOutcome { Reserved, Released, InvalidQuantity, QuantityLimitExceeded, InsufficientStock }
+ 
+-public static class OrderRules
+-{
+-    public static (Order State, SubmissionOutcome Outcome) Submit(Order order) =>
+-        order.Status == OrderStatus.Draft
+-            ? (order with { Status = OrderStatus.Submitted }, SubmissionOutcome.Submitted)
+-            : (order, order.Status == OrderStatus.Cancelled ? SubmissionOutcome.OrderCancelled : SubmissionOutcome.NotDraft);
+-
+-    public static (Order State, CancellationOutcome Outcome) Cancel(Order order) =>
+-        order.Status is OrderStatus.Draft or OrderStatus.Cancelled
+-            ? (order with { Status = OrderStatus.Cancelled }, CancellationOutcome.Cancelled)
+-            : (order, CancellationOutcome.NotCancellable);
+-}
+-
+ public static class InventoryRules
+ {
+     public static (InventoryItem State, StockOutcome Outcome) Reserve(InventoryItem item, int quantity) =>
+diff --git a/src/Fulfillment.Application/Fulfillment.Application.csproj b/src/Fulfillment.Application/Fulfillment.Application.csproj
+index c317543..1bceb6e 100644
+--- a/src/Fulfillment.Application/Fulfillment.Application.csproj
++++ b/src/Fulfillment.Application/Fulfillment.Application.csproj
+@@ -1 +1 @@
+-<Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup><AssemblyName>Fulfillment.Application</AssemblyName><RootNamespace>Fulfillment.Application</RootNamespace></PropertyGroup><ItemGroup><PackageReference Include="Npgsql" Version="[10.0.3]" /></ItemGroup></Project>
++<Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup><AssemblyName>Fulfillment.Application</AssemblyName><RootNamespace>Fulfillment.Application</RootNamespace></PropertyGroup><ItemGroup><PackageReference Include="Npgsql" Version="[10.0.3]" /><PackageReference Include="Stateless" Version="[5.21.0]" /></ItemGroup></Project>
+diff --git a/src/Fulfillment.Application/FulfillmentBackend.cs b/src/Fulfillment.Application/FulfillmentBackend.cs
+index 0be68da..f19c4ae 100644
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -13,23 +13,28 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+         await store.SetLimit(sku, QuantityLimitInput.Get(context).MaxPerOrder) is { } item
+             ? Results.Ok(item) : Results.NotFound()).AddEndpointFilter<QuantityLimitInput>();
+     public Task<OrderDetailsView?> GetDetails(string id) => store.Details(id);
+-    public void MapSubmit(WebApplication app) => app.MapPost("/orders/{id}/submit", async (string id) =>
+-        await store.Submit(id) switch
+-        {
+-            null => Results.NotFound(),
+-            SubmissionOutcome.Submitted => Results.Ok(new OrderSummary(id, "Submitted")),
+-            SubmissionOutcome.OrderCancelled => Results.Conflict(new ErrorResponse("OrderCancelled")),
+-            SubmissionOutcome.NotDraft => Results.Conflict(new ErrorResponse("OrderNotDraft")),
+-            _ => throw new InvalidOperationException("Unknown submission outcome.")
+-        });
++    public void MapLifecycle(WebApplication app)
++    {
++        MapOrderCommand(app, "/orders/{id}/submit", OrderCommand.Submit);
++        MapOrderCommand(app, "/orders/{id}/cancel", OrderCommand.Cancel);
++        MapOrderCommand(app, "/orders/{id}/pack", OrderCommand.Pack);
++        MapOrderCommand(app, "/orders/{id}/unpack", OrderCommand.Unpack);
++    }
+ 
+-    public void MapCancel(WebApplication app) => app.MapPost("/orders/{id}/cancel", async (string id) =>
+-        await store.Cancel(id) switch
++    void MapOrderCommand(WebApplication app, string path, OrderCommand command) =>
++        app.MapPost(path, async (string id) => await store.Apply(id, command) switch
+         {
+             null => Results.NotFound(),
+-            CancellationOutcome.Cancelled => Results.Ok(new OrderSummary(id, "Cancelled")),
+-            CancellationOutcome.NotCancellable => Results.Conflict(new ErrorResponse("OrderNotCancellable")),
+-            _ => throw new InvalidOperationException("Unknown cancellation outcome.")
++            { Accepted: true, State: var state } => Results.Ok(new OrderSummary(id, state.Status.ToString())),
++            var rejected => Results.Conflict(new ErrorResponse(command switch
++            {
++                OrderCommand.Submit when rejected.State.Status == OrderStatus.Cancelled => "OrderCancelled",
++                OrderCommand.Submit => "OrderNotDraft",
++                OrderCommand.Cancel => "OrderNotCancellable",
++                OrderCommand.Pack => "OrderNotPackable",
++                OrderCommand.Unpack => "OrderNotUnpackable",
++                _ => throw new ArgumentOutOfRangeException(nameof(command))
++            }))
+         });
+ 
+     public async Task<Completion> Fulfill(string operationId, FulfillmentRequest request)
+@@ -44,14 +49,14 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+         if (await store.Inventory(request.Sku) is null) return Reject("InventoryMissing");
+         var reserved = await store.Stock(request.Sku, request.Quantity, false, operationId + "/reserve");
+         if (reserved != StockOutcome.Reserved) return FulfillmentResults.FromStock(reserved);
+-        var submitted = await store.Submit(request.OrderId, operationId + "/submit");
+-        if (submitted == SubmissionOutcome.Submitted)
++        var submitted = await store.Apply(request.OrderId, OrderCommand.Submit, operationId + "/submit");
++        if (submitted is { Accepted: true })
+         {
+             await store.CreateReservation(new(request.OrderId, request.OrderId, request.Sku, request.Quantity), operationId + "/reservation");
+             return new("Submitted", "ReservedAndSubmitted");
+         }
+         await store.Stock(request.Sku, request.Quantity, true, operationId + "/release");
+-        return FulfillmentResults.FromSubmission(submitted);
++        return Reject(submitted?.State.Status == OrderStatus.Cancelled ? "OrderCancelled" : "OrderRejected");
+     }
+ }
+ 
+diff --git a/src/Fulfillment.Application/FulfillmentResults.cs b/src/Fulfillment.Application/FulfillmentResults.cs
+index 2cbb33d..df80a09 100644
+--- a/src/Fulfillment.Application/FulfillmentResults.cs
++++ b/src/Fulfillment.Application/FulfillmentResults.cs
+@@ -10,11 +10,4 @@ public static class FulfillmentResults
+         StockOutcome.InsufficientStock => "InsufficientStock",
+         _ => throw new InvalidOperationException("Unexpected stock rejection.")
+     });
+-
+-    public static Completion FromSubmission(SubmissionOutcome? outcome) => new("Rejected", outcome switch
+-    {
+-        SubmissionOutcome.OrderCancelled => "OrderCancelled",
+-        SubmissionOutcome.NotDraft => "OrderRejected",
+-        _ => throw new InvalidOperationException("Unexpected submission rejection.")
+-    });
+ }
+diff --git a/src/Fulfillment.Application/OrderStore.cs b/src/Fulfillment.Application/OrderStore.cs
+index 5389910..9fe7db1 100644
+--- a/src/Fulfillment.Application/OrderStore.cs
++++ b/src/Fulfillment.Application/OrderStore.cs
+@@ -8,7 +8,13 @@ public sealed class OrderStore(NpgsqlDataSource database)
+     public async Task Initialize()
+     {
+         await using var command = database.CreateCommand("""
+-            CREATE TABLE IF NOT EXISTS orders(id text COLLATE "C" PRIMARY KEY, status text NOT NULL CHECK(status IN ('Draft','Submitted','Cancelled')));
++            CREATE TABLE IF NOT EXISTS orders(id text COLLATE "C" PRIMARY KEY, status text NOT NULL CONSTRAINT orders_lifecycle_status CHECK(status IN ('Draft','Submitted','Cancelled','Packed')));
++            DO $migration$ BEGIN
++                IF EXISTS (SELECT FROM pg_constraint WHERE conrelid='orders'::regclass AND conname='orders_status_check') THEN
++                    ALTER TABLE orders DROP CONSTRAINT orders_status_check,
++                        ADD CONSTRAINT orders_lifecycle_status CHECK (status IN ('Draft','Submitted','Cancelled','Packed'));
++                END IF;
++            END $migration$;
+             CREATE TABLE IF NOT EXISTS inventory(sku text COLLATE "C" PRIMARY KEY, available integer NOT NULL CHECK(available >= 0), max_per_order integer NOT NULL DEFAULT 2147483647 CHECK(max_per_order > 0));
+             CREATE TABLE IF NOT EXISTS reservations(id text COLLATE "C" PRIMARY KEY, order_id text COLLATE "C" NOT NULL REFERENCES orders(id),
+                 sku text COLLATE "C" NOT NULL REFERENCES inventory(sku), quantity integer NOT NULL CHECK(quantity > 0));
+@@ -88,43 +94,22 @@ public sealed class OrderStore(NpgsqlDataSource database)
+         }
+         await transaction.CommitAsync(); return result;
+     }
+-    public Task<SubmissionOutcome?> Submit(string id, string? key = null) => Step<SubmissionOutcome?>(key, id, async (connection, transaction) =>
++    public Task<OrderDecision?> Apply(string id, OrderCommand trigger, string? key = null) =>
++        Step<OrderDecision?>(key, id, async (connection, transaction) =>
+     {
+-        Order order;
+-        await using (var command = new NpgsqlCommand("SELECT status FROM orders WHERE id=$1 FOR UPDATE", connection, transaction))
++        await using var read = new NpgsqlCommand("SELECT status FROM orders WHERE id=$1 FOR UPDATE", connection, transaction);
++        read.Parameters.AddWithValue(id);
++        if (await read.ExecuteScalarAsync() is not string status) return null;
++        var order = new Order(id, Enum.Parse<OrderStatus>(status));
++        var next = order.Apply(trigger);
++        if (next is not null && next != order)
+         {
+-            command.Parameters.AddWithValue(id); var status = await command.ExecuteScalarAsync();
+-            if (status is null) return null;
+-            order = new(id, Enum.Parse<OrderStatus>((string)status));
++            await using var write = new NpgsqlCommand("UPDATE orders SET status=$2 WHERE id=$1", connection, transaction);
++            write.Parameters.AddWithValue(id);
++            write.Parameters.AddWithValue(next.Status.ToString());
++            await write.ExecuteNonQueryAsync();
+         }
+-        var decision = OrderRules.Submit(order);
+-        if (decision.Outcome == SubmissionOutcome.Submitted)
+-        {
+-            await using var command = new NpgsqlCommand("UPDATE orders SET status=$2 WHERE id=$1", connection, transaction);
+-            command.Parameters.AddWithValue(id); command.Parameters.AddWithValue(decision.State.Status.ToString());
+-            await command.ExecuteNonQueryAsync();
+-        }
+-        return decision.Outcome;
+-    });
+-    public Task<CancellationOutcome?> Cancel(string id) => Step<CancellationOutcome?>(null, id, async (connection, transaction) =>
+-    {
+-        Order order;
+-        await using (var command = new NpgsqlCommand("SELECT status FROM orders WHERE id=$1 FOR UPDATE", connection, transaction))
+-        {
+-            command.Parameters.AddWithValue(id);
+-            var status = await command.ExecuteScalarAsync();
+-            if (status is null) return null;
+-            order = new(id, Enum.Parse<OrderStatus>((string)status));
+-        }
+-        var decision = OrderRules.Cancel(order);
+-        if (decision.State != order)
+-        {
+-            await using var command = new NpgsqlCommand("UPDATE orders SET status=$2 WHERE id=$1", connection, transaction);
+-            command.Parameters.AddWithValue(id);
+-            command.Parameters.AddWithValue(decision.State.Status.ToString());
+-            await command.ExecuteNonQueryAsync();
+-        }
+-        return decision.Outcome;
++        return new OrderDecision(next ?? order, next is not null);
+     });
+     public Task<StockOutcome> Stock(string sku, int quantity, bool release, string key) =>
+         Step(key, JsonSerializer.Serialize(new { sku, quantity, release }), async (connection, transaction) =>
+@@ -152,3 +137,5 @@ public sealed class OrderStore(NpgsqlDataSource database)
+         await command.ExecuteNonQueryAsync(); return true;
+     });
+ }
++
++public sealed record OrderDecision(Order State, bool Accepted);
+diff --git a/src/Fulfillment.Application/Program.cs b/src/Fulfillment.Application/Program.cs
+index 62a2b52..49c7cc8 100644
+--- a/src/Fulfillment.Application/Program.cs
++++ b/src/Fulfillment.Application/Program.cs
+@@ -49,7 +49,6 @@ app.MapGet("/orders/{id}/availability", async (string id, IFulfillmentBackend ba
+         : Results.NotFound());
+ app.MapPost("/fulfillment", (FulfillmentRequest request, OperationQueue queue) => queue.Admit(request));
+ app.MapGet("/fulfillment/results/{operationId}", (string operationId, OperationQueue queue) => queue.Result(operationId));
+-app.Services.GetRequiredService<IFulfillmentBackend>().MapSubmit(app);
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapInventoryLimits(app);
+-app.Services.GetRequiredService<IFulfillmentBackend>().MapCancel(app);
++app.Services.GetRequiredService<IFulfillmentBackend>().MapLifecycle(app);
+ await app.RunAsync();
+diff --git a/src/Fulfillment.Application/packages.lock.json b/src/Fulfillment.Application/packages.lock.json
+index c2c2719..41c99b2 100644
+--- a/src/Fulfillment.Application/packages.lock.json
++++ b/src/Fulfillment.Application/packages.lock.json
+@@ -7,6 +7,12 @@
+         "requested": "[10.0.3, 10.0.3]",
+         "resolved": "10.0.3",
+         "contentHash": "7nb5YzXuvWWJxB0J8DiyL3we+X4FOctZrt0fIBnucOIaIevFEEwGQVZKtiu9olXdlNAK1eNgqSral6r/jlhI4w=="
++      },
++      "Stateless": {
++        "type": "Direct",
++        "requested": "[5.21.0, 5.21.0]",
++        "resolved": "5.21.0",
++        "contentHash": "cGu7h9sZWPQAWk4smHoXsHl9tVZB53q4vEQo6if5lk0aooEZrkGlL3/+D8bxw+QRsUBDD00ybxFUFmnuwKG6qA=="
+       }
+     }
+   }
