@@ -108,7 +108,7 @@ def grade(output):
                 directory = output / condition / name
                 directory.mkdir(parents=True)
                 record = {'condition': condition, 'candidate': name, 'runs': []}
-                path = None
+                original = None
                 try:
                     if control:
                         delta = control[condition]
@@ -131,13 +131,24 @@ def grade(output):
                 except Exception as error:
                     record['setupError'] = repr(error)
                 finally:
-                    if path is not None:
+                    if original is not None:
                         path.write_text(original)
                 results.append(record)
                 write_json(output / 'results.json', results)
                 print(condition, name, [r['outcome'] for r in record['runs']], record.get('setupError', ''), flush=True)
                 if not control and [r['outcome'] for r in record['runs']] != ['pass', 'pass']:
                     break  # A suite without a valid reference run cannot earn mutation credit.
+
+    complete = len(results) == len(CONDITIONS) * (len(controls) + 1)
+    for record in results:
+        outcomes = [attempt['outcome'] for attempt in record['runs']]
+        allowed = [['pass', 'pass']]
+        if record['candidate'] != 'reference':
+            allowed.append(['named-failure', 'named-failure'])
+        if record.get('setupError') or outcomes not in allowed:
+            complete = False
+    if not complete:
+        raise RuntimeError(f'Incomplete or inconsistent grading; inspect {output / "results.json"}')
 
 
 if __name__ == '__main__':
