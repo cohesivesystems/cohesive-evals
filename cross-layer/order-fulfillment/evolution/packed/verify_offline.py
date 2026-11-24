@@ -34,6 +34,12 @@ def verify(fixtures, output):
             if observed['accepted'] or 'transitions.compilation.machine.coverage' not in observed['diagnostics']:
                 raise AssertionError(('machine coverage diagnostic', observed))
             results['cohesiveCoverageControl'] = observed
+            raw = subprocess.check_output(['dotnet', 'run', '--no-build', '--project', str(project),
+                                           '--', '--pack-movements'], cwd=project.parent)
+            movements = json.loads(raw)
+            if movements != [{'state': 'Submitted', 'edge': 'pack'}, {'state': 'Packed', 'edge': 'pack-again'}]:
+                raise AssertionError(('pack movement evidence', movements))
+            results['cohesivePackMovements'] = movements
     output.write_text(json.dumps(results, indent=2) + '\n')
 
 

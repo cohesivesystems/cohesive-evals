@@ -11,9 +11,9 @@ def mutations(condition):
     table = 'orders' if conventional else 'cohesive_orders'
     inventory = 'inventory' if conventional else 'cohesive_inventory'
     domain = 'Domain.cs' if conventional else 'FulfillmentDomain.cs'
-    draft = '.Permit(OrderCommand.Submit, OrderStatus.Submitted)' if conventional else 'machine.Edge("pack").From(submitted)'
+    draft = '.Permit(OrderCommand.Submit, OrderStatus.Submitted)' if conventional else 'Pack.Edge().From(submitted)'
     wrong_draft = draft + '\n            .Permit(OrderCommand.Pack, OrderStatus.Packed)' if conventional else draft.replace('From(submitted)', 'From(draft)')
-    unpack = '.Permit(OrderCommand.Unpack, OrderStatus.Submitted)' if conventional else 'machine.Edge("unpack").From(packed).To(submitted)'
+    unpack = '.Permit(OrderCommand.Unpack, OrderStatus.Submitted)' if conventional else 'Unpack.Edge().From(packed).To(submitted)'
     wrong_unpack = unpack.replace('OrderStatus.Submitted', 'OrderStatus.Draft') if conventional else unpack.replace('To(submitted)', 'To(draft)')
     anchor = 'HostSetup.Configure(app);'
     lose_packed = f'''

@@ -169,5 +169,15 @@
       "transitions.compilation.machine.configurationMismatch",
       "transitions.compilation.machine.coverage"
     ]
-  }
+  },
+  "cohesivePackMovements": [
+    {
+      "state": "Submitted",
+      "edge": "pack"
+    },
+    {
+      "state": "Packed",
+      "edge": "pack-again"
+    }
+  ]
 }

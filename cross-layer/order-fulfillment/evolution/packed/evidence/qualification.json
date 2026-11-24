@@ -8,7 +8,7 @@
       "passed": true,
       "obligation": null,
       "assertion": null,
-      "buildManifestSha256": "c7f7f262a10f3e1462a547a1b74f17de16ffeb90f99222e56ce58cd39b04d8c3"
+      "buildManifestSha256": "223b90b19877bee55eeb3540a20cfe4baa6b9e4a35ddfc634e286358f1b56c38"
     },
     {
       "condition": "conventional",
@@ -16,7 +16,7 @@
       "passed": true,
       "obligation": "lifecycle",
       "assertion": "Draft pack",
-      "buildManifestSha256": "12ff25b197263f09c19735390b298fa8f462d8fa20c3ec46a66c951c28d6ccc8"
+      "buildManifestSha256": "3db06b8ee1d580609aace6a6614c78abfdefb9d61aea462329ce805cab76b579"
     },
     {
       "condition": "conventional",
@@ -24,7 +24,7 @@
       "passed": true,
       "obligation": "lifecycle",
       "assertion": "Packed unpack",
-      "buildManifestSha256": "11f2d84c52ad52a99997fe001543510f4b4b2585e1543d831320d0a28e165d4a"
+      "buildManifestSha256": "023bdc58af95b37a2b5b7aa9f11ccd7a61289bcd0b03746139b259f9c1b38b07"
     },
     {
       "condition": "conventional",
@@ -32,7 +32,7 @@
       "passed": true,
       "obligation": "lifecycle",
       "assertion": "packed survives restart",
-      "buildManifestSha256": "66a291912ea213c9fd93e399c9c53f394b0026e8f67e727822e4665a6f7f5ada"
+      "buildManifestSha256": "3ae9a0b83bb675e4fdbbaf85e7aaff29fa9ea1566566b5acca6abf052d5443b2"
     },
     {
       "condition": "conventional",
@@ -40,7 +40,7 @@
       "passed": true,
       "obligation": "lifecycle",
       "assertion": "stock and reservation preservation",
-      "buildManifestSha256": "cfb0b4bd9dde0994d51d9b9d1184d927cb2c8b74902abd72addebea233f51618"
+      "buildManifestSha256": "0f9de32a07fb303f14a97172cf1514641542f98b45c0f1b31027f97b2e56b7ee"
     },
     {
       "condition": "cohesive",
@@ -48,7 +48,7 @@
       "passed": true,
       "obligation": null,
       "assertion": null,
-      "buildManifestSha256": "849739cd8ef5f691c39577597c9d4fc557008d8d83190f653920b7bdc097022a"
+      "buildManifestSha256": "fd5811447fdf9ca2a43fd1df8299c1bbd461e41bdaf411cfba4b881020ac3eca"
     },
     {
       "condition": "cohesive",
@@ -56,7 +56,7 @@
       "passed": true,
       "obligation": "lifecycle",
       "assertion": "Draft pack",
-      "buildManifestSha256": "bf027903eb010b811ae459ae8cd6eb383da515858bd6569c999098126f27edbf"
+      "buildManifestSha256": "2f00e656ccc8a486c7eef70a48f4c76533e5281f519792552f4e2fff7ffd971b"
     },
     {
       "condition": "cohesive",
@@ -64,7 +64,7 @@
       "passed": true,
       "obligation": "lifecycle",
       "assertion": "Packed unpack",
-      "buildManifestSha256": "9d852dedb6d7d28ce4be527375fa6939fe14214d616074812c1e153f5f5ee084"
+      "buildManifestSha256": "ffd215f4bd1a153c7002022e62df06a9cd2a73615879dd2c6c818d72edcae788"
     },
     {
       "condition": "cohesive",
@@ -72,7 +72,7 @@
       "passed": true,
       "obligation": "lifecycle",
       "assertion": "packed survives restart",
-      "buildManifestSha256": "6953dc7aa4d0883e6f18203a1eb218d0bc693ed31d5701b557dae327e08a5ee7"
+      "buildManifestSha256": "b73839b49d67127d1b51a3f21d12159ece7b97421fba1cd32b6a6481b03dd001"
     },
     {
       "condition": "cohesive",
@@ -80,7 +80,7 @@
       "passed": true,
       "obligation": "lifecycle",
       "assertion": "stock and reservation preservation",
-      "buildManifestSha256": "866719dcffba2c323f3ca13a3122a36add0f11704089792893194027ff226f51"
+      "buildManifestSha256": "93ec9fa7fbcc7ff20bdb122951ba6561ffe51c7648d7ed1dfc8d0d3acfd77fbd"
     }
   ]
 }
