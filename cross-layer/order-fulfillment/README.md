@@ -109,3 +109,5 @@ The [model-assisted verification probe (MV1)](probes/model-verification/README.m
 reuses production reservation logic offline in both conditions. Its
 [implementation and qualification](probes/model-verification/implementation.md) compares
 ordinary and model-assisted input generation against independent assertions and paired faults.
+
+The [Packed order lifecycle pilot](evolution/packed/README.md) compares a Stateless aggregate with a Cohesive machine-bound entity, including offline and PostgreSQL-backed verification.

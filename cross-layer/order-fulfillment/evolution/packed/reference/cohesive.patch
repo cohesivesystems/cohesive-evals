@@ -1,0 +1,635 @@
+diff --git a/CONTRACT.md b/CONTRACT.md
+index 46c977f..24027bf 100644
+--- a/CONTRACT.md
++++ b/CONTRACT.md
+@@ -174,3 +174,13 @@ without reseeding. Order status, inventory settings and reservation facts must
+ survive. Check new commands with fresh request IDs afterward. Admission
+ and result history remain host-lifetime only; recovery of pending work, durable
+ request replay and live schema migration are not required.
++
++## Packing a submitted order
++
++POST /orders/{id}/pack moves Submitted to Packed. POST /orders/{id}/unpack moves
++Packed to Submitted. Either accepts a repeat in its destination state. Ignore the
++request body. Return the current order summary with 200, an empty 404 for a missing
++order, or 409 with code OrderNotPackable or OrderNotUnpackable from Draft or
++Cancelled. Packing only changes status. From Packed, submit and cancel conflict
++with OrderNotDraft and OrderNotCancellable. Fulfillment retains its G2 precedence,
++compensation and completed-request replay. Concurrent commands must match a serial ordering.
+diff --git a/schemas.json b/schemas.json
+index b709c8e..1864590 100644
+--- a/schemas.json
++++ b/schemas.json
+@@ -27,7 +27,8 @@
+           "enum": [
+             "Draft",
+             "Submitted",
+-            "Cancelled"
++            "Cancelled",
++            "Packed"
+           ]
+         }
+       },
+@@ -241,7 +242,8 @@
+           "enum": [
+             "Draft",
+             "Submitted",
+-            "Cancelled"
++            "Cancelled",
++            "Packed"
+           ]
+         },
+         "reservations": {
+@@ -299,6 +301,8 @@
+             "OrderNotDraft",
+             "RequestIdentityConflict",
+             "OrderCancelled",
++            "OrderNotPackable",
++            "OrderNotUnpackable",
+             "OrderNotCancellable"
+           ]
+         }
+@@ -322,5 +326,5 @@
+     }
+   },
+   "$comment": "Details and availability responses are limited to 1,000,000 serialized UTF-8 bytes; see CONTRACT.md for escaping and HTTP 422 behavior.",
+-  "$id": "https://cohesive.systems/fulfillment/contracts/v1/G2/schemas.json"
++  "$id": "https://cohesive.systems/fulfillment/contracts/v1/packed/schemas.json"
+ }
+diff --git a/seed.schema.json b/seed.schema.json
+index 0641ae7..2d510f2 100644
+--- a/seed.schema.json
++++ b/seed.schema.json
+@@ -1,6 +1,6 @@
+ {
+   "$schema": "https://json-schema.org/draft/2020-12/schema",
+-  "$id": "https://cohesive.systems/fulfillment/contracts/v1/G2/seed.schema.json",
++  "$id": "https://cohesive.systems/fulfillment/contracts/v1/packed/seed.schema.json",
+   "title": "Application provisioning input",
+   "type": "object",
+   "properties": {
+@@ -42,7 +42,8 @@
+           "enum": [
+             "Draft",
+             "Submitted",
+-            "Cancelled"
++            "Cancelled",
++            "Packed"
+           ]
+         }
+       },
+diff --git a/src/Fulfillment.Application/Contracts.cs b/src/Fulfillment.Application/Contracts.cs
+index 923cf69..9aaeb3d 100644
+--- a/src/Fulfillment.Application/Contracts.cs
++++ b/src/Fulfillment.Application/Contracts.cs
+@@ -20,8 +20,7 @@ public interface IFulfillmentBackend
+     Task<InventoryView?> GetInventory(string sku);
+     Task<OrderDetailsView?> GetDetails(string id);
+     Task<Completion> Fulfill(string operationId, FulfillmentRequest request);
+-    void MapSubmit(WebApplication app);
+-    void MapCancel(WebApplication app);
++    void MapLifecycle(WebApplication app);
+     void MapInventoryLimits(WebApplication app);
+ }
+ 
+@@ -33,7 +32,7 @@ public sealed record SeedData(SeedOrder[] Orders, SeedInventory[] Inventory, See
+     public void Validate()
+     {
+         if (Orders is null || Inventory is null || Reservations is null
+-            || Orders.Any(x => string.IsNullOrWhiteSpace(x.Id) || x.Status is not ("Draft" or "Submitted" or "Cancelled"))
++            || Orders.Any(x => string.IsNullOrWhiteSpace(x.Id) || x.Status is not ("Draft" or "Submitted" or "Cancelled" or "Packed"))
+             || Inventory.Any(x => string.IsNullOrWhiteSpace(x.Sku) || x.Available < 0 || x.MaxPerOrder <= 0)
+             || Reservations.Any(x => string.IsNullOrWhiteSpace(x.Id) || string.IsNullOrWhiteSpace(x.OrderId) || string.IsNullOrWhiteSpace(x.Sku) || x.Quantity <= 0))
+             throw new ArgumentException("Invalid seed data.");
+diff --git a/src/Fulfillment.Application/Fulfillment.Application.csproj b/src/Fulfillment.Application/Fulfillment.Application.csproj
+index 88a4712..bc2a237 100644
+--- a/src/Fulfillment.Application/Fulfillment.Application.csproj
++++ b/src/Fulfillment.Application/Fulfillment.Application.csproj
+@@ -1,5 +1,5 @@
+ <Project Sdk="Microsoft.NET.Sdk.Web"><PropertyGroup><AssemblyName>Fulfillment.Application</AssemblyName><RootNamespace>Fulfillment.Application</RootNamespace></PropertyGroup><ItemGroup><PackageReference Include="Npgsql" Version="[10.0.3]" /></ItemGroup><ItemGroup>
+-<PackageReference Include="Cohesive.Adapters.Postgres.Services" Version="[0.1.0-eval.b0af008]" />
+-<PackageReference Include="Cohesive.Adapters.AspNet" Version="[0.1.0-eval.b0af008]" />
+-<PackageReference Include="Cohesive.Analyzers" Version="[0.1.0-eval.b0af008]" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
++<PackageReference Include="Cohesive.Adapters.Postgres.Services" Version="[0.1.0-eval.54e9910b]" />
++<PackageReference Include="Cohesive.Adapters.AspNet" Version="[0.1.0-eval.54e9910b]" />
++<PackageReference Include="Cohesive.Analyzers" Version="[0.1.0-eval.54e9910b]" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+ </ItemGroup></Project>
+diff --git a/src/Fulfillment.Application/FulfillmentBackend.cs b/src/Fulfillment.Application/FulfillmentBackend.cs
+index 7465bcc..6ce6631 100644
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -95,24 +95,44 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+         return result is null ? null : new(result.Id, result.Status.ToString(), result.Reservations
+             .OrderBy(r => r.Id, StringComparer.Ordinal).Select(r => new ReservationView(r.Id, r.Sku, r.Quantity, r.AvailableStock)).ToArray());
+     }
+-    public void MapCancel(WebApplication app)
++    public void MapLifecycle(WebApplication app)
+     {
+-        app.MapGroup("").MapEntityApi<Order>(domain.Orders.Definition, orders, "local", bindings => bindings
+-            .Transition("Cancel", "/orders/{id}/cancel", domain.OrderTransitions.Cancel)
++        var commands = app.MapGroup("").AddEndpointFilter(RetryConcurrentOrderCommand);
++        commands.MapEntityApi<Order>(domain.Orders.Definition, orders, "local", bindings =>
++        {
++            bindings.Transition("Cancel", "/orders/{id}/cancel", domain.OrderTransitions.Cancel)
+             .OnApplied((state, _) => TypedResults.Ok(new OrderSummary(state.Id, state.Status.ToString())))
+-            .OnRejected(_ => TypedResults.Conflict(new ErrorResponse("OrderNotCancellable"))));
+-    }
+-    public void MapSubmit(WebApplication app)
+-    {
+-        app.MapGroup("").MapEntityApi<Order>(domain.Orders.Definition, orders, "local", bindings => bindings
+-            .Transition("Submit", "/orders/{id}/submit", domain.OrderTransitions.Submit)
++            .OnRejected(_ => TypedResults.Conflict(new ErrorResponse("OrderNotCancellable")));
++            bindings.Transition("Pack", "/orders/{id}/pack", domain.OrderTransitions.Pack)
++            .OnApplied((state, _) => TypedResults.Ok(new OrderSummary(state.Id, state.Status.ToString())))
++            .OnRejected(_ => TypedResults.Conflict(new ErrorResponse("OrderNotPackable")));
++            bindings.Transition("Unpack", "/orders/{id}/unpack", domain.OrderTransitions.Unpack)
++            .OnApplied((state, _) => TypedResults.Ok(new OrderSummary(state.Id, state.Status.ToString())))
++            .OnRejected(_ => TypedResults.Conflict(new ErrorResponse("OrderNotUnpackable")));
++            bindings.Transition("Submit", "/orders/{id}/submit", domain.OrderTransitions.Submit)
+             .OnApplied((state, _) => TypedResults.Ok(new OrderSummary(state.Id, state.Status.ToString())))
+             .OnRejected(result => TypedResults.Conflict(new ErrorResponse(result.Outcome switch
+             {
+                 SubmissionOutcome.OrderCancelled => "OrderCancelled",
+                 SubmissionOutcome.NotDraft => "OrderNotDraft",
+                 _ => throw new InvalidOperationException("Unexpected submission rejection.")
+-            }))));
++            })));
++        });
++    }
++
++    // These bodyless commands can safely rerun the decision after a failed compare-and-swap.
++    // Retry only the SDK's pre-commit concurrency result; never retry a domain rejection.
++    static async ValueTask<object?> RetryConcurrentOrderCommand(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
++    {
++        while (true)
++        {
++            context.HttpContext.RequestAborted.ThrowIfCancellationRequested();
++            var result = await next(context);
++            if (result is not Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult problem ||
++                !problem.ProblemDetails.Extensions.TryGetValue("code", out var code) ||
++                !Equals(code, ApiProblemCodes.ConcurrencyConflict))
++                return result;
++        }
+     }
+ 
+     public async Task<Completion> Fulfill(string operationId, FulfillmentRequest request)
+diff --git a/src/Fulfillment.Application/FulfillmentDomain.cs b/src/Fulfillment.Application/FulfillmentDomain.cs
+index 44cd048..e48919f 100644
+--- a/src/Fulfillment.Application/FulfillmentDomain.cs
++++ b/src/Fulfillment.Application/FulfillmentDomain.cs
+@@ -3,6 +3,9 @@ using Cohesive.Transitions.Authoring;
+ using Cohesive.Transitions.Model;
+ using Cohesive.Relations.Authoring;
+ using Cohesive.Execution;
++using Cohesive.Machines;
++using Cohesive.Transitions.Machines;
++using Cohesive.Prelude;
+ using Cohesive.Model.Serialization;
+ using Cohesive.Processes.Authoring;
+ using Cohesive.Processes.IR;
+@@ -21,11 +24,12 @@ public sealed class FulfillmentDomain : DomainModel
+     /// <summary>Declares the shared entities and their canonical references.</summary>
+     public FulfillmentDomain() : base(revision: "6")
+     {
+-        (Orders, Inventory, Reservations) = Discover(DomainDiscovery.For<FulfillmentDomain>(),
++        var lifecycle = new OrderLifecycle();
++        (Orders, Inventory, Reservations) = Discover(DomainDiscovery.For<FulfillmentDomain>().WithMachine(lifecycle.Binding),
+             entities => (entities.Entity<Order>(), entities.Entity<InventoryItem>(), entities.Entity<Reservation>()));
+         ReservationOrder = Reservations.References(reservation => reservation.OrderId, Orders);
+         ReservationItem = Reservations.References(reservation => reservation.Sku, Inventory);
+-        OrderTransitions = new(Orders);
++        OrderTransitions = new(Orders, lifecycle);
+         InventoryTransitions = new(Inventory);
+         ReservationTransitions = new(Reservations);
+     }
+@@ -94,7 +98,8 @@ public enum OrderStatus
+     /// <summary>Order has been submitted.</summary>
+     [JsonStringEnumMemberName("Submitted")] Submitted,
+     /// <summary>Terminal cancelled order.</summary>
+-    [JsonStringEnumMemberName("Cancelled")] Cancelled
++    [JsonStringEnumMemberName("Cancelled")] Cancelled,
++    [JsonStringEnumMemberName("Packed")] Packed
+ }
+ 
+ /// <summary>Closed submission outcomes, independent of transport messages and status codes.</summary>
+@@ -118,32 +123,60 @@ public enum CancellationOutcome { Cancelled, NotCancellable }
+ /// <param name="Outcome">Stable closed outcome; presentation text belongs to the API projection.</param>
+ public sealed record SubmitOrderResult(OrderStatus Status, SubmissionOutcome Outcome, FulfillmentOutcome FulfillmentOutcome);
+ 
+-/// <summary>POCO-authored order lifecycle; preparation belongs to application binding.</summary>
++public sealed class OrderLifecycle
++{
++    public MachineDiscriminatorBinding<Order, OrderStatus> Binding { get; }
++    public MachineMovement Submit { get; }
++    public MachineAction Cancel { get; }
++    public MachineAction Pack { get; }
++    public MachineAction Unpack { get; }
++
++    public OrderLifecycle()
++    {
++        var machine = Machine.Define("order.lifecycle", "1");
++        var draft = machine.State(nameof(OrderStatus.Draft)).Initial();
++        var submitted = machine.State(nameof(OrderStatus.Submitted));
++        var packed = machine.State(nameof(OrderStatus.Packed));
++        var cancelled = machine.State(nameof(OrderStatus.Cancelled));
++        Submit = machine.Edge("submit").From(draft).To(submitted);
++        Cancel = machine.Action("cancel");
++        Cancel.Edge().From(draft).To(cancelled);
++        Cancel.Edge("cancel-again").From(cancelled).To(cancelled);
++        Pack = machine.Action("pack");
++        Pack.Edge().From(submitted).To(packed);
++        Pack.Edge("pack-again").From(packed).To(packed);
++        Unpack = machine.Action("unpack");
++        Unpack.Edge().From(packed).To(submitted);
++        Unpack.Edge("unpack-again").From(submitted).To(submitted);
++        Binding = new MachineDiscriminatorBinding<Order, OrderStatus>(machine.Build(), order => order.Status)
++            .Map(draft, OrderStatus.Draft).Map(submitted, OrderStatus.Submitted)
++            .Map(packed, OrderStatus.Packed).Map(cancelled, OrderStatus.Cancelled);
++    }
++}
++
+ public sealed class OrderTransitions
+ {
+     /// <summary>Only draft orders may be submitted; a rejected decision produces no commit.</summary>
+     public Transition<Order, Cohesive.Prelude.Unit, SubmitOrderResult> Submit { get; }
+     public Transition<Order, Cohesive.Prelude.Unit, CancellationOutcome> Cancel { get; }
+ 
+-    /// <summary>Declares guarded order operations against the supplied entity.</summary>
+-    /// <param name="orders">Canonical order entity authority.</param>
+-    public OrderTransitions(DomainEntity<Order> orders)
++    public Transition<Order, Unit, bool> Pack { get; }
++    public Transition<Order, Unit, bool> Unpack { get; }
++
++    public OrderTransitions(DomainEntity<Order> orders, OrderLifecycle lifecycle)
+     {
+-        Cancel = orders.Transition<CancellationOutcome>(
+-            id: new("example/order/cancel"), revision: new("1"),
+-            transition => transition
+-                .Requires(order => order.Status == OrderStatus.Draft || order.Status == OrderStatus.Cancelled,
+-                    _ => CancellationOutcome.NotCancellable)
+-                .Set(order => order.Status, OrderStatus.Cancelled)
+-                .Return(CancellationOutcome.Cancelled));
+-        Submit = orders.Transition<SubmitOrderResult>(
+-            id: new("example/order/submit"), revision: new("6"),
+-            transition => transition
+-                .Requires(order => order.Status != OrderStatus.Cancelled, order => new SubmitOrderResult(order.Status, SubmissionOutcome.OrderCancelled, FulfillmentOutcome.OrderCancelled))
+-                .Requires(order => order.Status == OrderStatus.Draft, order => new SubmitOrderResult(order.Status, SubmissionOutcome.NotDraft, FulfillmentOutcome.OrderRejected))
+-                .Set(order => order.Status, OrderStatus.Submitted)
+-                .Return(new SubmitOrderResult(OrderStatus.Submitted, SubmissionOutcome.Submitted, FulfillmentOutcome.ReservedAndSubmitted))
+-            );
++        Cancel = orders.Transition<CancellationOutcome>(new("example/order/cancel"), new("3"), t => t
++            .Move(lifecycle.Cancel, (_, _) => CancellationOutcome.NotCancellable)
++            .Return(CancellationOutcome.Cancelled));
++        Pack = orders.Transition<bool>(new("example/order/pack"), new("3"), t => t
++            .Move(lifecycle.Pack, (_, _) => false).Return(true));
++        Unpack = orders.Transition<bool>(new("example/order/unpack"), new("3"), t => t
++            .Move(lifecycle.Unpack, (_, _) => false).Return(true));
++        Submit = orders.Transition<SubmitOrderResult>(new("example/order/submit"), new("7"), t => t
++            .Requires(order => order.Status != OrderStatus.Cancelled, order => new SubmitOrderResult(order.Status, SubmissionOutcome.OrderCancelled, FulfillmentOutcome.OrderCancelled))
++            .Move(lifecycle.Submit, (order, _) => new SubmitOrderResult(order.Status, SubmissionOutcome.NotDraft, FulfillmentOutcome.OrderRejected))
++            .Return(new SubmitOrderResult(OrderStatus.Submitted, SubmissionOutcome.Submitted, FulfillmentOutcome.ReservedAndSubmitted)));
++
+     }
+ }
+ 
+diff --git a/src/Fulfillment.Application/Program.cs b/src/Fulfillment.Application/Program.cs
+index 62a2b52..49c7cc8 100644
+--- a/src/Fulfillment.Application/Program.cs
++++ b/src/Fulfillment.Application/Program.cs
+@@ -49,7 +49,6 @@ app.MapGet("/orders/{id}/availability", async (string id, IFulfillmentBackend ba
+         : Results.NotFound());
+ app.MapPost("/fulfillment", (FulfillmentRequest request, OperationQueue queue) => queue.Admit(request));
+ app.MapGet("/fulfillment/results/{operationId}", (string operationId, OperationQueue queue) => queue.Result(operationId));
+-app.Services.GetRequiredService<IFulfillmentBackend>().MapSubmit(app);
+ app.Services.GetRequiredService<IFulfillmentBackend>().MapInventoryLimits(app);
+-app.Services.GetRequiredService<IFulfillmentBackend>().MapCancel(app);
++app.Services.GetRequiredService<IFulfillmentBackend>().MapLifecycle(app);
+ await app.RunAsync();
+diff --git a/src/Fulfillment.Application/packages.lock.json b/src/Fulfillment.Application/packages.lock.json
+index 1bfeb4e..b935352 100644
+--- a/src/Fulfillment.Application/packages.lock.json
++++ b/src/Fulfillment.Application/packages.lock.json
+@@ -4,36 +4,36 @@
+     "net10.0": {
+       "Cohesive.Adapters.AspNet": {
+         "type": "Direct",
+-        "requested": "[0.1.0-eval.b0af008, 0.1.0-eval.b0af008]",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "LIXQo4n0rKmKzR1Nh3YAvxRtAHqcCAlJqZstH1T6Wty/2cpIJiWojxrjoUpLHG6jUjIAO/I8EDzjVPG8u8c6Gw==",
++        "requested": "[0.1.0-eval.54e9910b, 0.1.0-eval.54e9910b]",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "FSB7So5oSz+Tm8nX1w5q0iu2sNsaWzJMh02YnJvay8F4K6XIcPxI5RtkY1vxIRCoVDkattBnf4aI0ma7SunN0Q==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Api": "0.1.0-eval.b0af008",
+-          "Cohesive.Api.Execution": "0.1.0-eval.b0af008",
+-          "Cohesive.Application": "0.1.0-eval.b0af008",
+-          "Cohesive.Host": "0.1.0-eval.b0af008",
+-          "Cohesive.Identity": "0.1.0-eval.b0af008",
+-          "Cohesive.Processes": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Storage": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.54e9910b",
++          "Cohesive.Api": "0.1.0-eval.54e9910b",
++          "Cohesive.Api.Execution": "0.1.0-eval.54e9910b",
++          "Cohesive.Application": "0.1.0-eval.54e9910b",
++          "Cohesive.Host": "0.1.0-eval.54e9910b",
++          "Cohesive.Identity": "0.1.0-eval.54e9910b",
++          "Cohesive.Processes": "0.1.0-eval.54e9910b",
++          "Cohesive.Relations": "0.1.0-eval.54e9910b",
++          "Cohesive.Storage": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Adapters.Postgres.Services": {
+         "type": "Direct",
+-        "requested": "[0.1.0-eval.b0af008, 0.1.0-eval.b0af008]",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "jRKBD/LjfgMV3es36NRA3lQ/KItqkuBiHDtiG2JSZwaYLQN4kQ2YhRfl3SzN42iF39FuLv4TBFuIFFoUJfkkuQ==",
++        "requested": "[0.1.0-eval.54e9910b, 0.1.0-eval.54e9910b]",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "n9T53YbcAWedUP5awEy95o99jFJdykJxQzFATfmPxZxZNoMtgggZx0VHQhHbG56FoqWbpKTqbgbuyflRA996MQ==",
+         "dependencies": {
+-          "Cohesive.Adapters.Postgres.Infra": "0.1.0-eval.b0af008",
+-          "Cohesive.Api.Execution": "0.1.0-eval.b0af008"
++          "Cohesive.Adapters.Postgres.Infra": "0.1.0-eval.54e9910b",
++          "Cohesive.Api.Execution": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Analyzers": {
+         "type": "Direct",
+-        "requested": "[0.1.0-eval.b0af008, 0.1.0-eval.b0af008]",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "kysgeKYzUxnNLQuq4+q5hu4xxXZ6PqCpG2ICU0xuPT4Ln/9OakIW0LB6pzzBzY6pEiMTLp2HDmu5BwRcH0Phrw=="
++        "requested": "[0.1.0-eval.54e9910b, 0.1.0-eval.54e9910b]",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "VxA5bffUtrX5QioXlFgoT8XvT5veDi8rJim4NoI5m+yELKCN7XwM1kFSSPKL7jrp+ZkCbOT6GoI6mHquoEyV0w=="
+       },
+       "Npgsql": {
+         "type": "Direct",
+@@ -43,181 +43,181 @@
+       },
+       "Cohesive": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "3FKv7smqCvQhzyVhUlU/+FkeZtNiMWFt5IPPjmBWQ7iwPHbIz45ah/mSfmeQfFAzrXBRMRMRFVRaJig9ttIaPg==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "42IaHjqKZn2eD57yb8wkl9yChznY5t1mFsnqxcRYsDjJ1aVdk+qQfQAAv6YQCx38G93n3RW8KlF3ukkoZ1D5Yw==",
+         "dependencies": {
+           "Microsoft.Extensions.AsyncState": "10.0.0"
+         }
+       },
+       "Cohesive.Adapters.Postgres": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "Yr+7k4dfApG3lxrmxC0hxqR3Iy4oB9S2d6H3LmPK8Lnn6yPdX+mlEsqDqJC2P2vhvfUPJPLWhimbp5FtrUSaiQ==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "spcG+2UVNQ8tXjBsBcl1EL82OTPX6TU6DuuxEgYvHt5+q3uesd6vwZ6cdfgrColudDoSIWhQF35823Q6raIqCw==",
+         "dependencies": {
+-          "Cohesive.Adapters.Sql": "0.1.0-eval.b0af008",
+-          "Cohesive.Processes.Distribution": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Storage": "0.1.0-eval.b0af008",
++          "Cohesive.Adapters.Sql": "0.1.0-eval.54e9910b",
++          "Cohesive.Processes.Distribution": "0.1.0-eval.54e9910b",
++          "Cohesive.Relations": "0.1.0-eval.54e9910b",
++          "Cohesive.Storage": "0.1.0-eval.54e9910b",
+           "Npgsql": "10.0.3"
+         }
+       },
+       "Cohesive.Adapters.Postgres.Infra": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "x8E053eUSkJBBrsLXTW9E1jYj9rHeI6dw2kmBkh6K3igDMgER/F0Lrjs6YpNOyyHe4MMOGT49V5I2X0+s1BD4Q==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "zC0QQOJtKjM6mgQG+lDq0bFjT+chr0MKZDOkJb2aTPL6Eo7Gsqd07PqANN3618NRjQyMP5Y7kzEV4W4z5mNaGw==",
+         "dependencies": {
+-          "Cohesive.Adapters.Postgres": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations.Infra": "0.1.0-eval.b0af008"
++          "Cohesive.Adapters.Postgres": "0.1.0-eval.54e9910b",
++          "Cohesive.Relations.Infra": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Adapters.Sql": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "7rTjLFostPg/PZBuDn8dpCRMVmp6viFsVW6gGx+63ooxaeJXXDP6JbgrBz1xzx00pOT/UoYIOr+kJWEal3MBYQ==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "rycDCYS7NQX2EzBnQxrnjWnILvvnGdXmSxwD43pn1N/lFSfYZ9lvGBDeRJ6lLmEPOcKkXl/HkK+kVF7QbIGL3A==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Api": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "4q3PnT6xiBqguYmcajjQGZRPDHGzAms2oT5/aAvBe9iO59Pe/Csq/ut+daiZsOQ5vJkjmv0eu/cwozRQE8S+bA==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "+HRCKVBoIc8g8biCfkgo6V4ucp0qmeoaSFnWt/gfeZamJAq0GIq0q7tX25ppjnhHOFBEVxZjbeoO3wOgfRMe/A==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Transitions": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.54e9910b",
++          "Cohesive.Relations": "0.1.0-eval.54e9910b",
++          "Cohesive.Transitions": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Api.Execution": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "iMWpwkBRciMTVwLz6XUf9dIYwARRLTuQoj4JdJq/jdKyJSM+Apw8M97sgX/E4wci/sf6BGg2E/xUGDBtQ+gWJQ==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "t/SLoglu7XnlyTMUa6m+JoBrgcdGFx59pLFDlzDfvcrMM9uyX+tmyTA9e298nnE2N52UqPbY1LPfDCxJYy5tPw==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Api": "0.1.0-eval.b0af008",
+-          "Cohesive.Identity": "0.1.0-eval.b0af008",
+-          "Cohesive.Processes": "0.1.0-eval.b0af008",
+-          "Cohesive.Storage": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.54e9910b",
++          "Cohesive.Api": "0.1.0-eval.54e9910b",
++          "Cohesive.Identity": "0.1.0-eval.54e9910b",
++          "Cohesive.Processes": "0.1.0-eval.54e9910b",
++          "Cohesive.Storage": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Application": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "cH6p9+0wuxmDX0Yh4b5Dbg06fZT3TF5v7ZWpXEyY066ZhFYA1TvMUWvsyu6TV1NKoxJft9YDwSHQyq7cWU3mUQ==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "3BsDRfWvWjIMUdln8RQ4EdHOPggH0C4DBfYWVDOtU87oC5h42clhleBBtvlwXz/whadcg7jXCpt1RlqLeDN5nA==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Api.Execution": "0.1.0-eval.b0af008",
+-          "Cohesive.Infra": "0.1.0-eval.b0af008",
+-          "Cohesive.Processes": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Storage": "0.1.0-eval.b0af008",
+-          "Cohesive.Transitions": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.54e9910b",
++          "Cohesive.Api.Execution": "0.1.0-eval.54e9910b",
++          "Cohesive.Infra": "0.1.0-eval.54e9910b",
++          "Cohesive.Processes": "0.1.0-eval.54e9910b",
++          "Cohesive.Relations": "0.1.0-eval.54e9910b",
++          "Cohesive.Storage": "0.1.0-eval.54e9910b",
++          "Cohesive.Transitions": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Cli": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "VRFSHojVW7lvqDzoGVgSqsqyq8ueQANpgSOZELGzaoSYrCI9Lc/kbKustyRDD4eZL0IWCp2GHLPssQ1LgE61CA==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "PQtQBKcFoSgmESmgZwbqIdStUH8VxvhMUDa98yCaNmDczQYRH/yaSo56ZRMWT3V6u847oStlysxM0hQjvMRTPg==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Configuration": "0.1.0-eval.b0af008",
++          "Cohesive": "0.1.0-eval.54e9910b",
++          "Cohesive.Configuration": "0.1.0-eval.54e9910b",
+           "System.CommandLine": "2.0.5"
+         }
+       },
+       "Cohesive.Configuration": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "YRDjSBE7sVVSEJjbJ9QkCV8t4NuJlH7XyLv+mBaM6ivCJ5Pf3oiuXOepNOzuqbRpM9vYcXS5llJkbjAilsPl3A==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "rgwyYjlS1GnPVnm92lM6eEfmdeiHGKPoG6HV3Te5xjl7buJRMgPFiXoxXRhgXLBuqwIiTsAug5JzJMZ4x5pIOw==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Host": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "g5oVxtoOfuILdfw28cHQdf0NwAu2cVNE4bHHZFavEiQyOODgJ/d6h3kTMRAL9/rCPtGPxgCNzqEL0/Lo04adsA==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "CqiF5NF63s7SPlHHIjOWTNtXur6F1zsfz0pmU5QrAGLaBDxztx8OH74SwTKPfP2j2Qunr6LWzmu+egYPjK3CfA==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Api.Execution": "0.1.0-eval.b0af008",
+-          "Cohesive.Cli": "0.1.0-eval.b0af008",
+-          "Cohesive.Configuration": "0.1.0-eval.b0af008",
+-          "Cohesive.Processes": "0.1.0-eval.b0af008",
+-          "Cohesive.Storage": "0.1.0-eval.b0af008",
++          "Cohesive": "0.1.0-eval.54e9910b",
++          "Cohesive.Api.Execution": "0.1.0-eval.54e9910b",
++          "Cohesive.Cli": "0.1.0-eval.54e9910b",
++          "Cohesive.Configuration": "0.1.0-eval.54e9910b",
++          "Cohesive.Processes": "0.1.0-eval.54e9910b",
++          "Cohesive.Storage": "0.1.0-eval.54e9910b",
+           "System.CommandLine": "2.0.5"
+         }
+       },
+       "Cohesive.Identity": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "Vc0kxVQJYekVQWFqz9MmTS8npE8hjEoJcdQj7lxUwTYI060BBi335moHobfxrzSWa2w2Qa3sLf/+2tzs0/hLqw==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "hAnlSz8B0x8waE9T7rnFu0Mj9gxarX9X5FppYZVLE3Nv1ZApxwE/PKjLE+Lh2jyvj+AvwA0bghU+ZMgbK+TR9Q==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Storage": "0.1.0-eval.b0af008",
+-          "Cohesive.Transitions": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.54e9910b",
++          "Cohesive.Relations": "0.1.0-eval.54e9910b",
++          "Cohesive.Storage": "0.1.0-eval.54e9910b",
++          "Cohesive.Transitions": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Infra": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "4tbLa7p8FWJEkmxKDroEylOQ+nUjIjwpK3AdFrTtCJcMU/PwjHywK636WlKuhxA0Ajpc6vY2UfWonqo/B7biMA==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "qja8NHlH6M0B5neoV/40tLhdhca/ecsjB+BYfAaaW5N5XNlCNfX6gFDw6xzvqVcrdEk/9/NR9qclpbR+FDEf3w==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Processes": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "il35n6UMVbMJuiMsd2EDaB7Ko0GTWnqMfQMqJGVhxCX+Hh1lvlP6dLAoPCe1sWTBiMXMUL1EQu5qB0x+oCmytA==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "OzVxXRSJXyqflyQJzqJqw7CTOKc9BRwSnQ6+y4+NVCuZwz+/6cRJSbCcfMBu6FfB6eUDD6i6XjhjBYygo2wTrQ==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Transitions": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.54e9910b",
++          "Cohesive.Relations": "0.1.0-eval.54e9910b",
++          "Cohesive.Transitions": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Processes.Distribution": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "99yVmgbYR0Y81m22UYw4ole0xaXTeioXlQKF1MgojQJVKILpo24k87qCkftG6+tNVfDaQvwDzcPBv4HZGd9jww==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "QSio8quatRjBVFUFGlpFrWZlAOqhmf0QG1sAhSW6Abs71OR+p6bsFrc2odcqlXPvrbckit1H5UM5BiLQ7/GMGg==",
+         "dependencies": {
+-          "Cohesive.Processes": "0.1.0-eval.b0af008"
++          "Cohesive.Processes": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Relations": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "OWbsTLkqUVQZ9E9JXv6oqbB7P3eWXPGGUH9pUUtY/uRNlzL3eaCIsviH1sYk6ii1vKua0txqmFKX5nLadYy68w==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "8A4bd/AxLk0WmywPpuY2N7IlFATtlR+43kuW/LVnf1VpAtWVSeFmuNRpxcKgDwok5T9OJCXp/99EiO/24FJzbQ==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Relations.Infra": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "Y68seuJA27rDj+ep25dyBR2ulLjG3gY3UF9dGXjIj4ZwTcpCGDa79XSGHvXNp0l8Bka6Qdvji0HAXczJM0+nFA==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "a4mGc2iumODWmq4idmQmdh6fZhpJVVOPiDxZ9Uleq9GMluyLng4RVwGEaIFkl6QZrgzrxFNNCTd4p2zblMxnTg==",
+         "dependencies": {
+-          "Cohesive.Infra": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008"
++          "Cohesive.Infra": "0.1.0-eval.54e9910b",
++          "Cohesive.Relations": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Storage": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "VcARJQQmPFT5u3WacE2/0pBvJF7OjanUKzeCv+jr3dERzDCv041qSDS+e3q8PpZDEWgjZ+I+P6THoi8XvAeYfw==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "wCt1wvkf+ZUpiiCiqGcwXtzkaCNOk5EppJOvqFarjg5+GtgKb4DHjdkqN1OYKFgIR1Hot21QTU8Qc8F8Qsx20g==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Processes": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008",
+-          "Cohesive.Transitions": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.54e9910b",
++          "Cohesive.Processes": "0.1.0-eval.54e9910b",
++          "Cohesive.Relations": "0.1.0-eval.54e9910b",
++          "Cohesive.Transitions": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Cohesive.Transitions": {
+         "type": "Transitive",
+-        "resolved": "0.1.0-eval.b0af008",
+-        "contentHash": "rL78La0esIAnVGWnxdfNiDStAcqlWcieQnyV1V8Ba/PU7RY6IfarrqRr8dfz7iv0t4jl9IXSsjT3g4hkCZJFtQ==",
++        "resolved": "0.1.0-eval.54e9910b",
++        "contentHash": "pp+7Y8RoUBssHAEO2kj5XLmlxtBQh3nG4w7ObivLIeZy5c5ZgRy3GcfoBqD5PmQPvMFtTLIN+GlbzZdVEw0zqg==",
+         "dependencies": {
+-          "Cohesive": "0.1.0-eval.b0af008",
+-          "Cohesive.Relations": "0.1.0-eval.b0af008"
++          "Cohesive": "0.1.0-eval.54e9910b",
++          "Cohesive.Relations": "0.1.0-eval.54e9910b"
+         }
+       },
+       "Microsoft.Extensions.AsyncState": {

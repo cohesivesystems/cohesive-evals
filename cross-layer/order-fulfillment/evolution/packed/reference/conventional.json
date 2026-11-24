@@ -1,0 +1,46 @@
+{
+  "CONTRACT.md": {
+    "before": "f21360b4637e58d35e96d1b3cb30701765a8892f6d5bf50a47d5a3984d9a7f0f",
+    "after": "196435ee0e724c7af9f5fdb54194c98243753e7bea375f80d7e7adb3e1a2cd84"
+  },
+  "schemas.json": {
+    "before": "ff4d34e4be3d6af1ca82ff3591af26a5f170f8a20f7e2667d2fb1b293e8cede1",
+    "after": "6a9892e0ff5838b89912adaba4d8ff1417a69d79e6cd7750bbc5566f850c2f68"
+  },
+  "seed.schema.json": {
+    "before": "e74673c4f2b391b8a4067d3ab6629b51698aec5766e0ff3b98673dec855b03c8",
+    "after": "ac63f185217c11c02594330143c0452ae5f50e076bea57aa0073ef173e5b463c"
+  },
+  "src/Fulfillment.Application/packages.lock.json": {
+    "before": "ef0b1094a4ffbf71f97742bf7e8ffc6a232e1a11aefd31161fb469345ed67d86",
+    "after": "5c352ab29eaf8f5d7137568d1a1c1d32d9a3902a068a46b09660b38554d9f320"
+  },
+  "src/Fulfillment.Application/FulfillmentResults.cs": {
+    "before": "0b19fbd0dee645599c3f7c1132f1f1bd21b0518182958417a34fea83f7f8bf98",
+    "after": "7edec12c3cfd25873a327ba0753b433bb62cd66a3a4aa9a70e342d9f752ca25f"
+  },
+  "src/Fulfillment.Application/FulfillmentBackend.cs": {
+    "before": "4dfbfc1e0d59e7bac6a01ab450aff765ab1e40fd08d4733800e8110a1651b44f",
+    "after": "e33b5c07545baec430bf37311f29a522521b6f85f6af494d9682c8219796412b"
+  },
+  "src/Fulfillment.Application/Fulfillment.Application.csproj": {
+    "before": "9049b5bea55fa39198ca5b9adf89fecbde1e649c6c598ae5938934f50a6518e3",
+    "after": "8943d6a4fc636e4966ec30b3262dc374d2ecdcdb486ed1137c246f686b884c44"
+  },
+  "src/Fulfillment.Application/Domain.cs": {
+    "before": "2d9e76f6f5f7ea02068a98a87b88cc5db0cb3995faa8b92feef7bc5f66487792",
+    "after": "86d5e90e7eb788f69f333ddcab0c052a4a6bffa671793283bed96ad32d61d1df"
+  },
+  "src/Fulfillment.Application/OrderStore.cs": {
+    "before": "e285854e8d5e26dafaee54ea30be46306f3a81a8e660137c792c310ffe3acc73",
+    "after": "7df0bbb8617288bdc6b2b53bcb245fdaf28afd6f62e38c92008c7273a37fbdc6"
+  },
+  "src/Fulfillment.Application/Contracts.cs": {
+    "before": "4343aecd8e2da3d1e31c261bbeb8734fef8e18a20137bbcceeaada81fe97c47a",
+    "after": "4aad6537ac5d3950f42cca201627cd636792f9b02563b8002b97080e19277b73"
+  },
+  "src/Fulfillment.Application/Program.cs": {
+    "before": "7fe8a5afc39869148add2b9bbddf24e62e4867dd1febeff5cd68f2eeb589e0b6",
+    "after": "b5cdc52ae353a70690ea39e7b3276b1004a2ad497ee47d655c2eeb0dad0c643d"
+  }
+}

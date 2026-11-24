@@ -1,0 +1,38 @@
+{
+  "CONTRACT.md": {
+    "before": "f21360b4637e58d35e96d1b3cb30701765a8892f6d5bf50a47d5a3984d9a7f0f",
+    "after": "196435ee0e724c7af9f5fdb54194c98243753e7bea375f80d7e7adb3e1a2cd84"
+  },
+  "schemas.json": {
+    "before": "ff4d34e4be3d6af1ca82ff3591af26a5f170f8a20f7e2667d2fb1b293e8cede1",
+    "after": "6a9892e0ff5838b89912adaba4d8ff1417a69d79e6cd7750bbc5566f850c2f68"
+  },
+  "seed.schema.json": {
+    "before": "e74673c4f2b391b8a4067d3ab6629b51698aec5766e0ff3b98673dec855b03c8",
+    "after": "ac63f185217c11c02594330143c0452ae5f50e076bea57aa0073ef173e5b463c"
+  },
+  "src/Fulfillment.Application/packages.lock.json": {
+    "before": "7762b5e19fc99dea1533b7f7af5e0149c1c48566ee21fb7bcf6a70781afb7313",
+    "after": "796c576633350d5c457d38056e36eeab8f891000769499a6788ef82965571ce5"
+  },
+  "src/Fulfillment.Application/FulfillmentBackend.cs": {
+    "before": "a609a94f9b74914b4c3656f3c5c9938f3b0672f9c104b61f2a5fc58a81db5ce8",
+    "after": "55756976a7bde3cd289a55d200c2c4071ad35f236a242c577cee4ffd526f60cd"
+  },
+  "src/Fulfillment.Application/FulfillmentDomain.cs": {
+    "before": "eadfd4dcaac3392e054d9c2a3578857723bf8307fd79f9ae702c4eb76cff275d",
+    "after": "67c8419d871d52451afa27773b61993f40c0ffd28b5e6bed52de5b0d5e2505a7"
+  },
+  "src/Fulfillment.Application/Fulfillment.Application.csproj": {
+    "before": "b68cc3d67e5c9bf3f31243fea00425f3c7afbfb207d266bf32159a0095e01411",
+    "after": "0ca432d99fe9b68e70681cac7b79fac433ba84ec61d9ea7c942432dd083d3a4c"
+  },
+  "src/Fulfillment.Application/Contracts.cs": {
+    "before": "4343aecd8e2da3d1e31c261bbeb8734fef8e18a20137bbcceeaada81fe97c47a",
+    "after": "4aad6537ac5d3950f42cca201627cd636792f9b02563b8002b97080e19277b73"
+  },
+  "src/Fulfillment.Application/Program.cs": {
+    "before": "7fe8a5afc39869148add2b9bbddf24e62e4867dd1febeff5cd68f2eeb589e0b6",
+    "after": "b5cdc52ae353a70690ea39e7b3276b1004a2ad497ee47d655c2eeb0dad0c643d"
+  }
+}
