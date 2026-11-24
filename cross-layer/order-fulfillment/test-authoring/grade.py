@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import time
 
-from pilot import APP, CONDITIONS, ROOT, live, prepare
+from pilot import APP, CONDITIONS, ROOT, live, prepare, install_typed_companion
 from cohesive_evals.http_client import HttpClient
 from cohesive_evals.postgres import IMAGE, verification_run
 
@@ -81,7 +81,7 @@ def execute(folder, out, url):
     return {'outcome': outcome, 'exit': result.returncode, 'assertionsReached': len(checks), 'failure': failed}
 
 
-def grade(output):
+def grade(output, *, typed=False):
     """Build each isolated mutation, verify its live witness and replay each submitted suite twice."""
     manifest = ROOT / 'controls.json'
     if hashlib.sha256(manifest.read_bytes()).hexdigest() != CONTROL_HASH:
@@ -89,6 +89,7 @@ def grade(output):
     controls = json.loads(manifest.read_text())
     if set(WITNESSES) != {row['id'] for row in controls}:
         raise ValueError('Every control requires a paired independent witness')
+    conditions = ("cohesive",) if typed else CONDITIONS
     results = []
     with verification_run(output, 'test-authoring-grade', ()) as pg:
         fixtures = output / 'fixtures'
@@ -97,12 +98,14 @@ def grade(output):
                     'dotnet': subprocess.check_output(['dotnet', '--version'],
                                                       cwd=fixtures / CONDITIONS[0], text=True).strip()}
         write_json(output / 'environment.json', metadata)
-        for condition in CONDITIONS:
+        for condition in conditions:
             folder = fixtures / condition
             suite = ROOT / 'submissions' / condition / 'Program.cs'
             if hashlib.sha256(suite.read_bytes()).hexdigest() != json.loads((ROOT / 'sessions.json').read_text())[condition]['sha256']:
                 raise ValueError('Frozen suite hash changed')
             shutil.copyfile(suite, folder / 'Suite/Program.cs')
+            if typed:
+                install_typed_companion(folder)
             for index, control in enumerate([None, *controls]):
                 name = control['id'] if control else 'reference'
                 directory = output / condition / name
@@ -139,7 +142,7 @@ def grade(output):
                 if not control and [r['outcome'] for r in record['runs']] != ['pass', 'pass']:
                     break  # A suite without a valid reference run cannot earn mutation credit.
 
-    complete = len(results) == len(CONDITIONS) * (len(controls) + 1)
+    complete = len(results) == len(conditions) * (len(controls) + 1)
     for record in results:
         outcomes = [attempt['outcome'] for attempt in record['runs']]
         allowed = [['pass', 'pass']]
@@ -150,8 +153,16 @@ def grade(output):
     if not complete:
         raise RuntimeError(f'Incomplete or inconsistent grading; inspect {output / "results.json"}')
 
+    if typed:
+        frozen = json.loads((ROOT / 'evidence/results.json').read_text())
+        expected = [row for row in frozen if row['condition'] == 'cohesive']
+        if results != expected:
+            raise RuntimeError('Typed witnesses or assertion results differ from the frozen Cohesive run')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output', type=Path)
-    grade(parser.parse_args().output.resolve())
+    parser.add_argument('--typed', action='store_true', help='Replay the post-session typed Cohesive suite')
+    args = parser.parse_args()
+    grade(args.output.resolve(), typed=args.typed)

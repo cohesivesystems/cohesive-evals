@@ -1,0 +1,5 @@
+{
+  "postgresImage": "postgres:17.10-alpine3.24",
+  "postgresImageId": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+  "dotnet": "10.0.402"
+}
