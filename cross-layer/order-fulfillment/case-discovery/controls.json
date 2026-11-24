@@ -10,23 +10,23 @@
       "() => true"
     ],
     "cohesive": [
-      "Ship.Edge().From(packed).To(shipped).When((Order order, Unit _) => !order.ShippingHold);",
-      "Ship.Edge().From(packed).To(shipped).When((Order order, Unit _) => true);"
+      "Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);",
+      "Ship.Edge().From(packed).To(shipped).When((Order order) => true);"
     ]
   },
   {
-    "id": "wrong-target",
+    "id": "reject-clear",
     "witness": [
       "Packed",
       false
     ],
     "conventional": [
-      ".PermitIf(OrderCommand.Ship, OrderStatus.Shipped, () => !ShippingHold)",
-      ".PermitIf(OrderCommand.Ship, OrderStatus.Submitted, () => !ShippingHold)"
+      "() => !ShippingHold",
+      "() => false"
     ],
     "cohesive": [
-      "Ship.Edge().From(packed).To(shipped).When((Order order, Unit _) => !order.ShippingHold);",
-      "Ship.Edge().From(packed).To(submitted).When((Order order, Unit _) => !order.ShippingHold);"
+      "Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);",
+      "Ship.Edge().From(packed).To(shipped).When((Order order) => false);"
     ]
   },
   {
@@ -40,8 +40,8 @@
       "machine.Configure(OrderStatus.Draft)\n            .PermitIf(OrderCommand.Ship, OrderStatus.Shipped, () => !ShippingHold)"
     ],
     "cohesive": [
-      "Ship.Edge().From(packed).To(shipped).When((Order order, Unit _) => !order.ShippingHold);",
-      "Ship.Edge().From(packed).To(shipped).When((Order order, Unit _) => !order.ShippingHold);\n        Ship.Edge(\"extra-draft\").From(draft).To(shipped).When((Order order, Unit _) => !order.ShippingHold);"
+      "Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);",
+      "Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);\n        Ship.Edge(\"extra-draft\").From(draft).To(shipped).When((Order order) => !order.ShippingHold);"
     ]
   },
   {
@@ -55,8 +55,8 @@
       "machine.Configure(OrderStatus.Submitted)\n            .PermitIf(OrderCommand.Ship, OrderStatus.Shipped, () => !ShippingHold)"
     ],
     "cohesive": [
-      "Ship.Edge().From(packed).To(shipped).When((Order order, Unit _) => !order.ShippingHold);",
-      "Ship.Edge().From(packed).To(shipped).When((Order order, Unit _) => !order.ShippingHold);\n        Ship.Edge(\"extra-submitted\").From(submitted).To(shipped).When((Order order, Unit _) => !order.ShippingHold);"
+      "Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);",
+      "Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);\n        Ship.Edge(\"extra-submitted\").From(submitted).To(shipped).When((Order order) => !order.ShippingHold);"
     ]
   },
   {
@@ -70,8 +70,8 @@
       "machine.Configure(OrderStatus.Cancelled)\n            .PermitIf(OrderCommand.Ship, OrderStatus.Shipped, () => !ShippingHold)"
     ],
     "cohesive": [
-      "Ship.Edge().From(packed).To(shipped).When((Order order, Unit _) => !order.ShippingHold);",
-      "Ship.Edge().From(packed).To(shipped).When((Order order, Unit _) => !order.ShippingHold);\n        Ship.Edge(\"extra-cancelled\").From(cancelled).To(shipped).When((Order order, Unit _) => !order.ShippingHold);"
+      "Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);",
+      "Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);\n        Ship.Edge(\"extra-cancelled\").From(cancelled).To(shipped).When((Order order) => !order.ShippingHold);"
     ]
   },
   {
@@ -85,8 +85,8 @@
       "        machine.Configure(OrderStatus.Shipped).IgnoreIf(OrderCommand.Ship, () => !ShippingHold);\n        if (!machine.CanFire(command))"
     ],
     "cohesive": [
-      "Ship.Edge().From(packed).To(shipped).When((Order order, Unit _) => !order.ShippingHold);",
-      "Ship.Edge().From(packed).To(shipped).When((Order order, Unit _) => !order.ShippingHold);\n        Ship.Edge(\"extra-shipped\").From(shipped).To(shipped).When((Order order, Unit _) => !order.ShippingHold);"
+      "var shipped = machine.State(nameof(OrderStatus.Shipped)).Final();\n        Ship = machine.Action(\"ship\");\n        Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);",
+      "var shipped = machine.State(nameof(OrderStatus.Shipped));\n        Ship = machine.Action(\"ship\");\n        Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);\n        Ship.Edge(\"extra-shipped\").From(shipped).To(shipped).When((Order order) => !order.ShippingHold);"
     ]
   }
 ]

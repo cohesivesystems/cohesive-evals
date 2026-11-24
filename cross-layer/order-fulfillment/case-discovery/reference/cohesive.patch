@@ -32,9 +32,9 @@
          var submitted = machine.State(nameof(OrderStatus.Submitted));
          var packed = machine.State(nameof(OrderStatus.Packed));
          var cancelled = machine.State(nameof(OrderStatus.Cancelled));
-+        var shipped = machine.State(nameof(OrderStatus.Shipped));
++        var shipped = machine.State(nameof(OrderStatus.Shipped)).Final();
 +        Ship = machine.Action("ship");
-+        Ship.Edge().From(packed).To(shipped).When((Order order, Unit _) => !order.ShippingHold);
++        Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);
          Submit = machine.Edge("submit").From(draft).To(submitted);
          Cancel = machine.Action("cancel");
          Cancel.Edge().From(draft).To(cancelled);
