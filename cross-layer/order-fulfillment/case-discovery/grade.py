@@ -57,6 +57,13 @@ def run(output):
                 or any(type(c.get('Hold')) is not bool or c not in domain for c in cases)
                 or len({(c['Status'], c['Hold']) for c in cases}) != len(cases)):
             raise ValueError(f'{condition}: invalid or unstable proposals')
+        if condition == 'cohesive':
+            # Compare the post-session overload with the author's exact proposal order.
+            shutil.copyfile(ROOT / 'replay/cohesive.cs', folder / 'Suite/Cases.cs')
+            compile_suite()
+            for _ in range(2):
+                if call(folder, 'propose') != cases:
+                    raise ValueError('Parameterless generation differs from the frozen Cohesive proposal')
         if mismatches(domain, call(folder, 'execute', domain)):
             raise ValueError(f'{condition}: reference fails independent contract')
         record = report[condition] = dict(cases=cases, controls={})
