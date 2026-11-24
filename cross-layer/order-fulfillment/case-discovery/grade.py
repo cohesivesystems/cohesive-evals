@@ -67,7 +67,17 @@ def run(output):
             try:
                 source.write_text(original.replace(before, after))
                 compile_suite()
-                witness = mismatches(domain, call(folder, 'execute', domain))
+                try:
+                    witness = mismatches(domain, call(folder, 'execute', domain))
+                except subprocess.CalledProcessError as error:
+                    # This precommitted constant-false guard makes the success return unreachable.
+                    # Count it separately from a behavioral detection and retain the original diagnostic.
+                    code = 'transitions.compilation.node.unreachable'
+                    if condition != 'cohesive' or control['id'] != 'reject-clear' or code not in (error.stderr or ''):
+                        raise RuntimeError(f"{condition}/{control['id']} adapter failed: {error.stderr}") from error
+                    record['controls'][control['id']] = dict(classification='model-compilation-rejection', diagnostic=code)
+                    (output / 'reject-clear-diagnostic.txt').write_text(error.stderr)
+                    continue
                 found = mismatches(cases, call(folder, 'execute', cases))
                 if found != mismatches(cases, call(folder, 'execute', cases)):
                     raise ValueError('Inconsistent replay')
@@ -77,7 +87,10 @@ def run(output):
             finally:
                 source.write_text(original)
     for control in panel:
-        outcomes = [r['controls'][control['id']]['witness'] for r in report.values()]
+        observations = [r['controls'][control['id']] for r in report.values()]
+        if any('witness' not in row for row in observations):
+            continue
+        outcomes = [row['witness'] for row in observations]
         if outcomes[0] != outcomes[1]:
             raise ValueError(f"Unmatched public behavior: {control['id']}")
     (output / 'results.json').write_text(json.dumps(report, indent=2)+'\n')
