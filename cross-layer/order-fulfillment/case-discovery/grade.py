@@ -1,5 +1,6 @@
 """Replay frozen proposals against independently witnessed single-source Ship defects."""
 import argparse
+import hashlib
 import itertools
 import json
 from pathlib import Path
@@ -36,10 +37,14 @@ def run(output):
     panel = json.loads((ROOT / 'controls.json').read_text())
     domain = [dict(Status=s, Hold=h) for s, h in itertools.product(
         ['Draft', 'Submitted', 'Packed', 'Cancelled', 'Shipped'], [False, True])]
+    sessions = json.loads((ROOT / "sessions.json").read_text())
     report = {}
     for condition in CONDITIONS:
         folder = fixtures / condition
-        shutil.copyfile(ROOT / 'submissions' / f'{condition}.cs', folder / 'Suite/Cases.cs')
+        submitted = ROOT / 'submissions' / f'{condition}.cs'
+        if hashlib.sha256(submitted.read_bytes()).hexdigest() != sessions['authors'][condition]['sha256']:
+            raise ValueError(f'{condition}: frozen submission changed')
+        shutil.copyfile(submitted, folder / 'Suite/Cases.cs')
         source = folder / APP / ('Domain.cs' if condition == 'conventional' else 'FulfillmentDomain.cs')
         original = source.read_text()
         def compile_suite():

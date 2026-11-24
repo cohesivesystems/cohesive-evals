@@ -1,0 +1,17 @@
+{
+  "protocolCommit": "9291254bc6456916739f036af9734cbcbaa0610c",
+  "preDispatchUtc": "2026-11-24T21:14:57+00:00",
+  "bothSubmissionsCollectedUtc": "2026-11-24T21:16:02.200391+00:00",
+  "budgetSeconds": 480,
+  "maximumCases": 10,
+  "authors": {
+    "cohesive": {
+      "sha256": "d4c0958864e1974b75373d40957b911ecf01b64b4378dddd3217c4fbee950c4d",
+      "sourceLastWrittenUtc": "2026-11-24T21:15:34.377826+00:00"
+    },
+    "conventional": {
+      "sha256": "2181a8ea79148d6bedf80f51b20d5be6e32aa80e64235e3f654cc0a0d4591ae2",
+      "sourceLastWrittenUtc": "2026-11-24T21:15:14.096592+00:00"
+    }
+  }
+}
