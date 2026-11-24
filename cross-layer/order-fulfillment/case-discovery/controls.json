@@ -27,7 +27,10 @@
     "cohesive": [
       "Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);",
       "Ship.Edge().From(packed).To(shipped).When((Order order) => false);"
-    ]
+    ],
+    "expectedModelRejection": {
+      "cohesive": "transitions.compilation.node.unreachable"
+    }
   },
   {
     "id": "allow-draft",

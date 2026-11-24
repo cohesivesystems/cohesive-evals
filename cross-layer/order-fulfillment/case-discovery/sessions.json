@@ -13,5 +13,10 @@
       "sha256": "2181a8ea79148d6bedf80f51b20d5be6e32aa80e64235e3f654cc0a0d4591ae2",
       "sourceLastWrittenUtc": "2026-11-24T21:15:14.096592+00:00"
     }
+  },
+  "postSessionReplays": {
+    "cohesive": {
+      "sha256": "ca3df55fcda379ada9e0ec741da03e3190c12a2e06e0dc5a29f2b69ea0ca1711"
+    }
   }
 }

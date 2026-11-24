@@ -1,0 +1,10 @@
+{
+  "authoringProtocolCommit": "9291254bc6456916739f036af9734cbcbaa0610c",
+  "gradingSdkVersion": "0.1.0-eval.3291ecf3",
+  "gradingSdkRevision": "3291ecf3aecf42b9f7beb5d1ab133a2d78a33a7a",
+  "lockSha256": {
+    "app": "b1d47741dce53583a97734a8292680d5dd66add379fe57a1313342d8163c72fc",
+    "suite": "3a10b50563066465e6b34b78d999513cfbcf217edd2269e19ec9d2db8ef4144f"
+  },
+  "resultsSha256": "6c1a8d972c5d8126b2c5faf73ebc3176821233616de35e9afc1ac6a430136f1a"
+}
