@@ -1,5 +1,4 @@
 using Cohesive.Prelude;
-using Cohesive.Transitions.IR;
 using Cohesive.Transitions.Execution;
 using Fulfillment.Application;
 
@@ -38,9 +37,8 @@ internal static partial class Program
             {
                 var label = $"offline/{state}/{command}";
                 var expected = Decide(state, command);
-                var result = runner.Execute(before, default, new(label));
-                var accepted = result.Decision.Kind is TransitionDecisionKind.Applied or TransitionDecisionKind.NoChange;
-                Check.Equal(label + "/accepted", expected.Http == 200, accepted);
+                var result = runner.Execute(before, new(label));
+                Check.Equal(label + "/accepted", expected.Http == 200, result.Decision.IsAccepted);
                 Check.Equal(label + "/state", expected.Status, result.State.Status.ToString());
                 Check.Equal(label + "/id", before.Id, result.State.Id);
                 Check.Equal(label + "/partition", before.Partition, result.State.Partition);

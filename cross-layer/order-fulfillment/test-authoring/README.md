@@ -45,9 +45,9 @@ Use a fresh output directory. The grader writes results, environment metadata, a
 | Frozen Cohesive submission | Typed companion |
 |---|---|
 | Compile each transition and keep its plan. | Prepare each production transition once with `OfflineTransition.Prepare(transitions.Pack)`. |
-| Build portable input and state values, call `DecideFullState`, project state, and decode the command-specific outcome. | Call `pack.Execute(before, default, invocation)`. Read the typed `State`, `Outcome`, and `Decision.Kind` directly. |
+| Build portable input and state values, call `DecideFullState`, project state, and decode the command-specific outcome. | Call `pack.Execute(before, invocation)`. Read the typed `State`, `Outcome`, and `Decision.IsAccepted` directly. |
 
-The companion uses the same independent oracle, 16 state/command pairs and HTTP checks. Both clean runs produced the same 88 offline assertions as the frozen submission, including their labels, expected values and actual values. The companion also caught the same six defects twice. Its development took place after the timed sessions and contributes no authoring-time measurement. [Frozen code](submissions/cohesive/Program.cs) · [Typed code](typed/TypedOffline.cs) · [Replay evidence](typed/results.json) · [SDK prerelease](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-a9bb9ba7)
+The companion uses the same independent oracle, 16 state/command pairs and HTTP checks. Both clean runs produced the same 88 offline assertions as the frozen submission, including their labels, expected values and actual values. The companion also caught the same six defects twice. Its development took place after the timed sessions and contributes no authoring-time measurement. [Frozen code](submissions/cohesive/Program.cs) · [Typed code](typed/TypedOffline.cs) · [Replay evidence](typed/results.json) · [SDK prerelease](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-e8bc04c7)
 
 Run the companion against the same reference and defects with the published SDK and locked dependencies.
 
