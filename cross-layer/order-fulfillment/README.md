@@ -111,3 +111,5 @@ reuses production reservation logic offline in both conditions. Its
 ordinary and model-assisted input generation against independent assertions and paired faults.
 
 The [Packed order lifecycle pilot](evolution/packed/README.md) compares a Stateless aggregate with a Cohesive machine-bound entity, including offline and PostgreSQL-backed verification.
+
+The [test-authoring pilot](test-authoring/README.md) compares two independently authored regression suites against held-out lifecycle defects.

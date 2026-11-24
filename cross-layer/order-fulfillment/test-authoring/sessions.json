@@ -1,0 +1,18 @@
+{
+  "conventional": {
+    "startUtc": "2026-11-24T18:49:25Z",
+    "submittedUtc": "2026-11-24T18:51:54Z",
+    "seconds": 149,
+    "capSeconds": 480,
+    "sha256": "6800ba25deb849e0098f755628db2fca1f137eded2c108baa06d370ca20f403d",
+    "freshContext": true
+  },
+  "cohesive": {
+    "startUtc": "2026-11-24T18:49:39Z",
+    "submittedUtc": "2026-11-24T18:53:48Z",
+    "seconds": 249,
+    "capSeconds": 480,
+    "sha256": "8cad4c998cced41a1cfe04a0e7724803bdd8f667ec783f6bc277eb551aa62ca1",
+    "freshContext": true
+  }
+}

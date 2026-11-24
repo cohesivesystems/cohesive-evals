@@ -1,0 +1,274 @@
+[
+  {
+    "condition": "cohesive",
+    "candidate": "reference",
+    "runs": [
+      {
+        "outcome": "pass",
+        "exit": 0,
+        "assertionsReached": 1021,
+        "failure": []
+      },
+      {
+        "outcome": "pass",
+        "exit": 0,
+        "assertionsReached": 1021,
+        "failure": []
+      }
+    ],
+    "witnesses": {
+      "reject-repeat-pack": [
+        200,
+        "Packed"
+      ],
+      "reopen-cancelled": [
+        409,
+        "OrderNotUnpackable"
+      ],
+      "unpack-route-dispatches-pack": [
+        200,
+        "Submitted"
+      ],
+      "wrong-pack-conflict-code": [
+        409,
+        "OrderNotPackable"
+      ],
+      "stale-packed-details": [
+        200,
+        "Packed"
+      ],
+      "missing-compensation": [
+        200,
+        20
+      ]
+    }
+  },
+  {
+    "condition": "cohesive",
+    "candidate": "reject-repeat-pack",
+    "runs": [
+      {
+        "outcome": "named-failure",
+        "exit": 10,
+        "assertionsReached": 45,
+        "failure": [
+          {
+            "label": "offline/Packed/pack/accepted",
+            "expected": true,
+            "actual": false,
+            "passed": false
+          }
+        ]
+      },
+      {
+        "outcome": "named-failure",
+        "exit": 10,
+        "assertionsReached": 45,
+        "failure": [
+          {
+            "label": "offline/Packed/pack/accepted",
+            "expected": true,
+            "actual": false,
+            "passed": false
+          }
+        ]
+      }
+    ],
+    "witnesses": {
+      "reject-repeat-pack": [
+        409,
+        "OrderNotPackable"
+      ]
+    }
+  },
+  {
+    "condition": "cohesive",
+    "candidate": "reopen-cancelled",
+    "runs": [
+      {
+        "outcome": "named-failure",
+        "exit": 10,
+        "assertionsReached": 72,
+        "failure": [
+          {
+            "label": "offline/Cancelled/unpack/accepted",
+            "expected": false,
+            "actual": true,
+            "passed": false
+          }
+        ]
+      },
+      {
+        "outcome": "named-failure",
+        "exit": 10,
+        "assertionsReached": 72,
+        "failure": [
+          {
+            "label": "offline/Cancelled/unpack/accepted",
+            "expected": false,
+            "actual": true,
+            "passed": false
+          }
+        ]
+      }
+    ],
+    "witnesses": {
+      "reopen-cancelled": [
+        200,
+        "Submitted"
+      ]
+    }
+  },
+  {
+    "condition": "cohesive",
+    "candidate": "unpack-route-dispatches-pack",
+    "runs": [
+      {
+        "outcome": "named-failure",
+        "exit": 10,
+        "assertionsReached": 183,
+        "failure": [
+          {
+            "label": "wire/submitted/0/unpack/status",
+            "expected": "Submitted",
+            "actual": "Packed",
+            "passed": false
+          }
+        ]
+      },
+      {
+        "outcome": "named-failure",
+        "exit": 10,
+        "assertionsReached": 183,
+        "failure": [
+          {
+            "label": "wire/submitted/0/unpack/status",
+            "expected": "Submitted",
+            "actual": "Packed",
+            "passed": false
+          }
+        ]
+      }
+    ],
+    "witnesses": {
+      "unpack-route-dispatches-pack": [
+        200,
+        "Packed"
+      ]
+    }
+  },
+  {
+    "condition": "cohesive",
+    "candidate": "wrong-pack-conflict-code",
+    "runs": [
+      {
+        "outcome": "named-failure",
+        "exit": 10,
+        "assertionsReached": 138,
+        "failure": [
+          {
+            "label": "wire/Draft/pack/code",
+            "expected": "OrderNotPackable",
+            "actual": "OrderNotDraft",
+            "passed": false
+          }
+        ]
+      },
+      {
+        "outcome": "named-failure",
+        "exit": 10,
+        "assertionsReached": 138,
+        "failure": [
+          {
+            "label": "wire/Draft/pack/code",
+            "expected": "OrderNotPackable",
+            "actual": "OrderNotDraft",
+            "passed": false
+          }
+        ]
+      }
+    ],
+    "witnesses": {
+      "wrong-pack-conflict-code": [
+        409,
+        "OrderNotDraft"
+      ]
+    }
+  },
+  {
+    "condition": "cohesive",
+    "candidate": "stale-packed-details",
+    "runs": [
+      {
+        "outcome": "named-failure",
+        "exit": 10,
+        "assertionsReached": 124,
+        "failure": [
+          {
+            "label": "seed/packed/details/status",
+            "expected": "Packed",
+            "actual": "Submitted",
+            "passed": false
+          }
+        ]
+      },
+      {
+        "outcome": "named-failure",
+        "exit": 10,
+        "assertionsReached": 124,
+        "failure": [
+          {
+            "label": "seed/packed/details/status",
+            "expected": "Packed",
+            "actual": "Submitted",
+            "passed": false
+          }
+        ]
+      }
+    ],
+    "witnesses": {
+      "stale-packed-details": [
+        200,
+        "Submitted"
+      ]
+    }
+  },
+  {
+    "condition": "cohesive",
+    "candidate": "missing-compensation",
+    "runs": [
+      {
+        "outcome": "named-failure",
+        "exit": 10,
+        "assertionsReached": 484,
+        "failure": [
+          {
+            "label": "exact-available/available",
+            "expected": 20,
+            "actual": 0,
+            "passed": false
+          }
+        ]
+      },
+      {
+        "outcome": "named-failure",
+        "exit": 10,
+        "assertionsReached": 484,
+        "failure": [
+          {
+            "label": "exact-available/available",
+            "expected": 20,
+            "actual": 0,
+            "passed": false
+          }
+        ]
+      }
+    ],
+    "witnesses": {
+      "missing-compensation": [
+        200,
+        18
+      ]
+    }
+  }
+]

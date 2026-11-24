@@ -1,0 +1,80 @@
+[
+  {
+    "id": "reject-repeat-pack",
+    "conventional": {
+      "file": "Domain.cs",
+      "before": ".Ignore(OrderCommand.Pack);",
+      "after": ";"
+    },
+    "cohesive": {
+      "file": "FulfillmentDomain.cs",
+      "before": "        Pack.Edge(\"pack-again\").From(packed).To(packed);",
+      "after": ""
+    }
+  },
+  {
+    "id": "reopen-cancelled",
+    "conventional": {
+      "file": "Domain.cs",
+      "before": "machine.Configure(OrderStatus.Cancelled).Ignore(OrderCommand.Cancel);",
+      "after": "machine.Configure(OrderStatus.Cancelled).Ignore(OrderCommand.Cancel).Permit(OrderCommand.Unpack, OrderStatus.Submitted);"
+    },
+    "cohesive": {
+      "file": "FulfillmentDomain.cs",
+      "before": "Unpack.Edge().From(packed).To(submitted);",
+      "after": "Unpack.Edge().From(packed).To(submitted);\n        Unpack.Edge(\"reopen\").From(cancelled).To(submitted);"
+    }
+  },
+  {
+    "id": "unpack-route-dispatches-pack",
+    "conventional": {
+      "file": "FulfillmentBackend.cs",
+      "before": "\"/orders/{id}/unpack\", OrderCommand.Unpack",
+      "after": "\"/orders/{id}/unpack\", OrderCommand.Pack"
+    },
+    "cohesive": {
+      "file": "FulfillmentBackend.cs",
+      "before": "\"/orders/{id}/unpack\", domain.OrderTransitions.Unpack",
+      "after": "\"/orders/{id}/unpack\", domain.OrderTransitions.Pack"
+    }
+  },
+  {
+    "id": "wrong-pack-conflict-code",
+    "conventional": {
+      "file": "FulfillmentBackend.cs",
+      "before": "OrderCommand.Pack => \"OrderNotPackable\"",
+      "after": "OrderCommand.Pack => \"OrderNotDraft\""
+    },
+    "cohesive": {
+      "file": "FulfillmentBackend.cs",
+      "before": "new ErrorResponse(\"OrderNotPackable\")",
+      "after": "new ErrorResponse(\"OrderNotDraft\")"
+    }
+  },
+  {
+    "id": "stale-packed-details",
+    "conventional": {
+      "file": "OrderStore.cs",
+      "before": "return new(id, status, rows.OrderBy",
+      "after": "return new(id, status == \"Packed\" ? \"Submitted\" : status, rows.OrderBy"
+    },
+    "cohesive": {
+      "file": "FulfillmentBackend.cs",
+      "before": "new(result.Id, result.Status.ToString(), result.Reservations",
+      "after": "new(result.Id, result.Status == OrderStatus.Packed ? \"Submitted\" : result.Status.ToString(), result.Reservations"
+    }
+  },
+  {
+    "id": "missing-compensation",
+    "conventional": {
+      "file": "FulfillmentBackend.cs",
+      "before": "await store.Stock(request.Sku, request.Quantity, true, operationId + \"/release\");",
+      "after": ""
+    },
+    "cohesive": {
+      "file": "FulfillmentDomain.cs",
+      "before": "await process.Transition(domain.InventoryTransitions.Release, input.Sku, new StockQuantity(input.Quantity));",
+      "after": ""
+    }
+  }
+]
