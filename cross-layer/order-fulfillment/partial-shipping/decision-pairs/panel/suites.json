@@ -1,0 +1,102 @@
+{
+  "reference": [
+    {
+      "Phase": 0,
+      "Embargo": false,
+      "Limit": 1,
+      "Risk": 0
+    },
+    {
+      "Phase": 1,
+      "Embargo": false,
+      "Limit": 1,
+      "Risk": -1
+    },
+    {
+      "Phase": 0,
+      "Embargo": false,
+      "Limit": 1,
+      "Risk": 1
+    },
+    {
+      "Phase": 2,
+      "Embargo": true,
+      "Limit": 1,
+      "Risk": 2
+    },
+    {
+      "Phase": 0,
+      "Embargo": false,
+      "Limit": 1,
+      "Risk": 2
+    },
+    {
+      "Phase": 0,
+      "Embargo": false,
+      "Limit": 2,
+      "Risk": 1
+    },
+    {
+      "Phase": 3,
+      "Embargo": false,
+      "Limit": 1,
+      "Risk": 2
+    },
+    {
+      "Phase": 1,
+      "Embargo": false,
+      "Limit": 1,
+      "Risk": 2
+    }
+  ],
+  "paired": [
+    {
+      "Phase": 0,
+      "Embargo": false,
+      "Limit": 1,
+      "Risk": 0
+    },
+    {
+      "Phase": 0,
+      "Embargo": false,
+      "Limit": 1,
+      "Risk": -1
+    },
+    {
+      "Phase": 0,
+      "Embargo": false,
+      "Limit": 1,
+      "Risk": 2
+    },
+    {
+      "Phase": 0,
+      "Embargo": true,
+      "Limit": 1,
+      "Risk": 2
+    },
+    {
+      "Phase": 0,
+      "Embargo": false,
+      "Limit": 2,
+      "Risk": 2
+    },
+    {
+      "Phase": 1,
+      "Embargo": false,
+      "Limit": 1,
+      "Risk": 2
+    },
+    {
+      "Phase": 2,
+      "Embargo": false,
+      "Limit": 1,
+      "Risk": 0
+    },
+    {
+      "Phase": 0,
+      "Embargo": true,
+      "Limit": 1,
+      "Risk": 0
+    }
+  ]
+}
