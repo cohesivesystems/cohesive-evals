@@ -47,3 +47,42 @@ The replay generated the cases and explanations twice on clean code and graded t
 ```sh
 PYTHONPATH=. python3 -B cross-layer/order-fulfillment/partial-shipping/qualify.py /tmp/partial-select-replay --select
 ```
+
+## Decision-isolating selector replay
+
+Both selectors used eight cases and a 1,024-candidate ceiling. The revised SDK prefers two cases that differ on one state or command field and change admission or the accepted edge. The [shipping evidence](evidence/decision-pairs.json) includes both endpoints and the changed field for each contrast.
+
+| Confirmed defects detected twice | Prior selector (dac729ee) | Paired selector (2a3cdfb3) |
+|---|---:|---:|
+| Known partial-shipping panel | 1/6 | 3/6 |
+| Fresh blinded publication panel | 5/8 | 7/8 |
+
+Shipping retained clear Packed 1/1 and added detection of zero and excess quantities. The paired suite compares shipping zero, one and two units on the same clear Packed order with one remaining. It still misses subtraction by one, bypassing a hold on a partial shipment and partial shipping from Submitted. Both timed submissions and their original evidence were preserved; both replay SDKs reproduced the frozen author results byte for byte.
+
+For the fresh comparison, both SDKs were frozen **before** developing the publication panel. It uses another transition: assessing a queued article with an embargo flag, a risk limit and a submitted risk score. Two independently executed SDK versions must agree with the contract on all 256 inputs. On each variant they must agree on the entire observable result vector and show at least one mismatch against the separate Python oracle.
+
+The model, oracle, eleven-variant catalog and commitment to a secret random seed were recorded in `1a47df6`. Each selector generated its clean suite twice; both suites were committed in `6c00faf` before revealing the seed or scoring. The draw selects eight catalog entries by the preregistered hash ordering. The draw was concealed from the selector comparison; the catalog and oracle were authored within this same project. Three drawn variants concern the stored score. Results describe one fresh model and draw.
+
+| Drawn publication defect | Prior | Paired |
+|---|---|---|
+| Accept negative risk | Missed | Caught |
+| Always store zero | Caught | Caught |
+| Reject maximum valid risk | Missed | Missed |
+| Store limit instead of risk | Caught | Caught |
+| Leave the stored score stale | Caught | Caught |
+| Ignore embargo | Missed | Caught |
+| Use a fixed limit | Caught | Caught |
+| Reject zero risk | Caught | Caught |
+
+On a clear queued article with limit one, the paired selector tried risk zero and negative one. It also varied only the embargo flag on queued articles. Each of its two new detections required an otherwise eligible article. Neither suite tried risk six. [Frozen suites](decision-pairs/panel/suites.json) · [Independent witnesses and full scores](decision-pairs/panel/comparison.json) · [Draw protocol](decision-pairs/panel/protocol.json) · [SDK release](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-2a3cdfb3)
+
+Run from the repository root using fresh output directories. The panel freeze command reproduces the committed suites; scoring verifies them and the seed commitment before executing mutants.
+
+```sh
+export PYTHONPATH=.
+pilot=cross-layer/order-fulfillment/partial-shipping
+python3 -B "$pilot/qualify.py" /tmp/shipping-prior --select
+python3 -B "$pilot/qualify.py" /tmp/shipping-paired --paired
+python3 -B "$pilot/decision-pairs/panel/compare.py" /tmp/publication-panel
+python3 -B "$pilot/decision-pairs/panel/compare.py" /tmp/publication-panel --seed "$pilot/decision-pairs/panel/seed.txt"
+```

@@ -1,0 +1,459 @@
+{
+  "seed": "2e68c326d15ac2deecb733ccf438f43782bb93fc288c51958f21415ce1aefa4f",
+  "suitesSha256": "5f6bf7cbe41904865f09ac68dcbea92a5c6a3084320ca2f600f4eb0f2e9285e2",
+  "domainSize": 256,
+  "controls": {
+    "ALLOW_NEGATIVE": {
+      "witness": {
+        "input": {
+          "Phase": 0,
+          "Embargo": false,
+          "Limit": 1,
+          "Risk": -1
+        },
+        "expected": {
+          "Accepted": false,
+          "Outcome": false,
+          "State": {
+            "Id": "fixture",
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": -9
+          }
+        },
+        "actual": {
+          "Accepted": true,
+          "Outcome": true,
+          "State": {
+            "Id": "fixture",
+            "Phase": 1,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": -1
+          }
+        }
+      },
+      "mismatchingInputs": 4,
+      "detections": {
+        "reference": [],
+        "paired": [
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": -1
+          }
+        ]
+      }
+    },
+    "STORE_ZERO": {
+      "witness": {
+        "input": {
+          "Phase": 0,
+          "Embargo": false,
+          "Limit": 1,
+          "Risk": 1
+        },
+        "expected": {
+          "Accepted": true,
+          "Outcome": true,
+          "State": {
+            "Id": "fixture",
+            "Phase": 1,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": 1
+          }
+        },
+        "actual": {
+          "Accepted": true,
+          "Outcome": true,
+          "State": {
+            "Id": "fixture",
+            "Phase": 1,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": 0
+          }
+        }
+      },
+      "mismatchingInputs": 24,
+      "detections": {
+        "reference": [
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 1
+          },
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 2
+          },
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 2,
+            "Risk": 1
+          }
+        ],
+        "paired": [
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 2
+          },
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 2,
+            "Risk": 2
+          }
+        ]
+      }
+    },
+    "REJECT_MAX": {
+      "witness": {
+        "input": {
+          "Phase": 0,
+          "Embargo": false,
+          "Limit": 1,
+          "Risk": 6
+        },
+        "expected": {
+          "Accepted": true,
+          "Outcome": true,
+          "State": {
+            "Id": "fixture",
+            "Phase": 2,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": 6
+          }
+        },
+        "actual": {
+          "Accepted": false,
+          "Outcome": false,
+          "State": {
+            "Id": "fixture",
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": -9
+          }
+        }
+      },
+      "mismatchingInputs": 4,
+      "detections": {
+        "reference": [],
+        "paired": []
+      }
+    },
+    "STORE_LIMIT": {
+      "witness": {
+        "input": {
+          "Phase": 0,
+          "Embargo": false,
+          "Limit": 1,
+          "Risk": 0
+        },
+        "expected": {
+          "Accepted": true,
+          "Outcome": true,
+          "State": {
+            "Id": "fixture",
+            "Phase": 1,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": 0
+          }
+        },
+        "actual": {
+          "Accepted": true,
+          "Outcome": true,
+          "State": {
+            "Id": "fixture",
+            "Phase": 1,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": 1
+          }
+        }
+      },
+      "mismatchingInputs": 24,
+      "detections": {
+        "reference": [
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 0
+          },
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 2
+          },
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 2,
+            "Risk": 1
+          }
+        ],
+        "paired": [
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 0
+          },
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 2
+          }
+        ]
+      }
+    },
+    "STALE_SCORE": {
+      "witness": {
+        "input": {
+          "Phase": 0,
+          "Embargo": false,
+          "Limit": 1,
+          "Risk": 0
+        },
+        "expected": {
+          "Accepted": true,
+          "Outcome": true,
+          "State": {
+            "Id": "fixture",
+            "Phase": 1,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": 0
+          }
+        },
+        "actual": {
+          "Accepted": true,
+          "Outcome": true,
+          "State": {
+            "Id": "fixture",
+            "Phase": 1,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": -9
+          }
+        }
+      },
+      "mismatchingInputs": 28,
+      "detections": {
+        "reference": [
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 0
+          },
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 1
+          },
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 2
+          },
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 2,
+            "Risk": 1
+          }
+        ],
+        "paired": [
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 0
+          },
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 2
+          },
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 2,
+            "Risk": 2
+          }
+        ]
+      }
+    },
+    "IGNORE_EMBARGO": {
+      "witness": {
+        "input": {
+          "Phase": 0,
+          "Embargo": true,
+          "Limit": 1,
+          "Risk": 0
+        },
+        "expected": {
+          "Accepted": false,
+          "Outcome": false,
+          "State": {
+            "Id": "fixture",
+            "Phase": 0,
+            "Embargo": true,
+            "Limit": 1,
+            "LastScore": -9
+          }
+        },
+        "actual": {
+          "Accepted": true,
+          "Outcome": true,
+          "State": {
+            "Id": "fixture",
+            "Phase": 1,
+            "Embargo": true,
+            "Limit": 1,
+            "LastScore": 0
+          }
+        }
+      },
+      "mismatchingInputs": 28,
+      "detections": {
+        "reference": [],
+        "paired": [
+          {
+            "Phase": 0,
+            "Embargo": true,
+            "Limit": 1,
+            "Risk": 2
+          },
+          {
+            "Phase": 0,
+            "Embargo": true,
+            "Limit": 1,
+            "Risk": 0
+          }
+        ]
+      }
+    },
+    "FIXED_LIMIT": {
+      "witness": {
+        "input": {
+          "Phase": 0,
+          "Embargo": false,
+          "Limit": 1,
+          "Risk": 2
+        },
+        "expected": {
+          "Accepted": true,
+          "Outcome": true,
+          "State": {
+            "Id": "fixture",
+            "Phase": 2,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": 2
+          }
+        },
+        "actual": {
+          "Accepted": true,
+          "Outcome": true,
+          "State": {
+            "Id": "fixture",
+            "Phase": 1,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": 2
+          }
+        }
+      },
+      "mismatchingInputs": 4,
+      "detections": {
+        "reference": [
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 2
+          }
+        ],
+        "paired": [
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 2
+          }
+        ]
+      }
+    },
+    "REJECT_ZERO": {
+      "witness": {
+        "input": {
+          "Phase": 0,
+          "Embargo": false,
+          "Limit": 1,
+          "Risk": 0
+        },
+        "expected": {
+          "Accepted": true,
+          "Outcome": true,
+          "State": {
+            "Id": "fixture",
+            "Phase": 1,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": 0
+          }
+        },
+        "actual": {
+          "Accepted": false,
+          "Outcome": false,
+          "State": {
+            "Id": "fixture",
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "LastScore": -9
+          }
+        }
+      },
+      "mismatchingInputs": 4,
+      "detections": {
+        "reference": [
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 0
+          }
+        ],
+        "paired": [
+          {
+            "Phase": 0,
+            "Embargo": false,
+            "Limit": 1,
+            "Risk": 0
+          }
+        ]
+      }
+    }
+  }
+}

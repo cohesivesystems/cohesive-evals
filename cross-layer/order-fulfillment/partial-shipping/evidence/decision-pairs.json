@@ -1,0 +1,803 @@
+{
+  "sdkVersion": "0.1.0-eval.2a3cdfb3",
+  "sdkRevision": "2a3cdfb3ea4630462e08a22ea086ebe7cc47588f",
+  "selectorSha256": "8bcfa04c0f6c4b77641dd281186954e18b762b1cf0809158118b239faae4dc0b",
+  "selection": {
+    "CandidateCount": 240,
+    "Cases": [
+      {
+        "Input": {
+          "Status": "Packed",
+          "Hold": false,
+          "Remaining": 2,
+          "Quantity": 1
+        },
+        "CoveredGoals": [
+          {
+            "First": {
+              "Kind": "decision",
+              "Node": "example/order/ship/body",
+              "Detail": "Applied"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "state",
+              "Node": "status",
+              "Detail": "Packed"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "true"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "true"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "edge",
+              "Node": "partial",
+              "Detail": "taken"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "shippingHold=False"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "Quantity relative to 0: 1"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "edge-boundary",
+              "Node": "partial",
+              "Detail": "Quantity relative to remaining: -1"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "Quantity relative to 0: 1"
+            },
+            "Second": {
+              "Kind": "edge-boundary",
+              "Node": "partial",
+              "Detail": "Quantity relative to remaining: -1"
+            }
+          }
+        ]
+      },
+      {
+        "Input": {
+          "Status": "Packed",
+          "Hold": false,
+          "Remaining": 1,
+          "Quantity": 1
+        },
+        "CoveredGoals": [
+          {
+            "First": {
+              "Kind": "decision",
+              "Node": "example/order/ship/body",
+              "Detail": "Applied"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "state",
+              "Node": "status",
+              "Detail": "Packed"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "true"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "true"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "edge",
+              "Node": "ship",
+              "Detail": "taken"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "shippingHold=False"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "Quantity relative to 0: 1"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "edge-boundary",
+              "Node": "ship",
+              "Detail": "Quantity relative to remaining: 0"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "Quantity relative to 0: 1"
+            },
+            "Second": {
+              "Kind": "edge-boundary",
+              "Node": "ship",
+              "Detail": "Quantity relative to remaining: 0"
+            }
+          }
+        ]
+      },
+      {
+        "Input": {
+          "Status": "Packed",
+          "Hold": false,
+          "Remaining": 1,
+          "Quantity": 0
+        },
+        "CoveredGoals": [
+          {
+            "First": {
+              "Kind": "decision",
+              "Node": "example/order/ship/body",
+              "Detail": "AdmissionRejected"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "state",
+              "Node": "status",
+              "Detail": "Packed"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "true"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "false"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "shippingHold=False"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "Quantity relative to 0: 0"
+            },
+            "Second": null
+          }
+        ]
+      },
+      {
+        "Input": {
+          "Status": "Packed",
+          "Hold": true,
+          "Remaining": 1,
+          "Quantity": 1
+        },
+        "CoveredGoals": [
+          {
+            "First": {
+              "Kind": "decision",
+              "Node": "example/order/ship/body",
+              "Detail": "AdmissionRejected"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "state",
+              "Node": "status",
+              "Detail": "Packed"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "false"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "shippingHold=True"
+            },
+            "Second": null
+          }
+        ]
+      },
+      {
+        "Input": {
+          "Status": "Cancelled",
+          "Hold": false,
+          "Remaining": 1,
+          "Quantity": 1
+        },
+        "CoveredGoals": [
+          {
+            "First": {
+              "Kind": "decision",
+              "Node": "example/order/ship/body",
+              "Detail": "AdmissionRejected"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "state",
+              "Node": "status",
+              "Detail": "Cancelled"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "true"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "true"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "shippingHold=False"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "Quantity relative to 0: 1"
+            },
+            "Second": null
+          }
+        ]
+      },
+      {
+        "Input": {
+          "Status": "Draft",
+          "Hold": false,
+          "Remaining": 2,
+          "Quantity": 1
+        },
+        "CoveredGoals": [
+          {
+            "First": {
+              "Kind": "decision",
+              "Node": "example/order/ship/body",
+              "Detail": "AdmissionRejected"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "state",
+              "Node": "status",
+              "Detail": "Draft"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "true"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "true"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "shippingHold=False"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "Quantity relative to 0: 1"
+            },
+            "Second": null
+          }
+        ]
+      },
+      {
+        "Input": {
+          "Status": "Packed",
+          "Hold": false,
+          "Remaining": 2,
+          "Quantity": -1
+        },
+        "CoveredGoals": [
+          {
+            "First": {
+              "Kind": "decision",
+              "Node": "example/order/ship/body",
+              "Detail": "AdmissionRejected"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "state",
+              "Node": "status",
+              "Detail": "Packed"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "true"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "false"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "shippingHold=False"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "Quantity relative to 0: -1"
+            },
+            "Second": null
+          }
+        ]
+      },
+      {
+        "Input": {
+          "Status": "Packed",
+          "Hold": false,
+          "Remaining": 1,
+          "Quantity": 2
+        },
+        "CoveredGoals": [
+          {
+            "First": {
+              "Kind": "decision",
+              "Node": "example/order/ship/body",
+              "Detail": "AdmissionRejected"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "state",
+              "Node": "status",
+              "Detail": "Packed"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "true"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "admission",
+              "Node": "example/order/ship/body/auto/requires/2",
+              "Detail": "true"
+            },
+            "Second": null
+          },
+          {
+            "First": {
+              "Kind": "guard-boundary",
+              "Node": "example/order/ship/body/auto/requires/1",
+              "Detail": "shippingHold=False"
+            },
+            "Second": null
+          }
+        ]
+      }
+    ],
+    "Pairs": [
+      {
+        "FirstCase": 0,
+        "SecondCase": 1,
+        "Scope": "state",
+        "Field": "remaining",
+        "FirstDecision": "Applied/edge:partial",
+        "SecondDecision": "Applied/edge:ship"
+      },
+      {
+        "FirstCase": 1,
+        "SecondCase": 2,
+        "Scope": "input",
+        "Field": "Quantity",
+        "FirstDecision": "Applied/edge:ship",
+        "SecondDecision": "AdmissionRejected/admission:example%2Forder%2Fship%2Fbody%2Fauto%2Frequires%2F2"
+      },
+      {
+        "FirstCase": 1,
+        "SecondCase": 3,
+        "Scope": "state",
+        "Field": "shippingHold",
+        "FirstDecision": "Applied/edge:ship",
+        "SecondDecision": "AdmissionRejected/admission:example%2Forder%2Fship%2Fbody%2Fauto%2Frequires%2F1"
+      },
+      {
+        "FirstCase": 1,
+        "SecondCase": 4,
+        "Scope": "state",
+        "Field": "status",
+        "FirstDecision": "Applied/edge:ship",
+        "SecondDecision": "AdmissionRejected"
+      },
+      {
+        "FirstCase": 0,
+        "SecondCase": 5,
+        "Scope": "state",
+        "Field": "status",
+        "FirstDecision": "Applied/edge:partial",
+        "SecondDecision": "AdmissionRejected"
+      },
+      {
+        "FirstCase": 0,
+        "SecondCase": 6,
+        "Scope": "input",
+        "Field": "Quantity",
+        "FirstDecision": "Applied/edge:partial",
+        "SecondDecision": "AdmissionRejected/admission:example%2Forder%2Fship%2Fbody%2Fauto%2Frequires%2F2"
+      },
+      {
+        "FirstCase": 1,
+        "SecondCase": 7,
+        "Scope": "input",
+        "Field": "Quantity",
+        "FirstDecision": "Applied/edge:ship",
+        "SecondDecision": "AdmissionRejected"
+      }
+    ],
+    "UncoveredGoals": [
+      {
+        "First": {
+          "Kind": "state",
+          "Node": "status",
+          "Detail": "Shipped"
+        },
+        "Second": null
+      },
+      {
+        "First": {
+          "Kind": "state",
+          "Node": "status",
+          "Detail": "Submitted"
+        },
+        "Second": null
+      }
+    ]
+  },
+  "controls": {
+    "zero-admitted": {
+      "witness": {
+        "input": {
+          "Status": "Packed",
+          "Hold": false,
+          "Remaining": 3,
+          "Quantity": 0
+        },
+        "expected": {
+          "Accepted": false,
+          "Status": "Packed",
+          "Id": "order-A",
+          "Hold": false,
+          "Remaining": 3
+        },
+        "actual": {
+          "Accepted": true,
+          "Status": "Packed",
+          "Id": "order-A",
+          "Hold": false,
+          "Remaining": 3
+        }
+      },
+      "detections": [
+        {
+          "input": {
+            "Status": "Packed",
+            "Hold": false,
+            "Remaining": 1,
+            "Quantity": 0
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 1
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 1
+          }
+        }
+      ]
+    },
+    "last-unit-rejected": {
+      "witness": {
+        "input": {
+          "Status": "Packed",
+          "Hold": false,
+          "Remaining": 1,
+          "Quantity": 1
+        },
+        "expected": {
+          "Accepted": true,
+          "Status": "Shipped",
+          "Id": "order-A",
+          "Hold": false,
+          "Remaining": 0
+        },
+        "actual": {
+          "Accepted": false,
+          "Status": "Packed",
+          "Id": "order-A",
+          "Hold": false,
+          "Remaining": 1
+        }
+      },
+      "detections": [
+        {
+          "input": {
+            "Status": "Packed",
+            "Hold": false,
+            "Remaining": 1,
+            "Quantity": 1
+          },
+          "expected": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 0
+          },
+          "actual": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 1
+          }
+        }
+      ]
+    },
+    "excess-admitted": {
+      "witness": {
+        "input": {
+          "Status": "Packed",
+          "Hold": false,
+          "Remaining": 2,
+          "Quantity": 3
+        },
+        "expected": {
+          "Accepted": false,
+          "Status": "Packed",
+          "Id": "order-A",
+          "Hold": false,
+          "Remaining": 2
+        },
+        "actual": {
+          "Accepted": true,
+          "Status": "Shipped",
+          "Id": "order-A",
+          "Hold": false,
+          "Remaining": -1
+        }
+      },
+      "detections": [
+        {
+          "input": {
+            "Status": "Packed",
+            "Hold": false,
+            "Remaining": 1,
+            "Quantity": 2
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 1
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": -1
+          }
+        }
+      ]
+    },
+    "subtract-one": {
+      "witness": {
+        "input": {
+          "Status": "Packed",
+          "Hold": false,
+          "Remaining": 4,
+          "Quantity": 2
+        },
+        "expected": {
+          "Accepted": true,
+          "Status": "Packed",
+          "Id": "order-A",
+          "Hold": false,
+          "Remaining": 2
+        },
+        "actual": {
+          "Accepted": true,
+          "Status": "Packed",
+          "Id": "order-A",
+          "Hold": false,
+          "Remaining": 3
+        }
+      },
+      "detections": []
+    },
+    "partial-ignores-hold": {
+      "witness": {
+        "input": {
+          "Status": "Packed",
+          "Hold": true,
+          "Remaining": 3,
+          "Quantity": 1
+        },
+        "expected": {
+          "Accepted": false,
+          "Status": "Packed",
+          "Id": "order-A",
+          "Hold": true,
+          "Remaining": 3
+        },
+        "actual": {
+          "Accepted": true,
+          "Status": "Packed",
+          "Id": "order-A",
+          "Hold": true,
+          "Remaining": 2
+        }
+      },
+      "detections": []
+    },
+    "submitted-partial": {
+      "witness": {
+        "input": {
+          "Status": "Submitted",
+          "Hold": false,
+          "Remaining": 3,
+          "Quantity": 1
+        },
+        "expected": {
+          "Accepted": false,
+          "Status": "Submitted",
+          "Id": "order-A",
+          "Hold": false,
+          "Remaining": 3
+        },
+        "actual": {
+          "Accepted": true,
+          "Status": "Packed",
+          "Id": "order-A",
+          "Hold": false,
+          "Remaining": 2
+        }
+      },
+      "detections": []
+    }
+  }
+}

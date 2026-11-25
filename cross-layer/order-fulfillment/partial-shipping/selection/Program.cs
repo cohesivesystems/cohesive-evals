@@ -16,6 +16,9 @@ var evidence = new {
         Input = new { c.State.Status, Hold = c.State.ShippingHold, c.State.Remaining, c.Input.Quantity },
         c.CoveredGoals
     }),
+#if DECISION_PAIRS
+    Pairs = suite.DecisionPairs.Select(p => new { p.FirstCase, p.SecondCase, p.Scope, Field = p.Field.ToString(), p.FirstDecision, p.SecondDecision }),
+#endif
     suite.UncoveredGoals
 };
 Console.WriteLine(JsonSerializer.Serialize(evidence, new JsonSerializerOptions {

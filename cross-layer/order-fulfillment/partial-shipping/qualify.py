@@ -55,7 +55,7 @@ def validate_cases(cases):
     return cases
 
 
-def measure(folder, program, project):
+def measure(folder, program, project, *, paired=False):
     """Compile a post-session measurement with fixture locks and return its executable path."""
     audit = folder / project
     audit.mkdir()
@@ -63,7 +63,10 @@ def measure(folder, program, project):
     shutil.copyfile(folder / 'Suite/packages.lock.json', audit / 'packages.lock.json')
     shutil.copyfile(program, audit / 'Program.cs')
     subprocess.run(['dotnet', 'restore', f'{project}/Suite.csproj', '--locked-mode'], cwd=folder, check=True)
-    subprocess.run(['dotnet', 'build', f'{project}/Suite.csproj', '--no-restore'], cwd=folder, check=True)
+    args = ['dotnet', 'build', f'{project}/Suite.csproj', '--no-restore']
+    if paired:
+        args.append('-p:DefineConstants=DECISION_PAIRS')
+    subprocess.run(args, cwd=folder, check=True)
     return audit / 'bin/Debug/net10.0/Suite.dll'
 
 
@@ -80,10 +83,10 @@ def detections(folder, cases):
     return found
 
 
-def qualify(output, preflight=False, selection=False):
+def qualify(output, preflight=False, selection=False, paired=False):
     """Build and witness each mutation independently; only reproducible contract mismatches earn credit."""
     folders = output / 'fixtures'
-    fixtures(folders, selection=selection)
+    fixtures(folders, selection=selection, paired=paired)
     controls = json.loads((ROOT / 'controls.json').read_text())
     signatures = {}
     report = {}
@@ -98,14 +101,15 @@ def qualify(output, preflight=False, selection=False):
             cases = proposals(folder)
         selected_cases = None
         if selection and condition == 'cohesive':
-            dll = measure(folder, ROOT / 'selection/Program.cs', 'Selection')
+            dll = measure(folder, ROOT / 'selection/Program.cs', 'Selection', paired=paired)
             generated = measure_json(folder, dll)
             if generated != measure_json(folder, dll):
                 raise ValueError('SDK selection or its explanations changed on repeat')
             selected_cases = validate_cases([c['Input'] for c in generated['Cases']])
             if len(selected_cases) != BUDGET:
                 raise ValueError(f'The post-session replay requires {BUDGET} distinct cases')
-            manifest = json.loads((ROOT / 'selection/sdk/dependency-manifest.json').read_text())
+            stage = ROOT / ('decision-pairs' if paired else 'selection')
+            manifest = json.loads((stage / 'sdk/dependency-manifest.json').read_text())
             selected_report = dict(sdkVersion=manifest['packageVersion'], sdkRevision=manifest['sourceRevision'],
                                    selectorSha256=hashlib.sha256((ROOT / 'selection/Program.cs').read_bytes()).hexdigest(),
                                    selection=generated, controls={})
@@ -146,5 +150,6 @@ if __name__ == '__main__':
     parser.add_argument('output', type=Path)
     parser.add_argument('--preflight', action='store_true', help='Validate clean and paired mutated behavior before authoring')
     parser.add_argument('--select', action='store_true', help='Replay the published post-session selector as well')
+    parser.add_argument('--paired', action='store_true', help='Replay the decision-isolating SDK selector')
     args = parser.parse_args()
-    qualify(args.output.resolve(), args.preflight, args.select)
+    qualify(args.output.resolve(), args.preflight, args.select or args.paired, args.paired)

@@ -103,3 +103,4 @@ __pycache__/
 !cross-layer/order-fulfillment/test-authoring/typed/sdk/*.nupkg
 !cross-layer/order-fulfillment/case-discovery/sdk/*.nupkg
 !cross-layer/order-fulfillment/partial-shipping/selection/sdk/*.nupkg
+!cross-layer/order-fulfillment/partial-shipping/decision-pairs/sdk/*.nupkg
