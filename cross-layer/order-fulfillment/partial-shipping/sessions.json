@@ -1,0 +1,16 @@
+{
+  "preDispatchUtc": "2026-11-25T01:05:05Z",
+  "collectedUtc": "2026-11-25T01:06:52.838015+00:00",
+  "protocolCommit": "4e783d9c44bb39b04aa04bd1941b033991ec149b",
+  "sdk": "0.1.0-eval.3291ecf3",
+  "budgetSeconds": 480,
+  "maximumCases": 8,
+  "conventional": {
+    "sha256": "44880f47c2052d1b08aedc9c3b3d4b6e9b552ffd3aa2ad23e65e41550c7d1e54",
+    "sourceLastWrittenUtc": "2026-11-25T01:05:30.512384+00:00"
+  },
+  "cohesive": {
+    "sha256": "4c73ee2a85ff5dcdd1dcee0c7dfd50c2c3f7d09e17c090a59ad7014dc30818d3",
+    "sourceLastWrittenUtc": "2026-11-25T01:06:23.996560+00:00"
+  }
+}
