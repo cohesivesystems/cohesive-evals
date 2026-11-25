@@ -1,0 +1,66 @@
+--- a/src/Fulfillment.Application/FulfillmentDomain.cs
++++ b/src/Fulfillment.Application/FulfillmentDomain.cs
+@@ -87,7 +87,8 @@
+ public sealed record Order(
+     [property: JsonPropertyName(FulfillmentDomain.OrderIdField)] string Id,
+     [property: JsonPropertyName(FulfillmentDomain.PartitionField)] string Partition,
+-    [property: JsonPropertyName("status")] OrderStatus Status = OrderStatus.Draft);
++    [property: JsonPropertyName("status")] OrderStatus Status = OrderStatus.Draft,
++    [property: JsonPropertyName("shippingHold")] bool ShippingHold = false);
+ 
+ /// <summary>Closed lifecycle contract; serialized names are durable domain values.</summary>
+ [JsonConverter(typeof(JsonStringEnumConverter<OrderStatus>))]
+@@ -99,7 +100,8 @@
+     [JsonStringEnumMemberName("Submitted")] Submitted,
+     /// <summary>Terminal cancelled order.</summary>
+     [JsonStringEnumMemberName("Cancelled")] Cancelled,
+-    [JsonStringEnumMemberName("Packed")] Packed
++    [JsonStringEnumMemberName("Packed")] Packed,
++    [JsonStringEnumMemberName("Shipped")] Shipped
+ }
+ 
+ /// <summary>Closed submission outcomes, independent of transport messages and status codes.</summary>
+@@ -126,6 +128,7 @@
+ public sealed class OrderLifecycle
+ {
+     public MachineDiscriminatorBinding<Order, OrderStatus> Binding { get; }
++    public MachineAction Ship { get; }
+     public MachineMovement Submit { get; }
+     public MachineAction Cancel { get; }
+     public MachineAction Pack { get; }
+@@ -138,6 +141,9 @@
+         var submitted = machine.State(nameof(OrderStatus.Submitted));
+         var packed = machine.State(nameof(OrderStatus.Packed));
+         var cancelled = machine.State(nameof(OrderStatus.Cancelled));
++        var shipped = machine.State(nameof(OrderStatus.Shipped)).Final();
++        Ship = machine.Action("ship");
++        Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);
+         Submit = machine.Edge("submit").From(draft).To(submitted);
+         Cancel = machine.Action("cancel");
+         Cancel.Edge().From(draft).To(cancelled);
+@@ -149,7 +155,7 @@
+         Unpack.Edge().From(packed).To(submitted);
+         Unpack.Edge("unpack-again").From(submitted).To(submitted);
+         Binding = new MachineDiscriminatorBinding<Order, OrderStatus>(machine.Build(), order => order.Status)
+-            .Map(draft, OrderStatus.Draft).Map(submitted, OrderStatus.Submitted)
++            .Map(shipped, OrderStatus.Shipped).Map(draft, OrderStatus.Draft).Map(submitted, OrderStatus.Submitted)
+             .Map(packed, OrderStatus.Packed).Map(cancelled, OrderStatus.Cancelled);
+     }
+ }
+@@ -160,6 +166,7 @@
+     public Transition<Order, Cohesive.Prelude.Unit, SubmitOrderResult> Submit { get; }
+     public Transition<Order, Cohesive.Prelude.Unit, CancellationOutcome> Cancel { get; }
+ 
++    public Transition<Order, Unit, bool> Ship { get; }
+     public Transition<Order, Unit, bool> Pack { get; }
+     public Transition<Order, Unit, bool> Unpack { get; }
+ 
+@@ -168,6 +175,8 @@
+         Cancel = orders.Transition<CancellationOutcome>(new("example/order/cancel"), new("3"), t => t
+             .Move(lifecycle.Cancel, (_, _) => CancellationOutcome.NotCancellable)
+             .Return(CancellationOutcome.Cancelled));
++        Ship = orders.Transition<bool>(new("example/order/ship"), new("1"), t => t
++            .Move(lifecycle.Ship, (_, _) => false).Return(true));
+         Pack = orders.Transition<bool>(new("example/order/pack"), new("3"), t => t
+             .Move(lifecycle.Pack, (_, _) => false).Return(true));
+         Unpack = orders.Transition<bool>(new("example/order/unpack"), new("3"), t => t

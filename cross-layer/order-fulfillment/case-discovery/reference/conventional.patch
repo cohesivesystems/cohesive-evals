@@ -1,0 +1,29 @@
+--- a/src/Fulfillment.Application/Domain.cs
++++ b/src/Fulfillment.Application/Domain.cs
+@@ -1,7 +1,7 @@
+ namespace Fulfillment.Application;
+ 
+-public enum OrderStatus { Draft, Submitted, Cancelled, Packed }
+-public sealed record Order(string Id, OrderStatus Status)
++public enum OrderStatus { Draft, Submitted, Cancelled, Packed, Shipped }
++public sealed record Order(string Id, OrderStatus Status, bool ShippingHold = false)
+ {
+     public Order? Apply(OrderCommand command)
+     {
+@@ -13,6 +13,7 @@
+             .Permit(OrderCommand.Pack, OrderStatus.Packed)
+             .Ignore(OrderCommand.Unpack);
+         machine.Configure(OrderStatus.Packed)
++            .PermitIf(OrderCommand.Ship, OrderStatus.Shipped, () => !ShippingHold)
+             .Permit(OrderCommand.Unpack, OrderStatus.Submitted)
+             .Ignore(OrderCommand.Pack);
+         machine.Configure(OrderStatus.Cancelled).Ignore(OrderCommand.Cancel);
+@@ -23,7 +24,7 @@
+ }
+ public sealed record InventoryItem(string Sku, int Available, int MaxPerOrder = int.MaxValue);
+ public sealed record Reservation(string Id, string OrderId, string Sku, int Quantity);
+-public enum OrderCommand { Submit, Cancel, Pack, Unpack }
++public enum OrderCommand { Submit, Cancel, Pack, Unpack, Ship }
+ public enum StockOutcome { Reserved, Released, InvalidQuantity, QuantityLimitExceeded, InsufficientStock }
+ 
+ public static class InventoryRules

@@ -1,0 +1,538 @@
+{
+  "conventional": {
+    "cases": [
+      {
+        "Status": "Draft",
+        "Hold": false
+      },
+      {
+        "Status": "Draft",
+        "Hold": true
+      },
+      {
+        "Status": "Submitted",
+        "Hold": false
+      },
+      {
+        "Status": "Submitted",
+        "Hold": true
+      },
+      {
+        "Status": "Cancelled",
+        "Hold": false
+      },
+      {
+        "Status": "Cancelled",
+        "Hold": true
+      },
+      {
+        "Status": "Packed",
+        "Hold": false
+      },
+      {
+        "Status": "Packed",
+        "Hold": true
+      },
+      {
+        "Status": "Shipped",
+        "Hold": false
+      },
+      {
+        "Status": "Shipped",
+        "Hold": true
+      }
+    ],
+    "controls": {
+      "ignore-hold": {
+        "witness": {
+          "input": {
+            "Status": "Packed",
+            "Hold": true
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": true
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": true
+          }
+        },
+        "detections": [
+          {
+            "input": {
+              "Status": "Packed",
+              "Hold": true
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": true
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": true
+            }
+          }
+        ]
+      },
+      "reject-clear": {
+        "witness": {
+          "input": {
+            "Status": "Packed",
+            "Hold": false
+          },
+          "expected": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false
+          },
+          "actual": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false
+          }
+        },
+        "detections": [
+          {
+            "input": {
+              "Status": "Packed",
+              "Hold": false
+            },
+            "expected": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false
+            },
+            "actual": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false
+            }
+          }
+        ]
+      },
+      "allow-draft": {
+        "witness": {
+          "input": {
+            "Status": "Draft",
+            "Hold": false
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Draft",
+            "Id": "order-A",
+            "Hold": false
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false
+          }
+        },
+        "detections": [
+          {
+            "input": {
+              "Status": "Draft",
+              "Hold": false
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Draft",
+              "Id": "order-A",
+              "Hold": false
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false
+            }
+          }
+        ]
+      },
+      "allow-submitted": {
+        "witness": {
+          "input": {
+            "Status": "Submitted",
+            "Hold": false
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Submitted",
+            "Id": "order-A",
+            "Hold": false
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false
+          }
+        },
+        "detections": [
+          {
+            "input": {
+              "Status": "Submitted",
+              "Hold": false
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Submitted",
+              "Id": "order-A",
+              "Hold": false
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false
+            }
+          }
+        ]
+      },
+      "allow-cancelled": {
+        "witness": {
+          "input": {
+            "Status": "Cancelled",
+            "Hold": false
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Cancelled",
+            "Id": "order-A",
+            "Hold": false
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false
+          }
+        },
+        "detections": [
+          {
+            "input": {
+              "Status": "Cancelled",
+              "Hold": false
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Cancelled",
+              "Id": "order-A",
+              "Hold": false
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false
+            }
+          }
+        ]
+      },
+      "allow-shipped": {
+        "witness": {
+          "input": {
+            "Status": "Shipped",
+            "Hold": false
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false
+          }
+        },
+        "detections": [
+          {
+            "input": {
+              "Status": "Shipped",
+              "Hold": false
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false
+            }
+          }
+        ]
+      }
+    }
+  },
+  "cohesive": {
+    "cases": [
+      {
+        "Status": "Cancelled",
+        "Hold": false
+      },
+      {
+        "Status": "Cancelled",
+        "Hold": true
+      },
+      {
+        "Status": "Draft",
+        "Hold": false
+      },
+      {
+        "Status": "Draft",
+        "Hold": true
+      },
+      {
+        "Status": "Packed",
+        "Hold": false
+      },
+      {
+        "Status": "Packed",
+        "Hold": true
+      },
+      {
+        "Status": "Shipped",
+        "Hold": false
+      },
+      {
+        "Status": "Shipped",
+        "Hold": true
+      },
+      {
+        "Status": "Submitted",
+        "Hold": false
+      },
+      {
+        "Status": "Submitted",
+        "Hold": true
+      }
+    ],
+    "controls": {
+      "ignore-hold": {
+        "witness": {
+          "input": {
+            "Status": "Packed",
+            "Hold": true
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": true
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": true
+          }
+        },
+        "detections": [
+          {
+            "input": {
+              "Status": "Packed",
+              "Hold": true
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": true
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": true
+            }
+          }
+        ]
+      },
+      "reject-clear": {
+        "classification": "model-compilation-rejection",
+        "diagnostic": "transitions.compilation.node.unreachable"
+      },
+      "allow-draft": {
+        "witness": {
+          "input": {
+            "Status": "Draft",
+            "Hold": false
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Draft",
+            "Id": "order-A",
+            "Hold": false
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false
+          }
+        },
+        "detections": [
+          {
+            "input": {
+              "Status": "Draft",
+              "Hold": false
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Draft",
+              "Id": "order-A",
+              "Hold": false
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false
+            }
+          }
+        ]
+      },
+      "allow-submitted": {
+        "witness": {
+          "input": {
+            "Status": "Submitted",
+            "Hold": false
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Submitted",
+            "Id": "order-A",
+            "Hold": false
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false
+          }
+        },
+        "detections": [
+          {
+            "input": {
+              "Status": "Submitted",
+              "Hold": false
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Submitted",
+              "Id": "order-A",
+              "Hold": false
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false
+            }
+          }
+        ]
+      },
+      "allow-cancelled": {
+        "witness": {
+          "input": {
+            "Status": "Cancelled",
+            "Hold": false
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Cancelled",
+            "Id": "order-A",
+            "Hold": false
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false
+          }
+        },
+        "detections": [
+          {
+            "input": {
+              "Status": "Cancelled",
+              "Hold": false
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Cancelled",
+              "Id": "order-A",
+              "Hold": false
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false
+            }
+          }
+        ]
+      },
+      "allow-shipped": {
+        "witness": {
+          "input": {
+            "Status": "Shipped",
+            "Hold": false
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false
+          }
+        },
+        "detections": [
+          {
+            "input": {
+              "Status": "Shipped",
+              "Hold": false
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false
+            }
+          }
+        ]
+      }
+    }
+  }
+}
