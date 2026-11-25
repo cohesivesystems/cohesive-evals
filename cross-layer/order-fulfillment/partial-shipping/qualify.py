@@ -2,6 +2,7 @@
 import argparse
 from itertools import product
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -46,6 +47,20 @@ def proposals(folder):
     return cases
 
 
+def audit_budget(folder, output):
+    """Measure SDK candidate counts separately from the author sessions with the same locked packages."""
+    audit = folder / 'Audit'
+    audit.mkdir()
+    shutil.copyfile(folder / 'Suite/Suite.csproj', audit / 'Suite.csproj')
+    shutil.copyfile(folder / 'Suite/packages.lock.json', audit / 'packages.lock.json')
+    shutil.copyfile(ROOT / 'audit/Program.cs', audit / 'Program.cs')
+    subprocess.run(['dotnet', 'restore', 'Audit/Suite.csproj', '--locked-mode'], cwd=folder, check=True)
+    subprocess.run(['dotnet', 'build', 'Audit/Suite.csproj', '--no-restore'], cwd=folder, check=True)
+    measurement = subprocess.check_output(['dotnet', 'Audit/bin/Debug/net10.0/Suite.dll'],
+                                          cwd=folder, text=True, timeout=30)
+    (output / 'budget.json').write_text(json.dumps(json.loads(measurement), indent=2) + '\n')
+
+
 def qualify(output, preflight=False):
     """Build and witness each mutation independently; only reproducible contract mismatches earn credit."""
     folders = output / 'fixtures'
@@ -85,6 +100,7 @@ def qualify(output, preflight=False):
                 record['controls'][name] = dict(witness=witness, mismatchingInputs=len(wrong), detections=found)
             finally:
                 source.write_text(original)
+    audit_budget(folders / 'cohesive', output)
     (output / 'results.json').write_text(json.dumps(report, indent=2)+'\n')
 
 
