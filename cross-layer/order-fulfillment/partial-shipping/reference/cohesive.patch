@@ -1,0 +1,48 @@
+--- a/src/Fulfillment.Application/FulfillmentDomain.cs
++++ b/src/Fulfillment.Application/FulfillmentDomain.cs
+@@ -88,7 +88,10 @@
+     [property: JsonPropertyName(FulfillmentDomain.OrderIdField)] string Id,
+     [property: JsonPropertyName(FulfillmentDomain.PartitionField)] string Partition,
+     [property: JsonPropertyName("status")] OrderStatus Status = OrderStatus.Draft,
+-    [property: JsonPropertyName("shippingHold")] bool ShippingHold = false);
++    [property: JsonPropertyName("shippingHold")] bool ShippingHold = false,
++    [property: JsonPropertyName("remaining")] int Remaining = 1);
++
++public sealed record ShipQuantity(int Quantity);
+ 
+ /// <summary>Closed lifecycle contract; serialized names are durable domain values.</summary>
+ [JsonConverter(typeof(JsonStringEnumConverter<OrderStatus>))]
+@@ -143,7 +146,8 @@
+         var cancelled = machine.State(nameof(OrderStatus.Cancelled));
+         var shipped = machine.State(nameof(OrderStatus.Shipped)).Final();
+         Ship = machine.Action("ship");
+-        Ship.Edge().From(packed).To(shipped).When((Order order) => !order.ShippingHold);
++        Ship.Edge().From(packed).To(shipped).When((Order order, ShipQuantity input) => input.Quantity == order.Remaining);
++        Ship.Edge("partial").From(packed).To(packed).When((Order order, ShipQuantity input) => input.Quantity < order.Remaining);
+         Submit = machine.Edge("submit").From(draft).To(submitted);
+         Cancel = machine.Action("cancel");
+         Cancel.Edge().From(draft).To(cancelled);
+@@ -166,7 +170,7 @@
+     public Transition<Order, Cohesive.Prelude.Unit, SubmitOrderResult> Submit { get; }
+     public Transition<Order, Cohesive.Prelude.Unit, CancellationOutcome> Cancel { get; }
+ 
+-    public Transition<Order, Unit, bool> Ship { get; }
++    public Transition<Order, ShipQuantity, bool> Ship { get; }
+     public Transition<Order, Unit, bool> Pack { get; }
+     public Transition<Order, Unit, bool> Unpack { get; }
+ 
+@@ -175,8 +179,12 @@
+         Cancel = orders.Transition<CancellationOutcome>(new("example/order/cancel"), new("3"), t => t
+             .Move(lifecycle.Cancel, (_, _) => CancellationOutcome.NotCancellable)
+             .Return(CancellationOutcome.Cancelled));
+-        Ship = orders.Transition<bool>(new("example/order/ship"), new("1"), t => t
+-            .Move(lifecycle.Ship, (_, _) => false).Return(true));
++        Ship = orders.Transition<ShipQuantity, bool>(new("example/order/ship"), new("2"), t => t
++            .Requires((order, input) => !order.ShippingHold, (_, _) => false)
++            .Requires((order, input) => input.Quantity > 0, (_, _) => false)
++            .Move(lifecycle.Ship, (_, _) => false)
++            .Set(new("ship/remaining"), order => order.Remaining, (order, input) => order.Remaining - input.Quantity)
++            .Return(true));
+         Pack = orders.Transition<bool>(new("example/order/pack"), new("3"), t => t
+             .Move(lifecycle.Pack, (_, _) => false).Return(true));
+         Unpack = orders.Transition<bool>(new("example/order/unpack"), new("3"), t => t
