@@ -1,0 +1,23 @@
+{
+  "domain": "4 phases x 2 embargo settings x 4 limits (1..4) x 8 scores (-1..6)",
+  "candidateBudget": 1024,
+  "caseBudget": 8,
+  "drawSize": 8,
+  "catalog": [
+    "ALLOW_NEGATIVE",
+    "EMBARGO_LOW",
+    "FIXED_LIMIT",
+    "IGNORE_EMBARGO",
+    "REASSESS_REVIEW",
+    "REJECT_MAX",
+    "REJECT_ZERO",
+    "STALE_SCORE",
+    "STORE_LIMIT",
+    "STORE_ZERO",
+    "TIE_REVIEW"
+  ],
+  "draw": "Sort catalog names by SHA-256 of UTF-8 seed + slash + name, take first eight. Commit SHA-256 of seed before generating suites. Reveal seed only after both clean suites are frozen.",
+  "referenceSdk": "dac729ee945d426c229c8a93d8c343687d6b7e22",
+  "pairedSdk": "2a3cdfb3ea4630462e08a22ea086ebe7cc47588f",
+  "seedCommitment": "71ca227e96f83491483ce1506a78da6d95ff7fc08945c28934ebdb3334e5ba7d"
+}
