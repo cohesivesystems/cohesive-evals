@@ -1,5 +1,6 @@
 """Qualify matched behavior across the entire finite domain and score frozen clean proposals."""
 import argparse
+import hashlib
 from itertools import product
 import json
 import shutil
@@ -37,8 +38,15 @@ def replay(folder, cases):
 def proposals(folder):
     """Freeze ordered clean proposals; reject instability, invalid types, duplicates and over-budget suites."""
     cases = call(folder, 'propose')
-    if cases != call(folder, 'propose') or not isinstance(cases, list) or not 0 < len(cases) <= BUDGET:
-        raise ValueError(f'{folder.name}: invalid or unstable proposal count')
+    if cases != call(folder, 'propose'):
+        raise ValueError(f'{folder.name}: unstable proposals')
+    return validate_cases(cases)
+
+
+def validate_cases(cases):
+    """Enforce the common domain and suite budget for submitted and SDK-selected proposals."""
+    if not isinstance(cases, list) or not 0 < len(cases) <= BUDGET:
+        raise ValueError('Invalid proposal count')
     for case in cases:
         if case not in DOMAIN or any(type(case[key]) != type(value) for key, value in DOMAIN[0].items()):
             raise ValueError(f'Invalid proposal: {case}')
@@ -47,27 +55,39 @@ def proposals(folder):
     return cases
 
 
-def audit_budget(folder, output):
-    """Measure SDK candidate counts separately from the author sessions with the same locked packages."""
-    audit = folder / 'Audit'
+def measure(folder, program, project):
+    """Compile a post-session measurement with fixture locks and return its executable path."""
+    audit = folder / project
     audit.mkdir()
     shutil.copyfile(folder / 'Suite/Suite.csproj', audit / 'Suite.csproj')
     shutil.copyfile(folder / 'Suite/packages.lock.json', audit / 'packages.lock.json')
-    shutil.copyfile(ROOT / 'audit/Program.cs', audit / 'Program.cs')
-    subprocess.run(['dotnet', 'restore', 'Audit/Suite.csproj', '--locked-mode'], cwd=folder, check=True)
-    subprocess.run(['dotnet', 'build', 'Audit/Suite.csproj', '--no-restore'], cwd=folder, check=True)
-    measurement = subprocess.check_output(['dotnet', 'Audit/bin/Debug/net10.0/Suite.dll'],
-                                          cwd=folder, text=True, timeout=30)
-    (output / 'budget.json').write_text(json.dumps(json.loads(measurement), indent=2) + '\n')
+    shutil.copyfile(program, audit / 'Program.cs')
+    subprocess.run(['dotnet', 'restore', f'{project}/Suite.csproj', '--locked-mode'], cwd=folder, check=True)
+    subprocess.run(['dotnet', 'build', f'{project}/Suite.csproj', '--no-restore'], cwd=folder, check=True)
+    return audit / 'bin/Debug/net10.0/Suite.dll'
 
 
-def qualify(output, preflight=False):
+def measure_json(folder, dll):
+    """Run the clean measurement once and decode its observations, propagating any execution failure."""
+    return json.loads(subprocess.check_output(['dotnet', str(dll)], cwd=folder, text=True, timeout=30))
+
+
+def detections(folder, cases):
+    """Run fixed cases twice and return reproducible independent contract mismatches."""
+    found = replay(folder, cases)
+    if found != replay(folder, cases):
+        raise ValueError('Inconsistent suite replay')
+    return found
+
+
+def qualify(output, preflight=False, selection=False):
     """Build and witness each mutation independently; only reproducible contract mismatches earn credit."""
     folders = output / 'fixtures'
-    fixtures(folders)
+    fixtures(folders, selection=selection)
     controls = json.loads((ROOT / 'controls.json').read_text())
     signatures = {}
     report = {}
+    selected_report = {}
     for condition in CONDITIONS:
         folder = folders / condition
         cases = []
@@ -76,6 +96,19 @@ def qualify(output, preflight=False):
             install_source(ROOT / 'submissions' / f'{condition}.cs', folder / 'Suite/Cases.cs', receipts[condition])
             compile_suite(folder)
             cases = proposals(folder)
+        selected_cases = None
+        if selection and condition == 'cohesive':
+            dll = measure(folder, ROOT / 'selection/Program.cs', 'Selection')
+            generated = measure_json(folder, dll)
+            if generated != measure_json(folder, dll):
+                raise ValueError('SDK selection or its explanations changed on repeat')
+            selected_cases = validate_cases([c['Input'] for c in generated['Cases']])
+            if len(selected_cases) != BUDGET:
+                raise ValueError(f'The post-session replay requires {BUDGET} distinct cases')
+            manifest = json.loads((ROOT / 'selection/sdk/dependency-manifest.json').read_text())
+            selected_report = dict(sdkVersion=manifest['packageVersion'], sdkRevision=manifest['sourceRevision'],
+                                   selectorSha256=hashlib.sha256((ROOT / 'selection/Program.cs').read_bytes()).hexdigest(),
+                                   selection=generated, controls={})
         record = report[condition] = dict(cases=cases, controls={})
         if replay(folder, DOMAIN):
             raise ValueError(f'{condition}: reference violates shipping contract')
@@ -94,13 +127,17 @@ def qualify(output, preflight=False):
                 witness = next((m for m in wrong if m['input'] == control['witness']), None)
                 if witness is None or wrong != signatures.setdefault(name, wrong):
                     raise ValueError(f'{condition}/{name}: unmatched behavior or missing pinned witness')
-                found = replay(folder, cases) if cases else []
-                if cases and found != replay(folder, cases):
-                    raise ValueError(f'{condition}/{name}: inconsistent suite replay')
+                found = detections(folder, cases) if cases else []
+                if selected_cases is not None:
+                    selected_report['controls'][name] = dict(witness=witness, detections=detections(folder, selected_cases))
                 record['controls'][name] = dict(witness=witness, mismatchingInputs=len(wrong), detections=found)
             finally:
                 source.write_text(original)
-    audit_budget(folders / 'cohesive', output)
+    folder = folders / 'cohesive'
+    budget = measure_json(folder, measure(folder, ROOT / 'audit/Program.cs', 'Audit'))
+    (output / 'budget.json').write_text(json.dumps(budget, indent=2) + '\n')
+    if selection:
+        (output / 'selection.json').write_text(json.dumps(selected_report, indent=2) + '\n')
     (output / 'results.json').write_text(json.dumps(report, indent=2)+'\n')
 
 
@@ -108,5 +145,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output', type=Path)
     parser.add_argument('--preflight', action='store_true', help='Validate clean and paired mutated behavior before authoring')
+    parser.add_argument('--select', action='store_true', help='Replay the published post-session selector as well')
     args = parser.parse_args()
-    qualify(args.output.resolve(), args.preflight)
+    qualify(args.output.resolve(), args.preflight, args.select)

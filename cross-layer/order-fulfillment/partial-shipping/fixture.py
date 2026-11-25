@@ -10,9 +10,12 @@ from grade import call, install_source
 from prepare import APP, CONDITIONS, build
 
 
-def fixtures(output):
+def fixtures(output, *, selection=False, relock=False):
     """Build isolated, locked reference applications and install the shared proposal protocol."""
-    build(output)
+    if selection:
+        build(output, sdk=ROOT / 'selection/sdk', locks=ROOT / 'selection/locks', relock=relock)
+    else:
+        build(output)
     for condition in CONDITIONS:
         folder = output / condition
         subprocess.run(['git', 'apply', str(ROOT / 'reference' / f'{condition}.patch')], cwd=folder, check=True)
