@@ -1,0 +1,9 @@
+{
+  "directBudget": 8,
+  "budgetError": "State exploration budget 8 exceeded at shippingHold.",
+  "explorationBudget": 1024,
+  "stateCount": 40,
+  "pairCount": 290,
+  "inDomain": 210,
+  "containsClearLastUnit": true
+}

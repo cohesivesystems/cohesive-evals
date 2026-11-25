@@ -1,0 +1,697 @@
+{
+  "conventional": {
+    "cases": [
+      {
+        "Status": "Packed",
+        "Hold": false,
+        "Remaining": 4,
+        "Quantity": 3
+      },
+      {
+        "Status": "Packed",
+        "Hold": false,
+        "Remaining": 1,
+        "Quantity": 1
+      },
+      {
+        "Status": "Packed",
+        "Hold": true,
+        "Remaining": 4,
+        "Quantity": 3
+      },
+      {
+        "Status": "Packed",
+        "Hold": true,
+        "Remaining": 1,
+        "Quantity": 1
+      },
+      {
+        "Status": "Packed",
+        "Hold": false,
+        "Remaining": 4,
+        "Quantity": 0
+      },
+      {
+        "Status": "Packed",
+        "Hold": false,
+        "Remaining": 4,
+        "Quantity": -1
+      },
+      {
+        "Status": "Packed",
+        "Hold": false,
+        "Remaining": 4,
+        "Quantity": 5
+      },
+      {
+        "Status": "Submitted",
+        "Hold": false,
+        "Remaining": 4,
+        "Quantity": 3
+      }
+    ],
+    "controls": {
+      "zero-admitted": {
+        "witness": {
+          "input": {
+            "Status": "Packed",
+            "Hold": false,
+            "Remaining": 3,
+            "Quantity": 0
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 3
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 3
+          }
+        },
+        "mismatchingInputs": 4,
+        "detections": [
+          {
+            "input": {
+              "Status": "Packed",
+              "Hold": false,
+              "Remaining": 4,
+              "Quantity": 0
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 4
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 4
+            }
+          }
+        ]
+      },
+      "last-unit-rejected": {
+        "witness": {
+          "input": {
+            "Status": "Packed",
+            "Hold": false,
+            "Remaining": 1,
+            "Quantity": 1
+          },
+          "expected": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 0
+          },
+          "actual": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 1
+          }
+        },
+        "mismatchingInputs": 1,
+        "detections": [
+          {
+            "input": {
+              "Status": "Packed",
+              "Hold": false,
+              "Remaining": 1,
+              "Quantity": 1
+            },
+            "expected": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 0
+            },
+            "actual": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 1
+            }
+          }
+        ]
+      },
+      "excess-admitted": {
+        "witness": {
+          "input": {
+            "Status": "Packed",
+            "Hold": false,
+            "Remaining": 2,
+            "Quantity": 3
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 2
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": -1
+          }
+        },
+        "mismatchingInputs": 10,
+        "detections": [
+          {
+            "input": {
+              "Status": "Packed",
+              "Hold": false,
+              "Remaining": 4,
+              "Quantity": 5
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 4
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": -1
+            }
+          }
+        ]
+      },
+      "subtract-one": {
+        "witness": {
+          "input": {
+            "Status": "Packed",
+            "Hold": false,
+            "Remaining": 4,
+            "Quantity": 2
+          },
+          "expected": {
+            "Accepted": true,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 2
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 3
+          }
+        },
+        "mismatchingInputs": 6,
+        "detections": [
+          {
+            "input": {
+              "Status": "Packed",
+              "Hold": false,
+              "Remaining": 4,
+              "Quantity": 3
+            },
+            "expected": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 1
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 3
+            }
+          }
+        ]
+      },
+      "partial-ignores-hold": {
+        "witness": {
+          "input": {
+            "Status": "Packed",
+            "Hold": true,
+            "Remaining": 3,
+            "Quantity": 1
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": true,
+            "Remaining": 3
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": true,
+            "Remaining": 2
+          }
+        },
+        "mismatchingInputs": 6,
+        "detections": [
+          {
+            "input": {
+              "Status": "Packed",
+              "Hold": true,
+              "Remaining": 4,
+              "Quantity": 3
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": true,
+              "Remaining": 4
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": true,
+              "Remaining": 1
+            }
+          }
+        ]
+      },
+      "submitted-partial": {
+        "witness": {
+          "input": {
+            "Status": "Submitted",
+            "Hold": false,
+            "Remaining": 3,
+            "Quantity": 1
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Submitted",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 3
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 2
+          }
+        },
+        "mismatchingInputs": 6,
+        "detections": [
+          {
+            "input": {
+              "Status": "Submitted",
+              "Hold": false,
+              "Remaining": 4,
+              "Quantity": 3
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Submitted",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 4
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 1
+            }
+          }
+        ]
+      }
+    }
+  },
+  "cohesive": {
+    "cases": [
+      {
+        "Status": "Packed",
+        "Hold": false,
+        "Remaining": 2,
+        "Quantity": 2
+      },
+      {
+        "Status": "Packed",
+        "Hold": false,
+        "Remaining": 4,
+        "Quantity": 3
+      },
+      {
+        "Status": "Packed",
+        "Hold": false,
+        "Remaining": 3,
+        "Quantity": 1
+      },
+      {
+        "Status": "Packed",
+        "Hold": false,
+        "Remaining": 4,
+        "Quantity": 0
+      },
+      {
+        "Status": "Packed",
+        "Hold": false,
+        "Remaining": 4,
+        "Quantity": 5
+      },
+      {
+        "Status": "Packed",
+        "Hold": true,
+        "Remaining": 4,
+        "Quantity": 3
+      },
+      {
+        "Status": "Submitted",
+        "Hold": false,
+        "Remaining": 4,
+        "Quantity": 3
+      },
+      {
+        "Status": "Shipped",
+        "Hold": false,
+        "Remaining": 4,
+        "Quantity": 4
+      }
+    ],
+    "controls": {
+      "zero-admitted": {
+        "witness": {
+          "input": {
+            "Status": "Packed",
+            "Hold": false,
+            "Remaining": 3,
+            "Quantity": 0
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 3
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 3
+          }
+        },
+        "mismatchingInputs": 4,
+        "detections": [
+          {
+            "input": {
+              "Status": "Packed",
+              "Hold": false,
+              "Remaining": 4,
+              "Quantity": 0
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 4
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 4
+            }
+          }
+        ]
+      },
+      "last-unit-rejected": {
+        "witness": {
+          "input": {
+            "Status": "Packed",
+            "Hold": false,
+            "Remaining": 1,
+            "Quantity": 1
+          },
+          "expected": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 0
+          },
+          "actual": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 1
+          }
+        },
+        "mismatchingInputs": 1,
+        "detections": []
+      },
+      "excess-admitted": {
+        "witness": {
+          "input": {
+            "Status": "Packed",
+            "Hold": false,
+            "Remaining": 2,
+            "Quantity": 3
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 2
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Shipped",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": -1
+          }
+        },
+        "mismatchingInputs": 10,
+        "detections": [
+          {
+            "input": {
+              "Status": "Packed",
+              "Hold": false,
+              "Remaining": 4,
+              "Quantity": 5
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 4
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": -1
+            }
+          }
+        ]
+      },
+      "subtract-one": {
+        "witness": {
+          "input": {
+            "Status": "Packed",
+            "Hold": false,
+            "Remaining": 4,
+            "Quantity": 2
+          },
+          "expected": {
+            "Accepted": true,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 2
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 3
+          }
+        },
+        "mismatchingInputs": 6,
+        "detections": [
+          {
+            "input": {
+              "Status": "Packed",
+              "Hold": false,
+              "Remaining": 2,
+              "Quantity": 2
+            },
+            "expected": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 0
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 1
+            }
+          },
+          {
+            "input": {
+              "Status": "Packed",
+              "Hold": false,
+              "Remaining": 4,
+              "Quantity": 3
+            },
+            "expected": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 1
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 3
+            }
+          }
+        ]
+      },
+      "partial-ignores-hold": {
+        "witness": {
+          "input": {
+            "Status": "Packed",
+            "Hold": true,
+            "Remaining": 3,
+            "Quantity": 1
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": true,
+            "Remaining": 3
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": true,
+            "Remaining": 2
+          }
+        },
+        "mismatchingInputs": 6,
+        "detections": [
+          {
+            "input": {
+              "Status": "Packed",
+              "Hold": true,
+              "Remaining": 4,
+              "Quantity": 3
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": true,
+              "Remaining": 4
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": true,
+              "Remaining": 1
+            }
+          }
+        ]
+      },
+      "submitted-partial": {
+        "witness": {
+          "input": {
+            "Status": "Submitted",
+            "Hold": false,
+            "Remaining": 3,
+            "Quantity": 1
+          },
+          "expected": {
+            "Accepted": false,
+            "Status": "Submitted",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 3
+          },
+          "actual": {
+            "Accepted": true,
+            "Status": "Packed",
+            "Id": "order-A",
+            "Hold": false,
+            "Remaining": 2
+          }
+        },
+        "mismatchingInputs": 6,
+        "detections": [
+          {
+            "input": {
+              "Status": "Submitted",
+              "Hold": false,
+              "Remaining": 4,
+              "Quantity": 3
+            },
+            "expected": {
+              "Accepted": false,
+              "Status": "Submitted",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 4
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 1
+            }
+          }
+        ]
+      }
+    }
+  }
+}

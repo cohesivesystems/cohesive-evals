@@ -12,10 +12,10 @@ sys.path.insert(0, str(ROOT.parent / 'test-authoring'))
 from pilot import APP, CONDITIONS, PROJECT, prepare
 
 
-def build(output, *, relock=False):
+def build(output, *, relock=False, sdk=ROOT / 'sdk', locks=ROOT / 'reference'):
     """Verify the Packed pins and SDK digests, apply the lifecycle evolution and restore its locks."""
     prepare(output)
-    manifest = json.loads((ROOT / 'sdk/dependency-manifest.json').read_text())
+    manifest = json.loads((sdk / 'dependency-manifest.json').read_text())
     for condition in CONDITIONS:
         folder = output / condition
         subprocess.run(['git', 'apply', str(ROOT / 'reference' / f'{condition}.patch')], cwd=folder, check=True)
@@ -29,7 +29,7 @@ def build(output, *, relock=False):
         shutil.copyfile(ROOT / 'task.md', folder / 'task.md')
         if condition == 'cohesive':
             for artifact in manifest['packages']:
-                package = ROOT / 'sdk' / artifact['file']
+                package = sdk / artifact['file']
                 if hashlib.sha256(package.read_bytes()).hexdigest() != artifact['sha256']:
                     raise ValueError(f'SDK package drift: {package.name}')
                 shutil.copyfile(package, folder / 'packages' / package.name)
@@ -42,12 +42,12 @@ def build(output, *, relock=False):
                 f'<PackageReference Include="Cohesive.Transitions.Assurance" Version="[{version}]" /></ItemGroup>'))
             for name, target in [('app', folder / APP), ('suite', suite)]:
                 if not relock:
-                    shutil.copyfile(ROOT / 'reference' / f'{name}.lock.json', target / 'packages.lock.json')
+                    shutil.copyfile(locks / f'{name}.lock.json', target / 'packages.lock.json')
             subprocess.run(['dotnet', 'restore', 'Suite/Suite.csproj',
                             '--force-evaluate' if relock else '--locked-mode'], cwd=folder, check=True)
             if relock:
                 for name, target in [('app', folder / APP), ('suite', suite)]:
-                    shutil.copyfile(target / 'packages.lock.json', ROOT / 'reference' / f'{name}.lock.json')
+                    shutil.copyfile(target / 'packages.lock.json', locks / f'{name}.lock.json')
         subprocess.run(['dotnet', 'build', 'Suite/Suite.csproj', '--no-restore'], cwd=folder, check=True)
 
 

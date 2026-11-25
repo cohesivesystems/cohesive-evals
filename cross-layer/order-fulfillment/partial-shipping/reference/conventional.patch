@@ -1,0 +1,31 @@
+--- a/src/Fulfillment.Application/Domain.cs
++++ b/src/Fulfillment.Application/Domain.cs
+@@ -1,9 +1,9 @@
+ namespace Fulfillment.Application;
+ 
+ public enum OrderStatus { Draft, Submitted, Cancelled, Packed, Shipped }
+-public sealed record Order(string Id, OrderStatus Status, bool ShippingHold = false)
++public sealed record Order(string Id, OrderStatus Status, bool ShippingHold = false, int Remaining = 1)
+ {
+-    public Order? Apply(OrderCommand command)
++    public Order? Apply(OrderCommand command, int quantity = 1)
+     {
+         var machine = new Stateless.StateMachine<OrderStatus, OrderCommand>(Status);
+         machine.Configure(OrderStatus.Draft)
+@@ -13,13 +13,14 @@
+             .Permit(OrderCommand.Pack, OrderStatus.Packed)
+             .Ignore(OrderCommand.Unpack);
+         machine.Configure(OrderStatus.Packed)
+-            .PermitIf(OrderCommand.Ship, OrderStatus.Shipped, () => !ShippingHold)
++            .PermitIf(OrderCommand.Ship, OrderStatus.Shipped, () => !ShippingHold && quantity > 0 && quantity == Remaining)
++            .PermitReentryIf(OrderCommand.Ship, () => !ShippingHold && quantity > 0 && quantity < Remaining)
+             .Permit(OrderCommand.Unpack, OrderStatus.Submitted)
+             .Ignore(OrderCommand.Pack);
+         machine.Configure(OrderStatus.Cancelled).Ignore(OrderCommand.Cancel);
+         if (!machine.CanFire(command)) return null;
+         machine.Fire(command);
+-        return this with { Status = machine.State };
++        return this with { Status = machine.State, Remaining = command == OrderCommand.Ship ? Remaining - quantity : Remaining };
+     }
+ }
+ public sealed record InventoryItem(string Sku, int Available, int MaxPerOrder = int.MaxValue);

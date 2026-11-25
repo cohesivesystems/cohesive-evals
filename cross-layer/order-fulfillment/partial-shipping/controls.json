@@ -1,0 +1,104 @@
+[
+  {
+    "id": "zero-admitted",
+    "witness": {
+      "Status": "Packed",
+      "Hold": false,
+      "Remaining": 3,
+      "Quantity": 0
+    },
+    "conventional": [
+      "!ShippingHold && quantity > 0 && quantity < Remaining",
+      "!ShippingHold && quantity >= 0 && quantity < Remaining"
+    ],
+    "cohesive": [
+      "input.Quantity > 0, (_, _) => false",
+      "input.Quantity >= 0, (_, _) => false"
+    ]
+  },
+  {
+    "id": "last-unit-rejected",
+    "witness": {
+      "Status": "Packed",
+      "Hold": false,
+      "Remaining": 1,
+      "Quantity": 1
+    },
+    "conventional": [
+      "!ShippingHold && quantity > 0 && quantity == Remaining",
+      "!ShippingHold && quantity > 0 && quantity == Remaining && Remaining > 1"
+    ],
+    "cohesive": [
+      "Ship.Edge().From(packed).To(shipped).When((Order order, ShipQuantity input) => input.Quantity == order.Remaining);",
+      "Ship.Edge().From(packed).To(shipped).When((Order order, ShipQuantity input) => input.Quantity == order.Remaining && order.Remaining > 1);"
+    ]
+  },
+  {
+    "id": "excess-admitted",
+    "witness": {
+      "Status": "Packed",
+      "Hold": false,
+      "Remaining": 2,
+      "Quantity": 3
+    },
+    "conventional": [
+      "!ShippingHold && quantity > 0 && quantity == Remaining",
+      "!ShippingHold && quantity > 0 && quantity >= Remaining"
+    ],
+    "cohesive": [
+      "Ship.Edge().From(packed).To(shipped).When((Order order, ShipQuantity input) => input.Quantity == order.Remaining);",
+      "Ship.Edge().From(packed).To(shipped).When((Order order, ShipQuantity input) => input.Quantity >= order.Remaining);"
+    ]
+  },
+  {
+    "id": "subtract-one",
+    "witness": {
+      "Status": "Packed",
+      "Hold": false,
+      "Remaining": 4,
+      "Quantity": 2
+    },
+    "conventional": [
+      "Remaining - quantity : Remaining",
+      "Remaining - 1 : Remaining"
+    ],
+    "cohesive": [
+      "=> order.Remaining - input.Quantity)",
+      "=> order.Remaining - 1)"
+    ]
+  },
+  {
+    "id": "partial-ignores-hold",
+    "witness": {
+      "Status": "Packed",
+      "Hold": true,
+      "Remaining": 3,
+      "Quantity": 1
+    },
+    "conventional": [
+      "!ShippingHold && quantity > 0 && quantity < Remaining",
+      "quantity > 0 && quantity < Remaining"
+    ],
+    "cohesive": [
+      "=> !order.ShippingHold, (_, _) => false",
+      "=> !order.ShippingHold || input.Quantity < order.Remaining, (_, _) => false"
+    ]
+  },
+  {
+    "id": "submitted-partial",
+    "witness": {
+      "Status": "Submitted",
+      "Hold": false,
+      "Remaining": 3,
+      "Quantity": 1
+    },
+    "conventional": [
+      "machine.Configure(OrderStatus.Submitted)",
+      "machine.Configure(OrderStatus.Submitted)\n            .PermitIf(OrderCommand.Ship, OrderStatus.Packed, () => !ShippingHold && quantity > 0 && quantity < Remaining)"
+    ],
+    "cohesive": [
+      "Ship.Edge(\"partial\").From(packed).To(packed).When((Order order, ShipQuantity input) => input.Quantity < order.Remaining);",
+      "Ship.Edge(\"partial\").From(packed).To(packed).When((Order order, ShipQuantity input) => input.Quantity < order.Remaining);\n        Ship.Edge(\"early\").From(submitted).To(packed).When((Order order, ShipQuantity input) => input.Quantity < order.Remaining);"
+    ]
+  }
+]
