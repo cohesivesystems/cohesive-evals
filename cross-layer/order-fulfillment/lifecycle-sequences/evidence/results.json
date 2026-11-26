@@ -1,0 +1,334 @@
+{
+  "qualificationPaths": 136,
+  "conditions": {
+    "conventional": {
+      "sequences": [
+        [
+          "Pack",
+          "Ship:1",
+          "Hold",
+          "Ship:2",
+          "Release",
+          "Ship:2",
+          "Unpack",
+          "Ship:1"
+        ],
+        [
+          "Hold",
+          "Release",
+          "Ship:1",
+          "Pack",
+          "Ship:3",
+          "Pack",
+          "Hold",
+          "Release"
+        ],
+        [
+          "Pack",
+          "Hold",
+          "Hold",
+          "Pack",
+          "Unpack",
+          "Unpack",
+          "Pack",
+          "Ship:1"
+        ],
+        [
+          "Pack",
+          "Release",
+          "Ship:0",
+          "Ship:-1",
+          "Ship:4",
+          "Ship:2",
+          "Ship:2",
+          "Ship:1"
+        ]
+      ],
+      "controls": {
+        "unpack-clears-hold": [
+          {
+            "sequence": 2,
+            "step": 5,
+            "expected": {
+              "Accepted": true,
+              "Status": "Submitted",
+              "Id": "order-A",
+              "Hold": true,
+              "Remaining": 3
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Submitted",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 3
+            }
+          }
+        ],
+        "pack-replenishes-order": [],
+        "release-toggles-hold": [
+          {
+            "sequence": 3,
+            "step": 2,
+            "expected": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 3
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": true,
+              "Remaining": 3
+            }
+          }
+        ],
+        "ship-debits-one": [
+          {
+            "sequence": 0,
+            "step": 6,
+            "expected": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 0
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 1
+            }
+          },
+          {
+            "sequence": 1,
+            "step": 5,
+            "expected": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 0
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 2
+            }
+          },
+          {
+            "sequence": 3,
+            "step": 6,
+            "expected": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 1
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 2
+            }
+          }
+        ],
+        "last-single-unit-rejected": [
+          {
+            "sequence": 3,
+            "step": 8,
+            "expected": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 0
+            },
+            "actual": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 1
+            }
+          }
+        ],
+        "held-order-cannot-unpack": [
+          {
+            "sequence": 2,
+            "step": 5,
+            "expected": {
+              "Accepted": true,
+              "Status": "Submitted",
+              "Id": "order-A",
+              "Hold": true,
+              "Remaining": 3
+            },
+            "actual": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": true,
+              "Remaining": 3
+            }
+          }
+        ]
+      }
+    },
+    "cohesive": {
+      "sequences": [
+        [
+          "Pack",
+          "Ship:1",
+          "Hold",
+          "Ship:2",
+          "Release",
+          "Ship:2",
+          "Hold",
+          "Release"
+        ],
+        [
+          "Pack",
+          "Hold",
+          "Hold",
+          "Unpack",
+          "Release",
+          "Pack",
+          "Ship:1",
+          "Release"
+        ],
+        [
+          "Ship:1",
+          "Hold",
+          "Release",
+          "Unpack",
+          "Pack",
+          "Ship:-1",
+          "Ship:0",
+          "Ship:4"
+        ],
+        [
+          "Pack",
+          "Pack",
+          "Ship:2",
+          "Ship:2",
+          "Ship:1",
+          "Pack",
+          "Unpack",
+          "Ship:1"
+        ]
+      ],
+      "controls": {
+        "unpack-clears-hold": [
+          {
+            "sequence": 1,
+            "step": 4,
+            "expected": {
+              "Accepted": true,
+              "Status": "Submitted",
+              "Id": "order-A",
+              "Hold": true,
+              "Remaining": 3
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Submitted",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 3
+            }
+          }
+        ],
+        "pack-replenishes-order": [],
+        "release-toggles-hold": [],
+        "ship-debits-one": [
+          {
+            "sequence": 0,
+            "step": 6,
+            "expected": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 0
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 1
+            }
+          },
+          {
+            "sequence": 3,
+            "step": 3,
+            "expected": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 1
+            },
+            "actual": {
+              "Accepted": true,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 2
+            }
+          }
+        ],
+        "last-single-unit-rejected": [
+          {
+            "sequence": 3,
+            "step": 5,
+            "expected": {
+              "Accepted": true,
+              "Status": "Shipped",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 0
+            },
+            "actual": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": false,
+              "Remaining": 1
+            }
+          }
+        ],
+        "held-order-cannot-unpack": [
+          {
+            "sequence": 1,
+            "step": 4,
+            "expected": {
+              "Accepted": true,
+              "Status": "Submitted",
+              "Id": "order-A",
+              "Hold": true,
+              "Remaining": 3
+            },
+            "actual": {
+              "Accepted": false,
+              "Status": "Packed",
+              "Id": "order-A",
+              "Hold": true,
+              "Remaining": 3
+            }
+          }
+        ]
+      }
+    }
+  }
+}
