@@ -10,7 +10,7 @@
 +    [property: JsonPropertyName("priority")] int Priority = 0,
 +    [property: JsonPropertyName("warehouseStatus")] string WarehouseStatus = "Pending",
 +    [property: JsonPropertyName("held")] bool Held = false);
- 
+
  /// <summary>Closed lifecycle contract; serialized names are durable domain values.</summary>
  [JsonConverter(typeof(JsonStringEnumConverter<OrderStatus>))]
 --- a/src/Fulfillment.Application/FulfillmentPostgresMappings.cs
