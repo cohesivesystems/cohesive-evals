@@ -1,0 +1,31 @@
+{
+  "arm": "conventional",
+  "orders": 100000,
+  "writes": 6000,
+  "reads": 19200,
+  "durationSeconds": 599.9833461670205,
+  "foregroundP99Ms": 5.89416699949652,
+  "visibilityP99Ms": 4.85166598809883,
+  "overTwoSeconds": 0,
+  "unseen": 0,
+  "readLagP99Ms": 1.3346670311875641,
+  "writeLagP99Ms": 1.1836669873446226,
+  "maxReadLagMs": 8.160250028595328,
+  "maxWriteLagMs": 3.9720830274632135,
+  "finalSeconds": 0.05103683302877471,
+  "cpuSeconds": {
+    "db": 71.647562,
+    "app": 22.248754
+  },
+  "rssBytes": {
+    "db": 68493312,
+    "app": 29777920
+  },
+  "bufferHitsPerWrite": 1427.2005,
+  "bufferReadsPerWrite": 0.0006666666666666666,
+  "firstReadySeconds": 1.1663245829986408,
+  "setupThroughRestartSeconds": 1.9644970829831436,
+  "seedSeconds": 0.20184283301932737,
+  "host": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+  "errors": []
+}
