@@ -1,0 +1,24 @@
+--- a/src/Fulfillment.Application/Domain.cs
++++ b/src/Fulfillment.Application/Domain.cs
+@@ -15,17 +15,19 @@
+         machine.Configure(OrderStatus.Packed)
+             .PermitIf(OrderCommand.Ship, OrderStatus.Shipped, () => !ShippingHold && quantity > 0 && quantity == Remaining)
+             .PermitReentryIf(OrderCommand.Ship, () => !ShippingHold && quantity > 0 && quantity < Remaining)
++            .PermitReentry(OrderCommand.Hold)
++            .PermitReentry(OrderCommand.Release)
+             .Permit(OrderCommand.Unpack, OrderStatus.Submitted)
+             .Ignore(OrderCommand.Pack);
+         machine.Configure(OrderStatus.Cancelled).Ignore(OrderCommand.Cancel);
+         if (!machine.CanFire(command)) return null;
+         machine.Fire(command);
+-        return this with { Status = machine.State, Remaining = command == OrderCommand.Ship ? Remaining - quantity : Remaining };
++        return this with { Status = machine.State, ShippingHold = command switch { OrderCommand.Hold => true, OrderCommand.Release => false, _ => ShippingHold }, Remaining = command == OrderCommand.Ship ? Remaining - quantity : Remaining };
+     }
+ }
+ public sealed record InventoryItem(string Sku, int Available, int MaxPerOrder = int.MaxValue);
+ public sealed record Reservation(string Id, string OrderId, string Sku, int Quantity);
+-public enum OrderCommand { Submit, Cancel, Pack, Unpack, Ship }
++public enum OrderCommand { Submit, Cancel, Pack, Unpack, Ship, Hold, Release }
+ public enum StockOutcome { Reserved, Released, InvalidQuantity, QuantityLimitExceeded, InsufficientStock }
+ 
+ public static class InventoryRules
