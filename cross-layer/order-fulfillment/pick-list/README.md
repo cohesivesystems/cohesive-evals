@@ -2,6 +2,8 @@
 
 [Issue #76](https://github.com/cohesivesystems/cohesive-evals/issues/76) asks for the first 50 pickable orders at a warehouse. An order qualifies when packed, unheld and every reserved SKU has enough physical stock for that order at that location. Orders share stock independently on this planning screen. A pick-list read does not allocate inventory.
 
+[Measured results across both scales](RESULTS.md) · [Per-run evidence](evidence)
+
 ## Implementations
 
 | | Conventional | Cohesive |

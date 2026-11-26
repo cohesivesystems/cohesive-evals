@@ -1,0 +1,7 @@
+{
+  "containers": {
+    "pick-898d4a8ac3-pg": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193 2000000000 4294967296",
+    "pick-898d4a8ac3-app": "sha256:f1126d438ccc359f51cc6d4701a8deae513856cf10f5fe645d29ea6403dcac6b 2000000000 2147483648"
+  },
+  "docker": "Docker Desktop 7.0.14-linuxkit aarch64 overlayfs"
+}
