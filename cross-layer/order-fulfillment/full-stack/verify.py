@@ -110,7 +110,17 @@ def verify(output):
         retained(folder, 'evolution-retains-130-lifecycle-paths', checks)
         with serve(folder, output, env) as api:
             expect('same-legacy-row-defaults-zero', shipping(api), (200, state(3, True, 0)), checks)
-            expect('malformed-body', api.request_bytes('POST', '/orders/legacy/release-quantity', raw=b'{')[0], 400, checks)
+            for name, media, raw, status, code in [
+                ('malformed-body', 'application/json', b'{', 400, 'http.invalidJson'),
+                ('unsupported-media-type', 'text/plain', b'{"quantity":1}', 415, 'http.unsupportedMediaType'),
+            ]:
+                actual, payload = api.request_bytes('POST', '/orders/legacy/release-quantity', raw=raw, content_type=media)
+                try:
+                    problem = json.loads(payload)
+                except (UnicodeError, ValueError):
+                    problem = None
+                observed = (problem.get('status'), problem.get('code')) if isinstance(problem, dict) else None
+                expect(name, (actual, observed), (status, (status, code)), checks)
             expect('zero-ship', problem_code(api, 'ship', 0), (400, 'orders.ship.InvalidQuantity'), checks)
             expect('zero-release', problem_code(api, 'release-quantity', 0), (400, 'orders.release.InvalidQuantity'), checks)
             expect('negative-release', problem_code(api, 'release-quantity', -1), (400, 'orders.release.InvalidQuantity'), checks)

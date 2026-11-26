@@ -15,6 +15,7 @@
         "evolution-retains-130-lifecycle-paths",
         "same-legacy-row-defaults-zero",
         "malformed-body",
+        "unsupported-media-type",
         "zero-ship",
         "zero-release",
         "negative-release",
