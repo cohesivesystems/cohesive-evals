@@ -1,0 +1,100 @@
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -63,7 +63,7 @@
+     }
+     public async Task Seed(SeedData data)
+     {
+-        foreach (var order in data.Orders) await orders.Upsert(Context(), new Order(order.Id, "local", Enum.Parse<OrderStatus>(order.Status)));
++        foreach (var order in data.Orders) await orders.Upsert(Context(), new Order(order.Id, "local", Enum.Parse<OrderStatus>(order.Status), Remaining: order.Remaining));
+         foreach (var item in data.Inventory) await inventory.Upsert(Context(), new InventoryItem(item.Sku, "local", item.Available, item.MaxPerOrder));
+         foreach (var row in data.Reservations) await reservations.Upsert(Context(), new Reservation(row.Id, "local", row.OrderId, row.Sku, row.Quantity));
+     }
+@@ -97,9 +97,26 @@
+     }
+     public void MapLifecycle(WebApplication app)
+     {
++        app.MapGet("/orders/{id}/shipping", async (string id) =>
++            await orders.TryGetEntity(Context(), id, new(partitionKey: "local")) is { } order
++                ? Results.Ok(ShippingState.From(order)) : Results.NotFound());
++
++        var quantities = app.MapGroup("").AddEndpointFilter<ShippingQuantityInput>();
++        quantities.MapEntityApi<Order>(domain.Orders.Definition, orders, "local", bindings =>
++        {
++            bindings.Transition("Ship", "/orders/{id}/ship", domain.OrderTransitions.Ship)
++                .Input(context => ShippingQuantityInput.Get(context.HttpContext))
++                .OnApplied((order, _) => TypedResults.Ok(ShippingState.From(order)))
++                .OnRejected(_ => TypedResults.Conflict(new ErrorResponse("NotShippable")));
++        });
+         var commands = app.MapGroup("").AddEndpointFilter(RetryConcurrentOrderCommand);
+         commands.MapEntityApi<Order>(domain.Orders.Definition, orders, "local", bindings =>
+         {
++            foreach (var (name, path, held) in new[] { ("Hold", "hold", true), ("Release", "release", false) })
++                bindings.Transition(name, "/orders/{id}/" + path, domain.OrderTransitions.ChangeHold)
++                    .Input(_ => new HoldSetting(held))
++                    .OnApplied((order, _) => TypedResults.Ok(ShippingState.From(order)))
++                    .OnRejected(_ => TypedResults.Conflict(new ErrorResponse("NotPacked")));
+             bindings.Transition("Cancel", "/orders/{id}/cancel", domain.OrderTransitions.Cancel)
+             .OnApplied((state, _) => TypedResults.Ok(new OrderSummary(state.Id, state.Status.ToString())))
+             .OnRejected(_ => TypedResults.Conflict(new ErrorResponse("OrderNotCancellable")));
+--- a/src/Fulfillment.Application/FulfillmentPostgresMappings.cs
++++ b/src/Fulfillment.Application/FulfillmentPostgresMappings.cs
+@@ -13,7 +13,8 @@
+         this.domain = domain;
+         Orders = PostgresEntityRepositoryMapping.For(domain.Orders)
+             .Table("public", "cohesive_orders").Identity(x => x.Id, "order_id")
+-            .Partition(x => x.Partition, "partition_key").Column(x => x.Status, "status").Build();
++            .Partition(x => x.Partition, "partition_key").Column(x => x.Status, "status")
++            .Column(x => x.ShippingHold, "shipping_hold").Column(x => x.Remaining, "remaining").Build();
+         Reservations = PostgresEntityRepositoryMapping.For(domain.Reservations)
+             .Table("public", "cohesive_reservations").Identity(x => x.Id, "reservation_id")
+             .Partition(x => x.Partition, "partition_key").Column(x => x.OrderId, "order_id")
+--- a/src/Fulfillment.Application/Contracts.cs
++++ b/src/Fulfillment.Application/Contracts.cs
+@@ -24,7 +24,7 @@
+     void MapInventoryLimits(WebApplication app);
+ }
+ 
+-public sealed record SeedOrder(string Id, string Status);
++public sealed record SeedOrder(string Id, string Status, int Remaining = 1);
+ public sealed record SeedInventory(string Sku, int Available, int MaxPerOrder = int.MaxValue);
+ public sealed record SeedReservation(string Id, string OrderId, string Sku, int Quantity);
+ public sealed record SeedData(SeedOrder[] Orders, SeedInventory[] Inventory, SeedReservation[] Reservations)
+@@ -32,7 +32,7 @@
+     public void Validate()
+     {
+         if (Orders is null || Inventory is null || Reservations is null
+-            || Orders.Any(x => string.IsNullOrWhiteSpace(x.Id) || x.Status is not ("Draft" or "Submitted" or "Cancelled" or "Packed"))
++            || Orders.Any(x => x.Remaining <= 0 || string.IsNullOrWhiteSpace(x.Id) || x.Status is not ("Draft" or "Submitted" or "Cancelled" or "Packed"))
+             || Inventory.Any(x => string.IsNullOrWhiteSpace(x.Sku) || x.Available < 0 || x.MaxPerOrder <= 0)
+             || Reservations.Any(x => string.IsNullOrWhiteSpace(x.Id) || string.IsNullOrWhiteSpace(x.OrderId) || string.IsNullOrWhiteSpace(x.Sku) || x.Quantity <= 0))
+             throw new ArgumentException("Invalid seed data.");
+--- /dev/null
++++ b/src/Fulfillment.Application/ShippingState.cs
+@@ -0,0 +1,27 @@
++using System.Text.Json;
++
++namespace Fulfillment.Application;
++
++public sealed record ShippingState(string Id, string Status, bool Held, int Remaining)
++{
++    public static ShippingState From(Order order) =>
++        new(order.Id, order.Status.ToString(), order.ShippingHold, order.Remaining);
++}
++
++public sealed class ShippingQuantityInput : IEndpointFilter
++{
++    static readonly object Key = new();
++    public static ShipQuantity Get(HttpContext context) => (ShipQuantity)context.Items[Key]!;
++    public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
++    {
++        if (!context.HttpContext.Request.HasJsonContentType()) return Results.StatusCode(415);
++        try
++        {
++            var quantity = await context.HttpContext.Request.ReadFromJsonAsync<ShipQuantity>();
++            if (quantity is null) return Results.BadRequest();
++            context.HttpContext.Items[Key] = quantity;
++        }
++        catch (JsonException) { return Results.BadRequest(); }
++        return await next(context);
++    }
++}
