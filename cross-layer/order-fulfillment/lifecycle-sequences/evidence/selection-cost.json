@@ -1,0 +1,88 @@
+{
+  "cpu": "Apple M5 Max",
+  "runtime": ".NET 10.0.13 arm64",
+  "configuration": "Release runner, published evaluation packages, tiered compilation disabled",
+  "warmupsPerConfiguration": 1,
+  "samples": [
+    {
+      "run": 0,
+      "BeamWidth": 32,
+      "MaxStepsPerSequence": 8,
+      "CandidateCount": 1916,
+      "TotalMilliseconds": 64.6672,
+      "allocated": 32846184
+    },
+    {
+      "run": 1,
+      "BeamWidth": 32,
+      "MaxStepsPerSequence": 8,
+      "CandidateCount": 1916,
+      "TotalMilliseconds": 65.4516,
+      "allocated": 32846184
+    },
+    {
+      "run": 2,
+      "BeamWidth": 32,
+      "MaxStepsPerSequence": 8,
+      "CandidateCount": 1916,
+      "TotalMilliseconds": 64.0512,
+      "allocated": 32846184
+    },
+    {
+      "run": 3,
+      "BeamWidth": 32,
+      "MaxStepsPerSequence": 8,
+      "CandidateCount": 1916,
+      "TotalMilliseconds": 64.6054,
+      "allocated": 32846184
+    },
+    {
+      "run": 4,
+      "BeamWidth": 32,
+      "MaxStepsPerSequence": 8,
+      "CandidateCount": 1916,
+      "TotalMilliseconds": 62.0613,
+      "allocated": 32846184
+    },
+    {
+      "run": 0,
+      "BeamWidth": 128,
+      "MaxStepsPerSequence": 16,
+      "CandidateCount": 4096,
+      "TotalMilliseconds": 132.2405,
+      "allocated": 68346448
+    },
+    {
+      "run": 1,
+      "BeamWidth": 128,
+      "MaxStepsPerSequence": 16,
+      "CandidateCount": 4096,
+      "TotalMilliseconds": 123.9037,
+      "allocated": 68326616
+    },
+    {
+      "run": 2,
+      "BeamWidth": 128,
+      "MaxStepsPerSequence": 16,
+      "CandidateCount": 4096,
+      "TotalMilliseconds": 126.294,
+      "allocated": 68368656
+    },
+    {
+      "run": 3,
+      "BeamWidth": 128,
+      "MaxStepsPerSequence": 16,
+      "CandidateCount": 4096,
+      "TotalMilliseconds": 124.3407,
+      "allocated": 68326616
+    },
+    {
+      "run": 4,
+      "BeamWidth": 128,
+      "MaxStepsPerSequence": 16,
+      "CandidateCount": 4096,
+      "TotalMilliseconds": 121.4,
+      "allocated": 68327400
+    }
+  ]
+}

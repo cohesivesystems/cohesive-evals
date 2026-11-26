@@ -1,0 +1,96 @@
+[
+  {
+    "name": "unpack-clears-hold",
+    "witness": [
+      "Pack",
+      "Hold",
+      "Unpack"
+    ],
+    "conventional": [
+      "_ => ShippingHold",
+      "OrderCommand.Unpack => false, _ => ShippingHold"
+    ],
+    "cohesive": [
+      ".Move(lifecycle.Unpack, (_, _) => false).Return(true)",
+      ".Move(lifecycle.Unpack, (_, _) => false).Set(order => order.ShippingHold, false).Return(true)"
+    ]
+  },
+  {
+    "name": "pack-replenishes-order",
+    "witness": [
+      "Pack",
+      "Ship:1",
+      "Pack"
+    ],
+    "conventional": [
+      "Remaining - quantity : Remaining",
+      "Remaining - quantity : command == OrderCommand.Pack ? 3 : Remaining"
+    ],
+    "cohesive": [
+      ".Move(lifecycle.Pack, (_, _) => false).Return(true)",
+      ".Move(lifecycle.Pack, (_, _) => false).Set(order => order.Remaining, 3).Return(true)"
+    ]
+  },
+  {
+    "name": "release-toggles-hold",
+    "witness": [
+      "Pack",
+      "Release"
+    ],
+    "conventional": [
+      "OrderCommand.Release => false",
+      "OrderCommand.Release => !ShippingHold"
+    ],
+    "cohesive": [
+      "(_, input) => input.Held",
+      "(order, input) => input.Held || !order.ShippingHold"
+    ]
+  },
+  {
+    "name": "ship-debits-one",
+    "witness": [
+      "Pack",
+      "Ship:2"
+    ],
+    "conventional": [
+      "Remaining - quantity",
+      "Remaining - 1"
+    ],
+    "cohesive": [
+      "order.Remaining - input.Quantity",
+      "order.Remaining - 1"
+    ]
+  },
+  {
+    "name": "last-single-unit-rejected",
+    "witness": [
+      "Pack",
+      "Ship:2",
+      "Ship:1"
+    ],
+    "conventional": [
+      "quantity == Remaining",
+      "quantity == Remaining && Remaining > 1"
+    ],
+    "cohesive": [
+      "input.Quantity == order.Remaining",
+      "input.Quantity == order.Remaining && order.Remaining > 1"
+    ]
+  },
+  {
+    "name": "held-order-cannot-unpack",
+    "witness": [
+      "Pack",
+      "Hold",
+      "Unpack"
+    ],
+    "conventional": [
+      ".Permit(OrderCommand.Unpack, OrderStatus.Submitted)",
+      ".PermitIf(OrderCommand.Unpack, OrderStatus.Submitted, () => !ShippingHold)"
+    ],
+    "cohesive": [
+      ".Move(lifecycle.Unpack, (_, _) => false).Return(true)",
+      ".Requires(order => !order.ShippingHold, _ => false).Move(lifecycle.Unpack, (_, _) => false).Return(true)"
+    ]
+  }
+]

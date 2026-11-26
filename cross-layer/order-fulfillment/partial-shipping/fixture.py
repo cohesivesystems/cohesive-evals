@@ -10,10 +10,10 @@ from grade import call, install_source
 from prepare import APP, CONDITIONS, build
 
 
-def fixtures(output, *, selection=False, paired=False, relock=False):
+def fixtures(output, *, selection=False, paired=False, relock=False, stage=None):
     """Build isolated, locked reference applications and install the shared proposal protocol."""
-    if selection:
-        stage = ROOT / ('decision-pairs' if paired else 'selection')
+    if selection or stage is not None:
+        stage = stage or ROOT / ('decision-pairs' if paired else 'selection')
         build(output, sdk=stage / 'sdk', locks=stage / 'locks', relock=relock)
     else:
         build(output)

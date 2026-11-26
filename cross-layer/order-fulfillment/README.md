@@ -13,6 +13,8 @@ The [persisted availability pilot](materialized-availability/README.md) adds and
 
 The [async availability evolution](async-availability/README.md) exercises worker lag, crash replay and writes during resync.
 
+The [offline lifecycle sequence pilot](lifecycle-sequences/README.md) compares multi-command test suites on matched order defects.
+
 ## Run and verify
 
 Each condition contains its own setup README, public contract, schemas, package

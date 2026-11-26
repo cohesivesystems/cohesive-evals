@@ -1,0 +1,18 @@
+{
+  "protocolCommit": "387adc528921e7612e39c01d789c34a09e29df14",
+  "baseline": "9f40af410742c756245fed1dfa9e603de16c1de1",
+  "sdk": "0.1.0-eval.2a3cdfb3",
+  "budgetSeconds": 480,
+  "maximumSequences": 4,
+  "maximumStepsPerSequence": 8,
+  "preDispatchBoundUtc": "2026-11-26T04:02:36Z",
+  "collectedUtc": "2026-11-26T04:04:00.265739+00:00",
+  "conventional": {
+    "sha256": "99d7509f9e356da09afdca3c7e09bdcab27b84ba94bdcaeec0f6cfd7f78a47bd",
+    "sourceLastWrittenUtc": "2026-11-26T04:03:02.401910+00:00"
+  },
+  "cohesive": {
+    "sha256": "90cdd95bc2660479a183b8c7ca02184f1879ef9de4f3803a1181481b1c79b36f",
+    "sourceLastWrittenUtc": "2026-11-26T04:03:31.334188+00:00"
+  }
+}
