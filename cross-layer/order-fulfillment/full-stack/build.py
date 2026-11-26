@@ -18,9 +18,13 @@ def overlay(folder, patch):
     subprocess.run(['git', 'apply', str(patch)], cwd=folder, check=True)
 
 
-def build(output, evolved=False, *, relock=False):
+def build(output, evolved=False, *, relock=False, shippable=False):
     """Build a disposable checkpoint host using the lifecycle replay SDK and lockfiles."""
+    if shippable and not evolved:
+        raise ValueError("Shippable quantity requires the partial-release checkpoint.")
     stage = ROOT / 'partial-release' if evolved else LIFECYCLE / 'replay'
+    if shippable:
+        stage = ROOT / 'shippable'
     shipping['fixtures'](output, stage=stage, relock=relock)
     folder = output / 'cohesive'
     overlay(folder, LIFECYCLE / 'reference/cohesive.patch')
@@ -30,6 +34,8 @@ def build(output, evolved=False, *, relock=False):
         for name in ['Cases.cs', 'Adapter.cs']:
             (folder / 'Suite' / name).unlink()
         shutil.copyfile(ROOT / 'partial-release/SequenceRunner.cs', folder / 'Suite/Program.cs')
+    if shippable:
+        overlay(folder, ROOT / "shippable/host.patch")
     compile_suite(folder)
     return folder
 
@@ -38,5 +44,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output', type=Path)
     parser.add_argument('--partial-release', action='store_true')
+    parser.add_argument('--shippable', action='store_true')
     args = parser.parse_args()
-    build(args.output.resolve(), args.partial_release)
+    build(args.output.resolve(), args.partial_release or args.shippable, shippable=args.shippable)
