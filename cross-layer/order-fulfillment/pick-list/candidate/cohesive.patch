@@ -1,0 +1,28 @@
+--- a/src/Fulfillment.Application/FulfillmentDomain.cs
++++ b/src/Fulfillment.Application/FulfillmentDomain.cs
+@@ -82,7 +82,11 @@
+ public sealed record Order(
+     [property: JsonPropertyName(FulfillmentDomain.OrderIdField)] string Id,
+     [property: JsonPropertyName(FulfillmentDomain.PartitionField)] string Partition,
+-    [property: JsonPropertyName("status")] OrderStatus Status = OrderStatus.Draft);
++    [property: JsonPropertyName("status")] OrderStatus Status = OrderStatus.Draft,
++    [property: JsonPropertyName("location")] string Location = "",
++    [property: JsonPropertyName("priority")] int Priority = 0,
++    [property: JsonPropertyName("warehouseStatus")] string WarehouseStatus = "Pending",
++    [property: JsonPropertyName("held")] bool Held = false);
+ 
+ /// <summary>Closed lifecycle contract; serialized names are durable domain values.</summary>
+ [JsonConverter(typeof(JsonStringEnumConverter<OrderStatus>))]
+--- a/src/Fulfillment.Application/FulfillmentPostgresMappings.cs
++++ b/src/Fulfillment.Application/FulfillmentPostgresMappings.cs
+@@ -13,7 +13,9 @@
+         this.domain = domain;
+         Orders = PostgresEntityRepositoryMapping.For(domain.Orders)
+             .Table("public", "cohesive_orders").Identity(x => x.Id, "order_id")
+-            .Partition(x => x.Partition, "partition_key").Column(x => x.Status, "status").Build();
++            .Partition(x => x.Partition, "partition_key").Column(x => x.Status, "status")
++            .Column(x => x.Location, "location").Column(x => x.Priority, "priority")
++            .Column(x => x.WarehouseStatus, "warehouse_status").Column(x => x.Held, "held").Build();
+         Reservations = PostgresEntityRepositoryMapping.For(domain.Reservations)
+             .Table("public", "cohesive_reservations").Identity(x => x.Id, "reservation_id")
+             .Partition(x => x.Partition, "partition_key").Column(x => x.OrderId, "order_id")
