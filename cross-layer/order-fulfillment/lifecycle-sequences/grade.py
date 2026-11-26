@@ -65,8 +65,13 @@ def differences(folder, sequences, *, first_only=False):
     result = call(folder, 'execute', sequences)
     if result['sequences'] != sequences:
         raise ValueError('Sequence echo mismatch')
+    return trace_differences(sequences, result['traces'], first_only=first_only)
+
+
+def trace_differences(sequences, traces, *, first_only=False):
+    """Compare every supplied step observation with the independent contract."""
     failures = []
-    for index, (commands, trace) in enumerate(zip(sequences, result['traces'], strict=True)):
+    for index, (commands, trace) in enumerate(zip(sequences, traces, strict=True)):
         state = START
         for number, (command, actual) in enumerate(zip(commands, trace, strict=True), 1):
             accepted, state = step(state, command)
@@ -91,11 +96,17 @@ def generate(output, *, relock=False):
     shutil.copyfile(stage / 'Program.cs', suite / 'Program.cs')
     compile_suite(folder)
     command = ['dotnet', 'Suite/bin/Debug/net10.0/Suite.dll']
-    runs = [subprocess.check_output(command, cwd=folder, input=json.dumps(REQUIRED),
+    paths = coverage()
+    request = json.dumps(dict(Required=REQUIRED, Qualification=paths))
+    runs = [subprocess.check_output(command, cwd=folder, input=request,
                                     text=True, timeout=60) for _ in range(2)]
     if runs[0] != runs[1]:
         raise ValueError('Unstable SDK selection')
     selection = json.loads(runs[0])
+    # Compare SDK execution with the public oracle separately from mutation scoring.
+    traces = selection.pop('traces')
+    if trace_differences(paths + selection['sequences'], traces):
+        raise ValueError('SDK command registry violates the clean sequence contract')
     check_budget(selection['sequences'])
     if len(selection['sequences']) != 4:
         raise ValueError('Expected four SDK-selected sequences')

@@ -34,7 +34,7 @@ PYTHONPATH=. python3.13 -B cross-layer/order-fulfillment/lifecycle-sequences/gra
 
 ## Post-session SDK replay
 
-Assurance selected four paths totaling 24 commands within the original four-sequence, eight-steps-per-sequence limits. The required six-command scenario occupied one slot. The generator registered the public command vocabulary and executed the clean typed model from the same Submitted seed. The bounded search explored 1,916 steps and covered 36 of 266 observed decision and adjacent-decision goals. Beam pruning limited exploration. [Selector](replay/Program.cs) · [Evaluation SDK release](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-6f28ba09)
+Assurance selected four paths totaling 24 commands within the original four-sequence, eight-steps-per-sequence limits. The required six-command scenario occupied one slot. The generator registered the public command vocabulary and executed the clean typed model from the same Submitted seed. The bounded search explored 1,916 steps and covered 36 of 266 observed decision and adjacent-decision goals. Beam pruning limited exploration. [Selector](replay/Program.cs) · [Evaluation SDK release](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-439aa6a9)
 
 | Sequence | Commands | Defects detected |
 |---|---|---|
@@ -46,3 +46,15 @@ Assurance selected four paths totaling 24 commands within the original four-sequ
 Both original executors reproduced the same four detections. The SDK missed the final-single-unit rejection and the repeat Pack quantity reset. The two frozen authors scored 5/6 (Stateless) and 4/6 (Cohesive). The SDK traded the Cohesive author's final-unit detection for the release defect. In sequence 3 all four commands are rejected in Submitted. The selector rewards distinct named decisions and adjacent pairs, which can use budget on paths that never advance the order. This is a post-session replay on a previously seen panel. [Full evidence](evidence/replay.json)
 
 Append `--replay` to the qualification command above. Only the clean selector project uses the newer SDK. Both frozen submissions, executors and graded models use their original dependencies. The replay requires repeatable clean selection and equal first failures across both executors on every paired defect.
+
+The clean replay also uses the registered commands to execute 130 qualification paths and the four selected paths against the independent oracle. Setup resolves the required command names before search.
+
+Warm selection cost on an Apple M5 Max (1,916 steps: 64.6 ms, 31.3 MiB; 4,096 steps: 124.3 ms, 65.2 MiB). Figures are medians of five calls and current-thread managed allocations for the whole selector, including offline execution. The 4,096-step run increases beam width to 128 and depth to 16 to reach the default candidate ceiling. [Measurement samples](evidence/selection-cost.json)
+
+To reproduce after qualification, build the generated Cohesive Suite project in Release mode and pass the same required scenario to the measurement entry point:
+
+```sh
+cd /tmp/lifecycle-sequence-run/generator/cohesive
+dotnet build Suite/Suite.csproj -c Release --no-restore
+echo '{"Required":["Pack","Ship:1","Hold","Ship:2","Release","Ship:2"],"Qualification":[]}' | DOTNET_TieredCompilation=0 dotnet Suite/bin/Release/net10.0/Suite.dll --measure
+```
