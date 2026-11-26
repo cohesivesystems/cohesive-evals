@@ -1,0 +1,96 @@
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -104,6 +104,10 @@
+         var quantities = app.MapGroup("").AddEndpointFilter<ShippingQuantityInput>();
+         quantities.MapEntityApi<Order>(domain.Orders.Definition, orders, "local", bindings =>
+         {
++            bindings.Transition("ReleaseQuantity", "/orders/{id}/release-quantity", domain.OrderTransitions.ReleaseQuantity)
++                .Input(context => ShippingQuantityInput.Get(context.HttpContext))
++                .OnApplied((order, _) => TypedResults.Ok(ShippingState.From(order)))
++                .OnRejected(_ => TypedResults.Conflict(new ErrorResponse("NotReleasable")));
+             bindings.Transition("Ship", "/orders/{id}/ship", domain.OrderTransitions.Ship)
+                 .Input(context => ShippingQuantityInput.Get(context.HttpContext))
+                 .OnApplied((order, _) => TypedResults.Ok(ShippingState.From(order)))
+--- a/src/Fulfillment.Application/FulfillmentDomain.cs
++++ b/src/Fulfillment.Application/FulfillmentDomain.cs
+@@ -22,7 +22,7 @@
+     /// <summary>Canonical partition field shared by the example entities.</summary>
+     public const string PartitionField = "partition";
+     /// <summary>Declares the shared entities and their canonical references.</summary>
+-    public FulfillmentDomain() : base(revision: "6")
++    public FulfillmentDomain() : base(revision: "7")
+     {
+         var lifecycle = new OrderLifecycle();
+         (Orders, Inventory, Reservations) = Discover(DomainDiscovery.For<FulfillmentDomain>().WithMachine(lifecycle.Binding),
+@@ -89,7 +89,8 @@
+     [property: JsonPropertyName(FulfillmentDomain.PartitionField)] string Partition,
+     [property: JsonPropertyName("status")] OrderStatus Status = OrderStatus.Draft,
+     [property: JsonPropertyName("shippingHold")] bool ShippingHold = false,
+-    [property: JsonPropertyName("remaining")] int Remaining = 1);
++    [property: JsonPropertyName("remaining")] int Remaining = 1,
++    [property: JsonPropertyName("released")] int Released = 0);
+ 
+ public sealed record HoldSetting(bool Held);
+ public sealed record ShipQuantity(int Quantity);
+@@ -173,6 +174,7 @@
+     public Transition<Order, Cohesive.Prelude.Unit, SubmitOrderResult> Submit { get; }
+     public Transition<Order, Cohesive.Prelude.Unit, CancellationOutcome> Cancel { get; }
+ 
++    public Transition<Order, ShipQuantity, bool> ReleaseQuantity { get; }
+     public Transition<Order, HoldSetting, bool> ChangeHold { get; }
+     public Transition<Order, ShipQuantity, bool> Ship { get; }
+     public Transition<Order, Unit, bool> Pack { get; }
+@@ -183,14 +185,23 @@
+         Cancel = orders.Transition<CancellationOutcome>(new("example/order/cancel"), new("3"), t => t
+             .Move(lifecycle.Cancel, (_, _) => CancellationOutcome.NotCancellable)
+             .Return(CancellationOutcome.Cancelled));
+-        ChangeHold = orders.Transition<HoldSetting, bool>(new("example/order/change-hold"), new("1"), t => t
++        ChangeHold = orders.Transition<HoldSetting, bool>(new("example/order/change-hold"), new("2"), t => t
+             .Move(lifecycle.ChangeHold, (_, _) => false)
++            .Set(order => order.Released, 0)
+             .Set(new("hold/set"), order => order.ShippingHold, (_, input) => input.Held)
+             .Return(true));
+-        Ship = orders.Transition<ShipQuantity, bool>(new("example/order/ship"), new("2"), t => t
+-            .Requires((order, input) => !order.ShippingHold, (_, _) => false)
++        ReleaseQuantity = orders.Transition<ShipQuantity, bool>(new("example/order/release-quantity"), new("1"), t => t
++            .Requires((order, input) => order.ShippingHold, (_, _) => false)
++            .Requires((order, input) => input.Quantity > 0, (_, _) => false)
++            .Requires((order, input) => input.Quantity <= order.Remaining - order.Released, (_, _) => false)
++            .Move(lifecycle.ChangeHold, (_, _) => false)
++            .Set(new("hold/allow"), order => order.Released, (order, input) => order.Released + input.Quantity)
++            .Return(true));
++        Ship = orders.Transition<ShipQuantity, bool>(new("example/order/ship"), new("3"), t => t
++            .Requires((order, input) => !order.ShippingHold || input.Quantity <= order.Released, (_, _) => false)
+             .Requires((order, input) => input.Quantity > 0, (_, _) => false)
+             .Move(lifecycle.Ship, (_, _) => false)
++            .Set(new("ship/consume"), order => order.Released, (order, input) => order.ShippingHold ? order.Released - input.Quantity : 0)
+             .Set(new("ship/remaining"), order => order.Remaining, (order, input) => order.Remaining - input.Quantity)
+             .Return(true));
+         Pack = orders.Transition<bool>(new("example/order/pack"), new("3"), t => t
+--- a/src/Fulfillment.Application/FulfillmentPostgresMappings.cs
++++ b/src/Fulfillment.Application/FulfillmentPostgresMappings.cs
+@@ -14,7 +14,8 @@
+         Orders = PostgresEntityRepositoryMapping.For(domain.Orders)
+             .Table("public", "cohesive_orders").Identity(x => x.Id, "order_id")
+             .Partition(x => x.Partition, "partition_key").Column(x => x.Status, "status")
+-            .Column(x => x.ShippingHold, "shipping_hold").Column(x => x.Remaining, "remaining").Build();
++            .Column(x => x.ShippingHold, "shipping_hold").Column(x => x.Remaining, "remaining")
++            .Column(x => x.Released, "released").Build();
+         Reservations = PostgresEntityRepositoryMapping.For(domain.Reservations)
+             .Table("public", "cohesive_reservations").Identity(x => x.Id, "reservation_id")
+             .Partition(x => x.Partition, "partition_key").Column(x => x.OrderId, "order_id")
+--- a/src/Fulfillment.Application/ShippingState.cs
++++ b/src/Fulfillment.Application/ShippingState.cs
+@@ -2,10 +2,10 @@
+ 
+ namespace Fulfillment.Application;
+ 
+-public sealed record ShippingState(string Id, string Status, bool Held, int Remaining)
++public sealed record ShippingState(string Id, string Status, bool Held, int Remaining, int Released)
+ {
+     public static ShippingState From(Order order) =>
+-        new(order.Id, order.Status.ToString(), order.ShippingHold, order.Remaining);
++        new(order.Id, order.Status.ToString(), order.ShippingHold, order.Remaining, order.Released);
+ }
+ 
+ public sealed class ShippingQuantityInput : IEndpointFilter

@@ -15,6 +15,8 @@ The [async availability evolution](async-availability/README.md) exercises worke
 
 The [offline lifecycle sequence pilot](lifecycle-sequences/README.md) compares multi-command test suites on matched order defects.
 
+The [full-stack held-order pilot](full-stack/README.md) carries one application and database from partial release toward planning and recovery.
+
 ## Run and verify
 
 Each condition contains its own setup README, public contract, schemas, package

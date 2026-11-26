@@ -12,3 +12,25 @@ Carry one Cohesive application and its database forward. Start from cohesive-eva
 | 5 | Interrupt and resume | Recover an acknowledged operation without duplicating shipment. The held remainder, view and discovery agree after recovery. |
 
 The Step 1 allowance counts unshipped units approved while a hold remains active. Unpack/repack preserves it. A whole-order release makes all remaining units shippable. Shipping the final unit moves the order to Shipped. Each step inherits the previous working application; fresh grading checks all earlier obligations. Future steps have their own implementation PRs.
+
+## Running the first evolution
+
+[Path tracker #71](https://github.com/cohesivesystems/cohesive-evals/issues/71) · [Partial release #72](https://github.com/cohesivesystems/cohesive-evals/issues/72)
+
+Step 0 is checkpoint commit `6232419`. Its host delta binds shipping commands and maps the existing hold and remaining quantity fields to PostgreSQL. The setup seed can supply a multi-unit order. The original public create route still creates a one-unit order.
+
+From the repository root, run the live migration check in a fresh directory with Python 3.13, .NET 10, and the pinned PostgreSQL Docker image available locally.
+
+```sh
+PYTHONPATH=. python3.13 -B cross-layer/order-fulfillment/full-stack/verify.py /tmp/full-stack-release-run
+```
+
+The verifier seeds a Submitted three-unit order through the old application, packs and holds it over HTTP, and restarts the old host. It checks the old schema, runs the migration twice on the same database, and starts the new application without reseeding. It also starts the evolved application against a separate empty database and creates an order through the public API. The clean lifecycle oracle runs 130 paths against each version. A previously applied full release and repeated hold retain their original semantics.
+
+To materialize the carry-forward Step 1 application separately:
+
+```sh
+PYTHONPATH=. python3.13 -B cross-layer/order-fulfillment/full-stack/build.py /tmp/full-stack-step1 --partial-release
+```
+
+The runnable host project is under `cohesive/src/Fulfillment.Application` in the output. For an existing Step 0 database, stop that host and apply [migrate.sql](partial-release/migrate.sql) before launching Step 1. A new empty database initializes directly. `POST /orders/{id}/release-quantity` and `POST /orders/{id}/ship` accept a JSON body such as `{"quantity":1}`. `GET /orders/{id}/shipping` returns the committed state. The hold flag remains set after a quantity grant, even when the allowance covers all remaining units; only the whole-order release command clears it.
