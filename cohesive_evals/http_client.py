@@ -30,7 +30,7 @@ class HttpClient:
         except (ValueError, UnicodeError) as error:
             raise AdapterError("protocol", "HTTP response is not JSON") from error
 
-    def request_bytes(self, method, path, body=None, raw=None):
+    def request_bytes(self, method, path, body=None, raw=None, *, content_type="application/json"):
         """Return the status and exact response bytes, including bodies on HTTP errors."""
         data = (
             raw
@@ -41,7 +41,7 @@ class HttpClient:
             self.url + path,
             data=data,
             method=method,
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": content_type},
         )
         try:
             try:
