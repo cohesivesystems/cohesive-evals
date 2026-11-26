@@ -123,6 +123,9 @@ def verify(output, *, shippable=False):
             retained(folder, 'view-retains-130-lifecycle-paths', checks)
         with serve(folder, output, env) as api:
             if shippable:
+                # Startup must publish the baseline before HTTP reads, without a catch-up wait.
+                expect('first-read-sees-baseline', api.request('GET', '/orders/control/shippable'),
+                       (200, dict(orderId='control', quantity=4)), checks)
                 check_view(pg, api, 'legacy', 0, expect, checks, 'held-backfill')
                 check_view(pg, api, 'control', 4, expect, checks, 'unheld-backfill')
                 expect('unknown-view-order', api.request('GET', '/orders/missing/shippable')[0], 404, checks)

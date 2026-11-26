@@ -15,6 +15,7 @@
         "evolution-retains-130-lifecycle-paths",
         "pre-view-held-order",
         "view-retains-130-lifecycle-paths",
+        "first-read-sees-baseline",
         "shippable-held-backfill",
         "shippable-unheld-backfill",
         "unknown-view-order",

@@ -71,10 +71,15 @@ index f46833d..bfe4fc9 100644
          RelationQueryExpressionParameter<string> orderId, FulfillmentDomain domain) =>
          query.Source(domain.Orders).Where(order => order.Id == orderId.Value && order.Partition == FulfillmentStoragePolicy.LocalPartition);
 diff --git a/src/Fulfillment.Application/Program.cs b/src/Fulfillment.Application/Program.cs
-index 49c7cc8..0ad3248 100644
+index 49c7cc8..f56e507 100644
 --- a/src/Fulfillment.Application/Program.cs
 +++ b/src/Fulfillment.Application/Program.cs
-@@ -10,13 +10,29 @@ builder.Services.ConfigureHttpJsonOptions(options =>
+@@ -1,3 +1,4 @@
++using Cohesive.Adapters.Postgres;
+ using Fulfillment.Application;
+ using Npgsql;
+ using System.Text.Json.Serialization;
+@@ -10,13 +11,27 @@ builder.Services.ConfigureHttpJsonOptions(options =>
      options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
      options.SerializerOptions.RespectRequiredConstructorParameters = true;
  });
@@ -84,17 +89,15 @@ index 49c7cc8..0ad3248 100644
 +var backend = new FulfillmentBackend(database);
 +await backend.Initialize();
 +var shippable = backend.Shippable;
-+await shippable.InitializeAsync();
 +if (args.SequenceEqual(["--resync-shippable"]))
 +{
++    await shippable.InitializeAsync();
 +    Console.WriteLine(await shippable.Schedule.RequestResyncAsync());
 +    return;
 +}
-+var worker = await shippable.BindWorkerAsync(() => new Npgsql.Replication.LogicalReplicationConnection(connection),
++builder.Services.AddPostgresRowsWorker(shippable, () => new Npgsql.Replication.LogicalReplicationConnection(connection),
 +    Convert.FromBase64String(builder.Configuration["Shippable:PositionKey"]
 +        ?? throw new InvalidOperationException("Set Shippable:PositionKey for the materialization worker.")));
-+await worker.RunOnceAsync();
-+builder.Services.AddHostedService(_ => worker);
 +builder.Services.AddSingleton(database);
 +builder.Services.AddSingleton<IFulfillmentBackend>(backend);
  builder.Services.AddSingleton<OperationQueue>();
