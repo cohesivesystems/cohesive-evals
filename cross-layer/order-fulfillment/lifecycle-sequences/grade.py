@@ -78,8 +78,35 @@ def differences(folder, sequences, *, first_only=False):
     return failures
 
 
-def grade(output):
+def generate(output, *, relock=False):
+    """Run the published selector twice on an isolated clean model before loading any controls."""
+    stage = ROOT / 'replay'
+    generated = output / 'generator'
+    fixtures(generated, stage=stage, relock=relock)
+    folder = generated / 'cohesive'
+    subprocess.run(['git', 'apply', str(ROOT / 'reference/cohesive.patch')], cwd=folder, check=True)
+    suite = folder / 'Suite'
+    for name in ['Adapter.cs', 'Cases.cs']:
+        (suite / name).unlink()
+    shutil.copyfile(stage / 'Program.cs', suite / 'Program.cs')
+    compile_suite(folder)
+    command = ['dotnet', 'Suite/bin/Debug/net10.0/Suite.dll']
+    runs = [subprocess.check_output(command, cwd=folder, input=json.dumps(REQUIRED),
+                                    text=True, timeout=60) for _ in range(2)]
+    if runs[0] != runs[1]:
+        raise ValueError('Unstable SDK selection')
+    selection = json.loads(runs[0])
+    check_budget(selection['sequences'])
+    if len(selection['sequences']) != 4:
+        raise ValueError('Expected four SDK-selected sequences')
+    return selection
+
+
+def grade(output, *, replay=False, relock=False):
     """Require clean equivalence and matched control signatures before reporting any scores."""
+    selection = generate(output, relock=relock) if replay else None
+    selected = selection['sequences'] if selection else []
+    replay_controls = {}
     folder_root = output / 'fixtures'
     fixtures(folder_root, selection=True, paired=True)
     sessions = json.loads((ROOT / 'sessions.json').read_text())
@@ -102,7 +129,7 @@ def grade(output):
             raise ValueError('Unstable clean suite')
         sequences = json.loads(runs[0])['sequences']
         check_budget(sequences)
-        if differences(folder, qualification + sequences):
+        if differences(folder, qualification + sequences + selected):
             raise ValueError(f'{condition}: clean contract mismatch')
         record = report[condition] = dict(sequences=sequences, controls={})
         candidate = folder / APP / ('Domain.cs' if condition == 'conventional' else 'FulfillmentDomain.cs')
@@ -125,8 +152,17 @@ def grade(output):
                 if detected != differences(folder, sequences, first_only=True):
                     raise ValueError(f'{name}: unstable replay')
                 record['controls'][name] = detected
+                if selection:
+                    sdk_hits = differences(folder, selected, first_only=True)
+                    if sdk_hits != differences(folder, selected, first_only=True):
+                        raise ValueError(f'{name}: unstable SDK replay')
+                    if sdk_hits != replay_controls.setdefault(name, sdk_hits):
+                        raise ValueError(f'{name}: different SDK replay across frozen executors')
             finally:
                 candidate.write_text(original)
+    if selection:
+        selection['controls'] = replay_controls
+        (output / 'replay.json').write_text(json.dumps(selection, indent=2) + '\n')
     result = dict(qualificationPaths=len(qualification), conditions=report)
     (output / 'results.json').write_text(json.dumps(result, indent=2) + '\n')
 
@@ -134,4 +170,7 @@ def grade(output):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output', type=Path, help='Fresh directory for disposable builds and evidence')
-    grade(parser.parse_args().output.resolve())
+    parser.add_argument('--replay', action='store_true', help='Grade sequences selected on the clean SDK model')
+    parser.add_argument('--relock', action='store_true', help='Regenerate the selector project locks')
+    args = parser.parse_args()
+    grade(args.output.resolve(), replay=args.replay or args.relock, relock=args.relock)

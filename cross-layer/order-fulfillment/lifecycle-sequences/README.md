@@ -31,3 +31,18 @@ Run from the repository root with .NET 10 and Python 3.10 or later, using a fres
 ```sh
 PYTHONPATH=. python3.13 -B cross-layer/order-fulfillment/lifecycle-sequences/grade.py /tmp/lifecycle-sequence-run
 ```
+
+## Post-session SDK replay
+
+Assurance selected four paths totaling 24 commands within the original four-sequence, eight-steps-per-sequence limits. The required six-command scenario occupied one slot. The generator registered the public command vocabulary and executed the clean typed model from the same Submitted seed. The bounded search explored 1,916 steps and covered 36 of 266 observed decision and adjacent-decision goals. Beam pruning limited exploration. [Selector](replay/Program.cs) · [Evaluation SDK release](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-6f28ba09)
+
+| Sequence | Commands | Defects detected |
+|---|---|---|
+| 1 (required) | `Pack Ship:1 Hold Ship:2 Release Ship:2` | Multi-unit shipment debits one |
+| 2 | `Hold Pack Hold Hold Pack Ship:-1 Ship:0 Ship:1` | None |
+| 3 | `Hold Release Ship:3 Ship:4` | None |
+| 4 | `Hold Pack Pack Release Hold Unpack` | Release toggles a clear hold, unpack clears a hold, unpack rejects a held order |
+
+Both original executors reproduced the same four detections. The SDK missed the final-single-unit rejection and the repeat Pack quantity reset. The two frozen authors scored 5/6 (Stateless) and 4/6 (Cohesive). The SDK traded the Cohesive author's final-unit detection for the release defect. In sequence 3 all four commands are rejected in Submitted. The selector rewards distinct named decisions and adjacent pairs, which can use budget on paths that never advance the order. This is a post-session replay on a previously seen panel. [Full evidence](evidence/replay.json)
+
+Append `--replay` to the qualification command above. Only the clean selector project uses the newer SDK. Both frozen submissions, executors and graded models use their original dependencies. The replay requires repeatable clean selection and equal first failures across both executors on every paired defect.

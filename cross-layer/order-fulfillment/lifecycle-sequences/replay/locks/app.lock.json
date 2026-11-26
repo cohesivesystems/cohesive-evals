@@ -1,0 +1,243 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "Cohesive.Adapters.AspNet": {
+        "type": "Direct",
+        "requested": "[0.1.0-eval.6f28ba09, 0.1.0-eval.6f28ba09]",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "OxNo/5Gzl3VRYkKMVy2B8fxTfZk3j/C9Uds3M7zoJtV8JbNhPyd3E5ViPC5Ty51HCnrXL7CCG5al3Fm0XKZzDA==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09",
+          "Cohesive.Api": "0.1.0-eval.6f28ba09",
+          "Cohesive.Api.Execution": "0.1.0-eval.6f28ba09",
+          "Cohesive.Application": "0.1.0-eval.6f28ba09",
+          "Cohesive.Host": "0.1.0-eval.6f28ba09",
+          "Cohesive.Identity": "0.1.0-eval.6f28ba09",
+          "Cohesive.Processes": "0.1.0-eval.6f28ba09",
+          "Cohesive.Relations": "0.1.0-eval.6f28ba09",
+          "Cohesive.Storage": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Adapters.Postgres.Services": {
+        "type": "Direct",
+        "requested": "[0.1.0-eval.6f28ba09, 0.1.0-eval.6f28ba09]",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "7tuxmW7Z8esclDk4JSwdkeQctAHYLbzceDFEQDi31w1YwNakUbXLOIXAmO/LBLthAbkYI1I8BO+ffHCZSH9CPQ==",
+        "dependencies": {
+          "Cohesive.Adapters.Postgres.Infra": "0.1.0-eval.6f28ba09",
+          "Cohesive.Api.Execution": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Analyzers": {
+        "type": "Direct",
+        "requested": "[0.1.0-eval.6f28ba09, 0.1.0-eval.6f28ba09]",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "o8c3rVb6ux71o1GEgSK6hN6IB+58hKWbJIK9izRp95mxRE3rJyXlzHg2jP3DX00xzXdA5AwOmol6w12MiaC2ag=="
+      },
+      "Npgsql": {
+        "type": "Direct",
+        "requested": "[10.0.3, 10.0.3]",
+        "resolved": "10.0.3",
+        "contentHash": "7nb5YzXuvWWJxB0J8DiyL3we+X4FOctZrt0fIBnucOIaIevFEEwGQVZKtiu9olXdlNAK1eNgqSral6r/jlhI4w=="
+      },
+      "Cohesive": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "CEBOS8+Rp6woUIOtOlyiVQXZgjsVv0MltJlk1QdWHyFR9eywcy1aHANOYD8VzbZd53Kb/SB3WWw7yZM97UdDfw==",
+        "dependencies": {
+          "Microsoft.Extensions.AsyncState": "10.0.0"
+        }
+      },
+      "Cohesive.Adapters.Postgres": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "dD5N0SaxRKALvBzUlFt5Gg53V5Z7z5NN3bpgaYdIZ6nrDVS3U/IpRyixtGa7zeY5OwpjwPw73rT5Rxh9xrTXoQ==",
+        "dependencies": {
+          "Cohesive.Adapters.Sql": "0.1.0-eval.6f28ba09",
+          "Cohesive.Processes.Distribution": "0.1.0-eval.6f28ba09",
+          "Cohesive.Relations": "0.1.0-eval.6f28ba09",
+          "Cohesive.Storage": "0.1.0-eval.6f28ba09",
+          "Npgsql": "10.0.3"
+        }
+      },
+      "Cohesive.Adapters.Postgres.Infra": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "F1n5uOdjJR0St2u0qVpPfP7RlAvws6BGj2eQ5+XlG/4I68D6FaRNw+s+HAJTRWYtENSlGJcpSzMOb4cdNja2Ig==",
+        "dependencies": {
+          "Cohesive.Adapters.Postgres": "0.1.0-eval.6f28ba09",
+          "Cohesive.Relations.Infra": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Adapters.Sql": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "EWVS4XslKaHMoN7idZP+eVMMN7+mwD8E+BwMFptHSJd4gi0n38Ge7ISBTy27eyCV6768zje18Rtb7IP8iFVpTg==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Api": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "FDS9AI5TqnVn/u29ANGxmnzx6vXLK93dE6O5+39FSC70E4Be1jQZroNBaPBWQA2+FbCUbNr3rkhpa9nXQEX63w==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09",
+          "Cohesive.Relations": "0.1.0-eval.6f28ba09",
+          "Cohesive.Transitions": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Api.Execution": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "r7q+YIanGqEnubSvUTm1PchJ4Kgm2221PoXSO7iZNigdkCeiPRHwuzKc+lvYZBMRbBgilafiSjfyFAZRFNP8Hw==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09",
+          "Cohesive.Api": "0.1.0-eval.6f28ba09",
+          "Cohesive.Identity": "0.1.0-eval.6f28ba09",
+          "Cohesive.Processes": "0.1.0-eval.6f28ba09",
+          "Cohesive.Storage": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Application": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "/UKgPpM8rn59U7pt18MT7mjlfv5IcX8fD0tQzO4SiSAp4qYcZi8Bzr8/f9M0TwgHHp0fjd0XP9xYbXHiWYmwyA==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09",
+          "Cohesive.Api.Execution": "0.1.0-eval.6f28ba09",
+          "Cohesive.Infra": "0.1.0-eval.6f28ba09",
+          "Cohesive.Processes": "0.1.0-eval.6f28ba09",
+          "Cohesive.Relations": "0.1.0-eval.6f28ba09",
+          "Cohesive.Storage": "0.1.0-eval.6f28ba09",
+          "Cohesive.Transitions": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Cli": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "KPxgpSLJ3vWGrXW2RXoB2ywtxivixlh3/XA1BCoqKhGqq7HMdJYFb7JFxfXI/tn/IPnJTxgZGcQ6a5PbCYAStw==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09",
+          "Cohesive.Configuration": "0.1.0-eval.6f28ba09",
+          "System.CommandLine": "2.0.5"
+        }
+      },
+      "Cohesive.Configuration": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "5dXxaiYZL7TjJeLh3Nxi1tHZLuz82wva73kMr89wy4H7gTooXkR93hG/ymJchlWeS94HCcoEbKh+wqIQxiYztw==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Host": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "oa5JbDcCjBTRI2HiaABAmpqPkGQdabedPBE5+s18QxJr7rn1mH5+GcezMHKmvIkS2aWo+dI5NQreHdlslCjtww==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09",
+          "Cohesive.Api.Execution": "0.1.0-eval.6f28ba09",
+          "Cohesive.Cli": "0.1.0-eval.6f28ba09",
+          "Cohesive.Configuration": "0.1.0-eval.6f28ba09",
+          "Cohesive.Processes": "0.1.0-eval.6f28ba09",
+          "Cohesive.Storage": "0.1.0-eval.6f28ba09",
+          "System.CommandLine": "2.0.5"
+        }
+      },
+      "Cohesive.Identity": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "CVfg/94GmO9YpC4BcUQDiqv9H0cG5/ziARqPIcfcpoK1zzab/PQUiSd/MpNQ8O6jDD8hFsk3jzUX9x2zVazYyA==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09",
+          "Cohesive.Relations": "0.1.0-eval.6f28ba09",
+          "Cohesive.Storage": "0.1.0-eval.6f28ba09",
+          "Cohesive.Transitions": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Infra": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "dYZFC9EZJkm5LnKSol4JqY01K0WX3O0vcZwM5WLoF+4eibrx7BwnOF6BZwLE8LFLBvsxs4o0pGs1vG9ttzpAMA==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Processes": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "W0dF/sV5mR7tyqQB0aL7pgOkCVVyWX/zG8h/6JcFRIM/Qm4vLS5rqK/V9pdzYAMDvUgVg3CyxOyx6fhpXhpuMA==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09",
+          "Cohesive.Relations": "0.1.0-eval.6f28ba09",
+          "Cohesive.Transitions": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Processes.Distribution": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "tWdpBQI6XU3zmvda/OJPX0ryv1O+e+Fn97mKQMb8D/4uACz8SPsc6yuVES5BizTobXaFHIDWRaai/lh4A0KTmw==",
+        "dependencies": {
+          "Cohesive.Processes": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Relations": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "kE+nmkjknCIACAtLCc9u3nVNJ7FwxZyWTORdM0MXTMalPHAoskv+JHPfrGpb54gjsIBWT7hGNunLCn4jIwT1PQ==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Relations.Infra": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "xd2fG9yy9Kwul6fCAo9GwD7LxsinW2pV7C3aAwkfQV+NM1yxTeKCKQJKDt2WRABGHxobEcFKxvfCqkveflO/yQ==",
+        "dependencies": {
+          "Cohesive.Infra": "0.1.0-eval.6f28ba09",
+          "Cohesive.Relations": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Storage": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "A5EFnh2hoexLpzheF/sa/7UgDXkWd8GMLa6DkrnpWlvg6Rm9gBBqNgn/+bJNzjF9YUmM3ouK7iQZTikMxBrERA==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09",
+          "Cohesive.Processes": "0.1.0-eval.6f28ba09",
+          "Cohesive.Relations": "0.1.0-eval.6f28ba09",
+          "Cohesive.Transitions": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Cohesive.Transitions": {
+        "type": "Transitive",
+        "resolved": "0.1.0-eval.6f28ba09",
+        "contentHash": "hDasrR9HJXSFKoPTu8l3VDUDcbxVGaJ3WYCriXTULRVT1Y8umIKeE+Ffy4CwvE68fz1oEXVWYs3Y3lUH7i/4hw==",
+        "dependencies": {
+          "Cohesive": "0.1.0-eval.6f28ba09",
+          "Cohesive.Relations": "0.1.0-eval.6f28ba09"
+        }
+      },
+      "Microsoft.Extensions.AsyncState": {
+        "type": "Transitive",
+        "resolved": "10.0.0",
+        "contentHash": "jzC9xdHiJF3vtxbP4ySqiOXDDwk45FEU6xrYXwBOqJY8xVkO7w6vfVT1Zgjt/T/lHf3TDZzcZdCu57PP8s8bww==",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.AutoActivation": "10.0.0"
+        }
+      },
+      "Microsoft.Extensions.DependencyInjection.AutoActivation": {
+        "type": "Transitive",
+        "resolved": "10.0.0",
+        "contentHash": "5t17Z77ysTmEla9/xUiOJLYLc8/9OyzlZJRxjTaSyiCi0mEroR0PwldKZsfwFLUOMSaNP6vngptYFbw7stO0rw=="
+      },
+      "System.CommandLine": {
+        "type": "Transitive",
+        "resolved": "2.0.5",
+        "contentHash": "2XtWAPk1G6arpe3OCFNrYYuf6iIboznxs2elJSGgd8e0euou7LfGYFon6hBEfDWNtOLr0M3+oUVgy1a5EGa41A=="
+      }
+    }
+  }
+}
