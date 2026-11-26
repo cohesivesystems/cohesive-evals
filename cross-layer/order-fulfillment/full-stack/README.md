@@ -25,7 +25,7 @@ From the repository root, run the live migration check in a fresh directory with
 PYTHONPATH=. python3.13 -B cross-layer/order-fulfillment/full-stack/verify.py /tmp/full-stack-release-run
 ```
 
-The verifier seeds a Submitted three-unit order through the old application, packs and holds it over HTTP, and restarts the old host. It checks the old schema, runs the migration twice on the same database, and starts the new application without reseeding. It also starts the evolved application against a separate empty database and creates an order through the public API. The clean lifecycle oracle runs 130 paths against each version. A previously applied full release and repeated hold retain their original semantics.
+The verifier seeds a Submitted three-unit order through the old application, packs and holds it over HTTP, and restarts the old host. The new host must exit during schema preparation with `postgres.schema.columnMismatch` naming `cohesive_orders.released`. The verifier then runs the migration twice on the same database, and starts the new application without reseeding. It also starts the evolved application against a separate empty database and creates an order through the public API. The clean lifecycle oracle runs 130 paths against each version. Step 0 uses the frozen executor. Step 1 uses the SDK sequence runner with the evolved typed outcomes.
 
 To materialize the carry-forward Step 1 application separately:
 
@@ -34,3 +34,5 @@ PYTHONPATH=. python3.13 -B cross-layer/order-fulfillment/full-stack/build.py /tm
 ```
 
 The runnable host project is under `cohesive/src/Fulfillment.Application` in the output. For an existing Step 0 database, stop that host and apply [migrate.sql](partial-release/migrate.sql) before launching Step 1. A new empty database initializes directly. `POST /orders/{id}/release-quantity` and `POST /orders/{id}/ship` accept a JSON body such as `{"quantity":1}`. `GET /orders/{id}/shipping` returns the committed state. The hold flag remains set after a quantity grant, even when the allowance covers all remaining units; only the whole-order release command clears it.
+
+Step 1 uses [SDK a93e444e](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-a93e444e). Both quantity commands declare `.FromBody()` and map typed rejection cases. Nonpositive quantities return HTTP 400; over-release, holds and lifecycle conflicts return HTTP 409 with domain-specific Problem Details codes. Partial release has a dedicated Packed-to-Packed edge. Authored revisions convey compatibility intent; the canonical fingerprint identifies exact content. [Revision drift tooling](https://github.com/cohesivesystems/cohesive/issues/602).

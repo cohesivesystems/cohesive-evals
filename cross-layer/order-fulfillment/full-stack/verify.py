@@ -6,8 +6,9 @@ import os
 from pathlib import Path
 import runpy
 import shutil
+import subprocess
 
-from build import APP, LIFECYCLE, ROOT, build, compile_suite, evolve
+from build import HOST_DLL, LIFECYCLE, ROOT, build, compile_suite
 from cohesive_evals.http_client import HttpClient
 from cohesive_evals.postgres import verification_run
 from cohesive_evals.runtime import capture, host, kestrel_url, run
@@ -34,7 +35,7 @@ def serve(folder, output, env):
     """Launch the selected compiled host against the carried database until context exit."""
     log = output / 'host.log'
     offset = log.stat().st_size if log.exists() else 0
-    with host(['dotnet', str(folder / APP / 'bin/Debug/net10.0/Fulfillment.Application.dll'),
+    with host(['dotnet', str(folder / HOST_DLL),
                '--urls', 'http://127.0.0.1:0'], folder, output, env) as process:
         yield HttpClient(kestrel_url(process, log, offset))
 
@@ -53,15 +54,22 @@ def shipping(client, command='shipping', quantity=None):
                           None if quantity is None else {'quantity': quantity})
 
 
-def retained(folder, label, checks):
-    """Check the frozen executor against #70's independent oracle on every reachable state/command."""
+def problem_code(client, command, quantity):
+    """Read the declared status and domain code from the public Problem Details response."""
+    status, problem = shipping(client, command, quantity)
+    return status, problem.get('code')
+
+
+def retained(folder, label, checks, *, original=False):
+    """Check each version's typed executor against #70's independent lifecycle oracle."""
     prior = runpy.run_path(str(LIFECYCLE / 'grade.py'))
     suite = folder / 'Suite'
-    for name in ['Adapter.cs', 'Cases.cs']:
-        (suite / name).unlink(missing_ok=True)
-    shutil.copyfile(LIFECYCLE / 'Program.cs', suite / 'Program.cs')
-    shutil.copyfile(LIFECYCLE / 'submissions/cohesive.cs', suite / 'Submission.cs')
-    compile_suite(folder)
+    if original:
+        for name in ['Adapter.cs', 'Cases.cs']:
+            (suite / name).unlink(missing_ok=True)
+        shutil.copyfile(LIFECYCLE / 'Program.cs', suite / 'Program.cs')
+        shutil.copyfile(LIFECYCLE / 'submissions/cohesive.cs', suite / 'Submission.cs')
+        compile_suite(folder)
     expect(label, prior['differences'](folder, prior['coverage']()), [], checks)
 
 
@@ -70,15 +78,15 @@ def verify(output):
     with verification_run(output, 'partial-release', Mismatch) as pg:
         checks = []
         folder = build(output / 'checkpoint')
-        retained(folder, 'checkpoint-retains-130-lifecycle-paths', checks)
+        retained(folder, 'checkpoint-retains-130-lifecycle-paths', checks, original=True)
         env = dict(os.environ, ConnectionStrings__Orders=f'Host=127.0.0.1;Port={pg.port};Database=postgres;Username=postgres;Password=fixture-only')
         seed = output / 'legacy.json'
         seed.write_text(json.dumps(dict(orders=[dict(id='legacy', status='Submitted', remaining=3)],
                                         inventory=[], reservations=[])))
-        run('dotnet', str(folder / APP / 'bin/Debug/net10.0/Fulfillment.Application.dll'), '--seed', str(seed),
+        run('dotnet', str(folder / HOST_DLL), '--seed', str(seed),
             env=dict(env, FULFILLMENT_SETUP='1'))
         denied = (409, {'code': 'NotShippable'})
-        invalid = (409, {'code': 'NotReleasable'})
+
         with serve(folder, output, env) as api:
             expect('legacy-pack', shipping(api, 'pack'), (200, dict(id='legacy', status='Packed')), checks)
             expect('legacy-hold', shipping(api, 'hold'), (200, state(3, True)), checks)
@@ -88,35 +96,43 @@ def verify(output):
         old_column = capture('docker', 'exec', pg.container, 'psql', '-U', 'postgres', '-Atc',
                              "SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name='cohesive_orders' AND column_name='released'")
         expect('legacy-schema-has-no-allowance', old_column, '0', checks)
+        folder = build(output / 'evolved', evolved=True)
+        startup = subprocess.run(['dotnet', str(folder / HOST_DLL), '--urls', 'http://127.0.0.1:0'],
+                                 cwd=folder, env=env, capture_output=True, text=True, timeout=15)
+        diagnostic = startup.stdout + startup.stderr
+        expect('unmigrated-host-rejects-mapping-at-startup',
+               startup.returncode != 0 and all(part in diagnostic for part in
+               ('postgres.schema.columnMismatch', 'cohesive_orders', 'column released')), True, checks)
         migration = (ROOT / 'partial-release/migrate.sql').read_text()
         for _ in range(2):
             run('docker', 'exec', '-i', pg.container, 'psql', '-U', 'postgres', '-v', 'ON_ERROR_STOP=1',
                 input=migration, text=True)
-        evolve(folder)
         retained(folder, 'evolution-retains-130-lifecycle-paths', checks)
         with serve(folder, output, env) as api:
             expect('same-legacy-row-defaults-zero', shipping(api), (200, state(3, True, 0)), checks)
-            expect('zero-release', shipping(api, 'release-quantity', 0), invalid, checks)
-            expect('negative-release', shipping(api, 'release-quantity', -1), invalid, checks)
+            expect('malformed-body', api.request_bytes('POST', '/orders/legacy/release-quantity', raw=b'{')[0], 400, checks)
+            expect('zero-ship', problem_code(api, 'ship', 0), (400, 'orders.ship.InvalidQuantity'), checks)
+            expect('zero-release', problem_code(api, 'release-quantity', 0), (400, 'orders.release.InvalidQuantity'), checks)
+            expect('negative-release', problem_code(api, 'release-quantity', -1), (400, 'orders.release.InvalidQuantity'), checks)
             expect('partial-release', shipping(api, 'release-quantity', 1), (200, state(3, True, 1)), checks)
-            expect('over-release', shipping(api, 'release-quantity', 2147483647), invalid, checks)
-            expect('over-ship', shipping(api, 'ship', 2), denied, checks)
+            expect('over-release', problem_code(api, 'release-quantity', 2147483647), (409, 'orders.release.ExceedsHeldQuantity'), checks)
+            expect('over-ship', problem_code(api, 'ship', 2), (409, 'orders.ship.Held'), checks)
             expect('rejections-preserve-allowance', shipping(api), (200, state(3, True, 1)), checks)
         with serve(folder, output, env) as api:
             expect('restart-preserves-allowance', shipping(api), (200, state(3, True, 1)), checks)
             expect('consume-allowance', shipping(api, 'ship', 1), (200, state(2, True, 0)), checks)
-            expect('held-remainder-cannot-ship', shipping(api, 'ship', 1), denied, checks)
+            expect('held-remainder-cannot-ship', problem_code(api, 'ship', 1), (409, 'orders.ship.Held'), checks)
             expect('release-again', shipping(api, 'release-quantity', 1), (200, state(2, True, 1)), checks)
             expect('unpack', shipping(api, 'unpack'), (200, dict(id='legacy', status='Submitted')), checks)
-            expect('cannot-release-while-unpacked', shipping(api, 'release-quantity', 1), invalid, checks)
+            expect('cannot-release-while-unpacked', problem_code(api, 'release-quantity', 1), (409, 'orders.release.NotPacked'), checks)
             expect('repack', shipping(api, 'pack'), (200, dict(id='legacy', status='Packed')), checks)
             expect('repack-preserves-allowance', shipping(api), (200, state(2, True, 1)), checks)
             expect('additive-release', shipping(api, 'release-quantity', 1), (200, state(2, True, 2)), checks)
             expect('hold-revokes-allowance', shipping(api, 'hold'), (200, state(2, True, 0)), checks)
             expect('full-release', shipping(api, 'release'), (200, state(2, False, 0)), checks)
-            expect('cannot-release-unheld', shipping(api, 'release-quantity', 1), invalid, checks)
+            expect('cannot-release-unheld', problem_code(api, 'release-quantity', 1), (409, 'orders.release.NotHeld'), checks)
             expect('finish', shipping(api, 'ship', 2), (200, state(0, False, 0, 'Shipped')), checks)
-            expect('terminal-replay-rejected', shipping(api, 'ship', 1), denied, checks)
+            expect('terminal-replay-rejected', problem_code(api, 'ship', 1), (409, 'orders.ship.NotShippable'), checks)
             expect('terminal-state-preserved', shipping(api), (200, state(0, False, 0, 'Shipped')), checks)
         capture('docker', 'exec', pg.container, 'createdb', '-U', 'postgres', 'fresh')
         fresh = dict(env, ConnectionStrings__Orders=env['ConnectionStrings__Orders'].replace('Database=postgres;', 'Database=fresh;'))

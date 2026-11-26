@@ -1,13 +1,16 @@
 """Materialize the pinned lifecycle host at either full-stack checkpoint."""
 import argparse
 from pathlib import Path
+import runpy
+import shutil
 import subprocess
-import sys
 
 ROOT = Path(__file__).resolve().parent
 LIFECYCLE = ROOT.parent / 'lifecycle-sequences'
-sys.path.insert(0, str(ROOT.parent / 'partial-shipping'))
-from fixture import APP, compile_suite, fixtures
+shipping = runpy.run_path(str(ROOT.parent / 'partial-shipping/fixture.py'))
+APP = shipping['APP']
+HOST_DLL = APP / 'bin/Debug/net10.0/Fulfillment.Application.dll'
+compile_suite = shipping['compile_suite']
 
 
 def overlay(folder, patch):
@@ -15,23 +18,20 @@ def overlay(folder, patch):
     subprocess.run(['git', 'apply', str(patch)], cwd=folder, check=True)
 
 
-def build(output, evolved=False):
+def build(output, evolved=False, *, relock=False):
     """Build a disposable checkpoint host using the lifecycle replay SDK and lockfiles."""
-    fixtures(output, stage=LIFECYCLE / 'replay')
+    stage = ROOT / 'partial-release' if evolved else LIFECYCLE / 'replay'
+    shipping['fixtures'](output, stage=stage, relock=relock)
     folder = output / 'cohesive'
     overlay(folder, LIFECYCLE / 'reference/cohesive.patch')
     overlay(folder, ROOT / 'checkpoint/host.patch')
     if evolved:
-        evolve(folder)
-    else:
-        compile_suite(folder)
-    return folder
-
-
-def evolve(folder):
-    """Upgrade the existing checkout, preserving its external PostgreSQL database."""
-    overlay(folder, ROOT / 'partial-release/host.patch')
+        overlay(folder, ROOT / 'partial-release/host.patch')
+        for name in ['Cases.cs', 'Adapter.cs']:
+            (folder / 'Suite' / name).unlink()
+        shutil.copyfile(ROOT / 'partial-release/SequenceRunner.cs', folder / 'Suite/Program.cs')
     compile_suite(folder)
+    return folder
 
 
 if __name__ == '__main__':
