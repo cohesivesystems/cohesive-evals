@@ -1,0 +1,112 @@
+diff --git a/src/Fulfillment.Application/Contracts.cs b/src/Fulfillment.Application/Contracts.cs
+index a886fda..03d61c8 100644
+--- a/src/Fulfillment.Application/Contracts.cs
++++ b/src/Fulfillment.Application/Contracts.cs
+@@ -1,5 +1,6 @@
+ namespace Fulfillment.Application;
+
++public sealed record ShippableQuantity(string OrderId, int Quantity);
+ public sealed record OrderSummary(string Id, string Status);
+ public sealed record OrderCreated(string Id);
+ public sealed record ReservationView(string Id, string Sku, int Quantity, int AvailableStock);
+diff --git a/src/Fulfillment.Application/FulfillmentBackend.cs b/src/Fulfillment.Application/FulfillmentBackend.cs
+index 5eeb59b..d27d6af 100644
+--- a/src/Fulfillment.Application/FulfillmentBackend.cs
++++ b/src/Fulfillment.Application/FulfillmentBackend.cs
+@@ -17,6 +17,7 @@ namespace Fulfillment.Application;
+
+ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillmentBackend
+ {
++    public PostgresAsyncRows<ShippableQuantity> Shippable { get; private set; } = null!;
+     readonly FulfillmentDomain domain = new();
+     IEntityRepository<Order> orders = null!;
+     IEntityRepository<InventoryItem> inventory = null!;
+@@ -28,7 +29,7 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+     public async Task Initialize()
+     {
+         var mappings = new FulfillmentPostgresMappings(domain);
+-        var bindings = PostgresPersistenceBindings.Define(new("orders"), storage =>
++        var bindings = PostgresPersistenceBindings.Define(new(new NpgsqlConnectionStringBuilder(database.ConnectionString).Database!), storage =>
+         {
+             storage.Schema(PostgresSchemaInitialization.CreateIfMissing, schema =>
+             {
+@@ -53,7 +54,11 @@ public sealed class FulfillmentBackend(NpgsqlDataSource database) : IFulfillment
+         reservations = persistence.Repository(domain.Reservations, transitionReceipts: receiptStorage);
+         // Public row/serialized-byte limits are enforced by shared ReadResults.
+         // Adapter decoded-row limits must not reject an otherwise allowed response.
+-        details = persistence.Query(new FulfillmentQueries(domain).OrderDetails, maximumRows: int.MaxValue - 1, maximumBytes: long.MaxValue);
++        var queries = new FulfillmentQueries(domain);
++        Shippable = persistence.MaterializeAsyncRows(queries.Shippable, "order_shippable",
++            new(new(FulfillmentStoragePolicy.LogicalPartition), FulfillmentDomain.PartitionField, FulfillmentStoragePolicy.LocalPartition),
++            new() { ScheduleName = "shippable" });
++        details = persistence.Query(queries.OrderDetails, maximumRows: int.MaxValue - 1, maximumBytes: long.MaxValue);
+         var process = new FulfillmentProcess(domain);
+         hosted = Service.Define(new("fulfillment"), new("1"), process.Provenance)
+             .Use(new ServiceDependencies().Process(process))
+diff --git a/src/Fulfillment.Application/FulfillmentQueries.cs b/src/Fulfillment.Application/FulfillmentQueries.cs
+index f46833d..bfe4fc9 100644
+--- a/src/Fulfillment.Application/FulfillmentQueries.cs
++++ b/src/Fulfillment.Application/FulfillmentQueries.cs
+@@ -12,6 +12,13 @@ public sealed class FulfillmentQueries : QueryModel
+     /// <param name="domain">Shared entity and relationship authority.</param>
+     public FulfillmentQueries(FulfillmentDomain domain)
+     {
++        var view = RelationQuery.Expression();
++        var localOrders = view.Source(domain.Orders).Where(order => order.Partition == FulfillmentStoragePolicy.LocalPartition);
++        Shippable = view.RowsByRoot<ShippableQuantity>().From(localOrders)
++            .Key(localOrders, order => order.Id, row => row.OrderId)
++            .Field(row => row.Quantity, localOrders, order => order.Status == OrderStatus.Packed
++                ? (order.ShippingHold ? order.Released : order.Remaining) : 0)
++            .BuildRows(new("fulfillment/shippable"));
+         var queries = Queries.WithInput<string>("orderId");
+         OrderDetails = queries.SingleOrDefault<OrderDetails>("fulfillment/order-details", (query, orderId, output) =>
+         {
+@@ -48,6 +55,8 @@ public sealed class FulfillmentQueries : QueryModel
+     /// <summary>Canonical query shared by native and composed registrations.</summary>
+     public RelationQuery<string, ReservationAvailability[]> ReservationAvailability { get; }
+
++    public RootedRowProjection<ShippableQuantity> Shippable { get; }
++
+     static RelationQueryExpressionBoundNode<FilterQueryNode, Order> OrdersById(RelationQueryExpressionAuthoring query,
+         RelationQueryExpressionParameter<string> orderId, FulfillmentDomain domain) =>
+         query.Source(domain.Orders).Where(order => order.Id == orderId.Value && order.Partition == FulfillmentStoragePolicy.LocalPartition);
+diff --git a/src/Fulfillment.Application/Program.cs b/src/Fulfillment.Application/Program.cs
+index 49c7cc8..f56e507 100644
+--- a/src/Fulfillment.Application/Program.cs
++++ b/src/Fulfillment.Application/Program.cs
+@@ -1,3 +1,4 @@
++using Cohesive.Adapters.Postgres;
+ using Fulfillment.Application;
+ using Npgsql;
+ using System.Text.Json.Serialization;
+@@ -10,13 +11,27 @@ builder.Services.ConfigureHttpJsonOptions(options =>
+     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+     options.SerializerOptions.RespectRequiredConstructorParameters = true;
+ });
+-builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(connection));
+-builder.Services.AddSingleton<IFulfillmentBackend, FulfillmentBackend>();
++await using var database = NpgsqlDataSource.Create(connection);
++var backend = new FulfillmentBackend(database);
++await backend.Initialize();
++var shippable = backend.Shippable;
++if (args.SequenceEqual(["--resync-shippable"]))
++{
++    await shippable.InitializeAsync();
++    Console.WriteLine(await shippable.Schedule.RequestResyncAsync());
++    return;
++}
++builder.Services.AddPostgresRowsWorker(shippable, () => new Npgsql.Replication.LogicalReplicationConnection(connection),
++    Convert.FromBase64String(builder.Configuration["Shippable:PositionKey"]
++        ?? throw new InvalidOperationException("Set Shippable:PositionKey for the materialization worker.")));
++builder.Services.AddSingleton(database);
++builder.Services.AddSingleton<IFulfillmentBackend>(backend);
+ builder.Services.AddSingleton<OperationQueue>();
+ builder.Services.AddHostedService(provider => provider.GetRequiredService<OperationQueue>());
+ HostSetup.Configure(builder.Services);
+ var app = builder.Build();
+-await app.Services.GetRequiredService<IFulfillmentBackend>().Initialize();
++app.MapGet("/orders/{id}/shippable", async (string id, CancellationToken ct) =>
++    (await shippable.ReadAsync(id, ct)).SingleOrDefault() is { } row ? Results.Ok(row) : Results.NotFound());
+ if (builder.Configuration["seed"] is { } seedFile)
+ {
+     if (Environment.GetEnvironmentVariable("FULFILLMENT_SETUP") != "1")

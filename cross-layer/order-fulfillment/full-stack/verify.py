@@ -1,5 +1,6 @@
 """Verify the old-to-new PostgreSQL upgrade through real hosts and the retained lifecycle oracle."""
 import argparse
+import base64
 from contextlib import contextmanager
 import json
 import os
@@ -8,6 +9,7 @@ import runpy
 import shutil
 import subprocess
 
+from shippable_checks import persisted_version, check_view, prove_resync
 from build import HOST_DLL, LIFECYCLE, ROOT, build, compile_suite
 from cohesive_evals.http_client import HttpClient
 from cohesive_evals.postgres import verification_run
@@ -73,15 +75,21 @@ def retained(folder, label, checks, *, original=False):
     expect(label, prior['differences'](folder, prior['coverage']()), [], checks)
 
 
-def verify(output):
+def verify(output, *, shippable=False):
     """Create the legacy row, migrate in place, exercise release boundaries and verify restart."""
-    with verification_run(output, 'partial-release', Mismatch) as pg:
+    case = 'shippable' if shippable else 'partial-release'
+    server_args = ('-c', 'wal_level=logical') if shippable else ()
+    with verification_run(output, case, Mismatch, server_args=server_args) as pg:
         checks = []
         folder = build(output / 'checkpoint')
         retained(folder, 'checkpoint-retains-130-lifecycle-paths', checks, original=True)
         env = dict(os.environ, ConnectionStrings__Orders=f'Host=127.0.0.1;Port={pg.port};Database=postgres;Username=postgres;Password=fixture-only')
         seed = output / 'legacy.json'
-        seed.write_text(json.dumps(dict(orders=[dict(id='legacy', status='Submitted', remaining=3)],
+        orders = [dict(id='legacy', status='Submitted', remaining=3)]
+        if shippable:
+            env['Shippable__PositionKey'] = base64.b64encode(os.urandom(32)).decode()
+            orders.append(dict(id='control', status='Packed', remaining=4))
+        seed.write_text(json.dumps(dict(orders=orders,
                                         inventory=[], reservations=[])))
         run('dotnet', str(folder / HOST_DLL), '--seed', str(seed),
             env=dict(env, FULFILLMENT_SETUP='1'))
@@ -108,7 +116,20 @@ def verify(output):
             run('docker', 'exec', '-i', pg.container, 'psql', '-U', 'postgres', '-v', 'ON_ERROR_STOP=1',
                 input=migration, text=True)
         retained(folder, 'evolution-retains-130-lifecycle-paths', checks)
+        if shippable:
+            with serve(folder, output, env) as api:
+                expect('pre-view-held-order', shipping(api), (200, state(3, True, 0)), checks)
+            folder = build(output / 'view', evolved=True, shippable=True)
+            retained(folder, 'view-retains-130-lifecycle-paths', checks)
         with serve(folder, output, env) as api:
+            if shippable:
+                # Startup must publish the baseline before HTTP reads, without a catch-up wait.
+                expect('first-read-sees-baseline', api.request('GET', '/orders/control/shippable'),
+                       (200, dict(orderId='control', quantity=4)), checks)
+                check_view(pg, api, 'legacy', 0, expect, checks, 'held-backfill')
+                check_view(pg, api, 'control', 4, expect, checks, 'unheld-backfill')
+                expect('unknown-view-order', api.request('GET', '/orders/missing/shippable')[0], 404, checks)
+                control_version = persisted_version(pg)
             expect('same-legacy-row-defaults-zero', shipping(api), (200, state(3, True, 0)), checks)
             for name, media, raw, status, code in [
                 ('malformed-body', 'application/json', b'{', 400, 'http.invalidJson'),
@@ -125,25 +146,43 @@ def verify(output):
             expect('zero-release', problem_code(api, 'release-quantity', 0), (400, 'orders.release.InvalidQuantity'), checks)
             expect('negative-release', problem_code(api, 'release-quantity', -1), (400, 'orders.release.InvalidQuantity'), checks)
             expect('partial-release', shipping(api, 'release-quantity', 1), (200, state(3, True, 1)), checks)
+            if shippable:
+                check_view(pg, api, 'legacy', 1, expect, checks, 'released')
             expect('over-release', problem_code(api, 'release-quantity', 2147483647), (409, 'orders.release.ExceedsHeldQuantity'), checks)
             expect('over-ship', problem_code(api, 'ship', 2), (409, 'orders.ship.Held'), checks)
             expect('rejections-preserve-allowance', shipping(api), (200, state(3, True, 1)), checks)
+            if shippable:
+                check_view(pg, api, 'legacy', 1, expect, checks, 'rejected')
         with serve(folder, output, env) as api:
             expect('restart-preserves-allowance', shipping(api), (200, state(3, True, 1)), checks)
+            if shippable:
+                check_view(pg, api, 'legacy', 1, expect, checks, 'restart')
             expect('consume-allowance', shipping(api, 'ship', 1), (200, state(2, True, 0)), checks)
+            if shippable:
+                check_view(pg, api, 'legacy', 0, expect, checks, 'consumed')
             expect('held-remainder-cannot-ship', problem_code(api, 'ship', 1), (409, 'orders.ship.Held'), checks)
             expect('release-again', shipping(api, 'release-quantity', 1), (200, state(2, True, 1)), checks)
             expect('unpack', shipping(api, 'unpack'), (200, dict(id='legacy', status='Submitted')), checks)
             expect('cannot-release-while-unpacked', problem_code(api, 'release-quantity', 1), (409, 'orders.release.NotPacked'), checks)
+            if shippable:
+                check_view(pg, api, 'legacy', 0, expect, checks, 'unpacked')
             expect('repack', shipping(api, 'pack'), (200, dict(id='legacy', status='Packed')), checks)
             expect('repack-preserves-allowance', shipping(api), (200, state(2, True, 1)), checks)
             expect('additive-release', shipping(api, 'release-quantity', 1), (200, state(2, True, 2)), checks)
             expect('hold-revokes-allowance', shipping(api, 'hold'), (200, state(2, True, 0)), checks)
             expect('full-release', shipping(api, 'release'), (200, state(2, False, 0)), checks)
+            if shippable:
+                check_view(pg, api, 'legacy', 2, expect, checks, 'unheld')
             expect('cannot-release-unheld', problem_code(api, 'release-quantity', 1), (409, 'orders.release.NotHeld'), checks)
             expect('finish', shipping(api, 'ship', 2), (200, state(0, False, 0, 'Shipped')), checks)
             expect('terminal-replay-rejected', problem_code(api, 'ship', 1), (409, 'orders.ship.NotShippable'), checks)
             expect('terminal-state-preserved', shipping(api), (200, state(0, False, 0, 'Shipped')), checks)
+            if shippable:
+                check_view(pg, api, 'legacy', 0, expect, checks, 'shipped')
+            if shippable:
+                check_view(pg, api, 'control', 4, expect, checks, 'unrelated')
+                expect('ordinary-updates-preserve-control-version', persisted_version(pg), control_version, checks)
+                prove_resync(pg, api, folder / HOST_DLL, env, expect, checks)
         capture('docker', 'exec', pg.container, 'createdb', '-U', 'postgres', 'fresh')
         fresh = dict(env, ConnectionStrings__Orders=env['ConnectionStrings__Orders'].replace('Database=postgres;', 'Database=fresh;'))
         with serve(folder, output, fresh) as api:
@@ -163,4 +202,6 @@ def verify(output):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output', type=Path, help='Fresh directory for logs, built host and evidence')
-    verify(parser.parse_args().output.resolve())
+    parser.add_argument('--shippable', action='store_true')
+    args = parser.parse_args()
+    verify(args.output.resolve(), shippable=args.shippable)

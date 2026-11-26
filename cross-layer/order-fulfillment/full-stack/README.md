@@ -36,3 +36,13 @@ PYTHONPATH=. python3.13 -B cross-layer/order-fulfillment/full-stack/build.py /tm
 The runnable host project is under `cohesive/src/Fulfillment.Application` in the output. For an existing Step 0 database, stop that host and apply [migrate.sql](partial-release/migrate.sql) before launching Step 1. A new empty database initializes directly. `POST /orders/{id}/release-quantity` and `POST /orders/{id}/ship` accept a JSON body such as `{"quantity":1}`. `GET /orders/{id}/shipping` returns the committed state. The hold flag remains set after a quantity grant, even when the allowance covers all remaining units; only the whole-order release command clears it.
 
 Step 1 uses [SDK 777e9e3a](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-777e9e3a). Both quantity commands declare `.FromBody()` and map typed rejection cases. Malformed JSON returns 400 with `http.invalidJson`. A non-JSON content type returns 415 with `http.unsupportedMediaType`. Nonpositive quantities return HTTP 400; over-release, holds and lifecycle conflicts return HTTP 409 with domain-specific Problem Details codes. Partial release has a dedicated Packed-to-Packed edge. Authored revisions convey compatibility intent; the canonical fingerprint identifies exact content. [Revision drift tooling](https://github.com/cohesivesystems/cohesive/issues/602).
+
+## Shippable quantity
+
+[Step 2 (#74)](https://github.com/cohesivesystems/cohesive-evals/issues/74) carries the held order from the partial-release host (`73005eff`) into a third host. A rooted relation projects one row per order. Packed orders expose their released allowance while held and their remaining quantity while unheld. All other states expose zero. An unknown order returns 404 from `GET /orders/{id}/shippable`.
+
+The host registers the target with `AddPostgresRowsWorker`. The SDK initializes it and completes the first pass before HTTP starts. The verifier reads the preexisting control order immediately. Subsequent updates are asynchronous. The verifier waits up to 20 seconds for the applied revision to catch up before comparing the public row. It checks a control order’s physical tuple version across incremental writes, then deletes its target row and requires an explicit resync to restore it from the source. The worker uses a deployment-provided `Shippable__PositionKey` and PostgreSQL logical replication. [Step 2 SDK](https://github.com/cohesivesystems/cohesive/releases/tag/eval-sdk-b1ab60fd)
+
+```sh
+PYTHONPATH=. python3.13 -B cross-layer/order-fulfillment/full-stack/verify.py --shippable /tmp/full-stack-shippable-run
+```
